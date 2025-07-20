@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { approvalApi } from "../api/approval-api";
 import { authApi } from "../api/auth-api";
 import { useAuthStore } from "../model/auth-store";
 
@@ -18,29 +19,80 @@ export const useAuth = () => {
     retry: false,
   });
 
+  // 사용자 승인 상태 확인
+  const { data: approvalStatus } = useQuery({
+    queryKey: ["auth", "approval", currentUser?.email],
+    queryFn: () => {
+      if (!currentUser?.email) throw new Error("사용자 이메일이 없습니다.");
+      return approvalApi.checkApprovalStatus(currentUser.email);
+    },
+    enabled: !!currentUser?.email,
+    retry: false,
+  });
+
   // 로그인 뮤테이션
   const signInMutation = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      authApi.signIn(email, password),
-    onSuccess: (data) => {
+    mutationFn: async ({
+      email,
+      password,
+    }: {
+      email: string;
+      password: string;
+    }) => {
+      const result = await authApi.signIn(email, password);
+      if ("error" in result) {
+        // 오류를 throw하지 말고 오류 객체 반환
+        return Promise.reject({ message: result.error });
+      }
+      return result.data;
+    },
+    onSuccess: async (data) => {
+      // 로그인 성공 후 승인 상태 확인
+      try {
+        if (!data.user.email) {
+          throw new Error("사용자 이메일이 없습니다.");
+        }
+        const approval = await approvalApi.checkApprovalStatus(data.user.email);
+        if (!approval.is_approved) {
+          throw new Error("승인되지 않은 사용자입니다. 관리자에게 문의하세요.");
+        }
+      } catch (error) {
+        console.error("승인 확인 실패:", error);
+        // 승인되지 않은 사용자는 로그아웃 처리
+        await authApi.signOut();
+        throw error;
+      }
+
       setUser(data.user);
       queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
     onError: (error) => {
-      console.error("로그인 실패:", error);
+      console.log("로그인 실패:", error);
     },
   });
 
   // 회원가입 뮤테이션
   const signUpMutation = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      authApi.signUp(email, password),
+    mutationFn: async ({
+      email,
+      password,
+    }: {
+      email: string;
+      password: string;
+    }) => {
+      const result = await authApi.signUp(email, password);
+      if ("error" in result) {
+        // 오류를 throw하지 말고 오류 객체 반환
+        return Promise.reject({ message: result.error });
+      }
+      return result.data;
+    },
     onSuccess: (data) => {
       setUser(data.user);
       queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
     onError: (error) => {
-      console.error("회원가입 실패:", error);
+      console.log("회원가입 실패:", error);
     },
   });
 
@@ -83,5 +135,7 @@ export const useAuth = () => {
     isSigningUp: signUpMutation.isPending,
     isSigningOut: signOutMutation.isPending,
     isResettingPassword: resetPasswordMutation.isPending,
+    signInMutation,
+    signUpMutation,
   };
 };

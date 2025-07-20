@@ -1,36 +1,199 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TWLN - Feature Sliced Design Next.js App
 
-## Getting Started
+Next.js 15와 Feature Sliced Design (FSD) 아키텍처를 기반으로 한 풀스택 웹 애플리케이션입니다.
 
-First, run the development server:
+## 🚀 기술 스택
+
+- **Framework**: Next.js 15 (App Router)
+- **Architecture**: Feature Sliced Design (FSD)
+- **Authentication**: Supabase Auth (SSR 지원) + 승인 시스템
+- **State Management**:
+  - Server State: TanStack Query v5
+  - Client State: Zustand
+- **Styling**: Tailwind CSS v4 + shadcn/ui
+- **Language**: TypeScript
+- **Database**: Supabase PostgreSQL (RLS 보안)
+
+## 🔐 승인 시스템
+
+MVP 버전에서는 승인된 사용자만 접근할 수 있습니다:
+
+- **회원가입**: 사용자 등록 후 승인 대기 상태
+- **로그인**: 승인된 사용자만 로그인 가능
+- **관리자 대시보드**: 사용자 승인/취소 관리
+- **Row Level Security**: 데이터베이스 레벨 보안
+
+## 📁 프로젝트 구조
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── layout.tsx         # 루트 레이아웃
+│   ├── page.tsx           # 홈페이지
+│   ├── login/             # 로그인/회원가입 페이지
+│   └── admin/             # 관리자 대시보드
+├── shared/                # 공유 레이어
+│   ├── ui/               # UI 컴포넌트 (shadcn/ui)
+│   ├── lib/              # 유틸리티 라이브러리
+│   │   ├── supabase/     # Supabase 클라이언트
+│   │   ├── providers/    # React 프로바이더
+│   │   └── stores/       # Zustand 스토어
+│   ├── api/              # API 관련 유틸리티
+│   ├── config/           # 설정 파일
+│   └── types/            # 공통 타입 정의
+│       └── auth.ts       # 승인 시스템 타입
+├── entities/              # 엔티티 레이어
+│   └── user/             # 사용자 엔티티
+├── features/              # 기능 레이어
+│   └── auth/             # 인증 기능
+│       ├── api/          # 인증 API
+│       │   ├── auth-api.ts # 기본 인증 API
+│       │   └── approval-api.ts # 승인 시스템 API
+│       ├── hooks/        # 인증 훅
+│       └── model/        # 인증 모델
+├── widgets/               # 위젯 레이어
+└── pages/                 # 페이지 레이어
+```
+
+## 🛠️ 설치 및 설정
+
+### 1. 의존성 설치
+
+```bash
+npm install
+```
+
+### 2. Supabase 프로젝트 설정
+
+1. [Supabase Dashboard](https://supabase.com/dashboard)에서 새 프로젝트 생성
+2. `supabase-setup.sql` 파일의 SQL 스크립트 실행
+3. 환경 변수 설정:
+
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### 3. 초기 관리자 설정
+
+Supabase SQL Editor에서 다음 실행:
+
+```sql
+-- 초기 관리자 계정 추가 (실제 이메일로 교체)
+INSERT INTO approved_users (email, approved_by) VALUES ('your-email@example.com', 'system');
+```
+
+### 4. 개발 서버 실행
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔧 주요 설정
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Supabase Auth SSR + 승인 시스템
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `@supabase/ssr` 패키지 사용
+- 로그인 시 승인 상태 자동 확인
+- 승인되지 않은 사용자 접근 차단
+- 관리자 대시보드를 통한 사용자 관리
 
-## Learn More
+### TanStack Query v5
 
-To learn more about Next.js, take a look at the following resources:
+- SSR 지원을 위한 `staleTime` 설정
+- React Query Devtools 포함
+- 승인 상태 실시간 동기화
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Zustand
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 클라이언트 상태 관리
+- 인증 상태 및 사용자 정보 관리
+- 타입스크립트 지원
 
-## Deploy on Vercel
+### shadcn/ui
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Tailwind CSS v4 기반
+- FSD 아키텍처에 맞게 `src/shared/ui/`에 배치
+- 재사용 가능한 컴포넌트
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📚 사용법
+
+### 인증 플로우
+
+1. **회원가입**: `/login` 페이지에서 회원가입
+2. **승인 대기**: 관리자 승인 대기 상태
+3. **관리자 승인**: `/admin` 페이지에서 사용자 승인
+4. **로그인**: 승인된 사용자만 로그인 가능
+
+### 관리자 기능
+
+```typescript
+// 관리자 대시보드 접속
+// http://localhost:3000/admin
+
+// 승인 대기 중인 사용자 목록
+// 승인된 사용자 목록
+// 사용자 승인/취소 기능
+```
+
+### 인증 사용하기
+
+```typescript
+import { useAuth } from "@/features/auth/hooks/use-auth";
+
+function MyComponent() {
+  const { user, isAuthenticated, signIn, signOut } = useAuth();
+
+  return (
+    <div>
+      {isAuthenticated ? (
+        <div>
+          <p>환영합니다, {user?.email}님!</p>
+          <button onClick={signOut}>로그아웃</button>
+        </div>
+      ) : (
+        <button
+          onClick={() =>
+            signIn({ email: "test@example.com", password: "password" })
+          }
+        >
+          로그인
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+## 🎯 FSD 아키텍처 원칙
+
+1. **레이어 분리**: 각 레이어는 명확한 책임을 가집니다
+2. **의존성 방향**: 상위 레이어는 하위 레이어에만 의존할 수 있습니다
+3. **공유 코드**: `shared` 레이어를 통해 공통 코드를 관리합니다
+4. **기능 중심**: `features` 레이어에서 비즈니스 로직을 구현합니다
+
+## 📝 스크립트
+
+- `npm run dev`: 개발 서버 실행
+- `npm run build`: 프로덕션 빌드
+- `npm run start`: 프로덕션 서버 실행
+- `npm run lint`: ESLint 실행
+
+## 🔒 보안 기능
+
+- **Row Level Security (RLS)**: 데이터베이스 레벨 보안
+- **승인 시스템**: 관리자 승인 후 접근 가능
+- **세션 관리**: SSR 지원 인증
+- **타입 안전성**: TypeScript로 타입 보장
+
+## 🤝 기여하기
+
+1. 이슈를 생성하거나 기존 이슈를 확인하세요
+2. 새로운 기능 브랜치를 생성하세요
+3. FSD 아키텍처 원칙을 따라 코드를 작성하세요
+4. PR을 생성하세요
+
+## 📄 라이선스
+
+MIT License

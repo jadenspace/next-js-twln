@@ -37,9 +37,14 @@ export default function Home() {
               문서 보기
             </Button>
             {isAuthenticated ? (
-              <Button variant="destructive" size="lg" onClick={() => signOut()}>
-                로그아웃
-              </Button>
+              <>
+                <Button variant="destructive" size="lg" onClick={() => signOut()}>
+                  로그아웃
+                </Button>
+                <Button variant="secondary" size="lg" onClick={() => window.location.href = '/admin'}>
+                  관리자
+                </Button>
+              </>
             ) : (
               <Button
                 variant="secondary"
