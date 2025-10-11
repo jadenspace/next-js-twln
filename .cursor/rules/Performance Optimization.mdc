@@ -1,17 +1,47 @@
 ---
-description: 
+description:
 globs: false
 alwaysApply: false
 ---
 
 Minimize client‑only code (useEffect/useState) where unnecessary.
 
-Dynamically import non‑critical components.
+Leverage Next.js 15 App Router optimizations:
 
-Optimize images (WebP, width/height, lazy-loading).
+Use Server Components by default for better performance
 
-Memoize expensive computations with useMemo.
+Use Client Components only when necessary (interactivity, browser APIs)
 
-Wrap pure components in React.memo.
+Implement proper loading.tsx and error.tsx files
 
-Structure modules for effective tree‑shaking.
+Use Next.js Image component with proper optimization
+
+Dynamically import non‑critical components with React.lazy + Suspense
+
+Optimize images (WebP, width/height, lazy-loading, priority for above-fold)
+
+Memoize expensive computations with useMemo
+
+Wrap pure components in React.memo
+
+Structure modules for effective tree‑shaking
+
+Use Next.js built-in caching strategies:
+
+Static generation with generateStaticParams
+
+Incremental Static Regeneration (ISR)
+
+Server-side caching with unstable_cache
+
+Client-side caching with React Query/TanStack Query
+
+Bundle optimization:
+
+Use dynamic imports for code splitting
+
+Implement proper loading states
+
+Minimize JavaScript bundle size
+
+Use Next.js built-in optimizations (Turbopack in development)

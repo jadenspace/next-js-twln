@@ -1,7 +1,7 @@
 ---
-description: 
-globs: false
-alwaysApply: false
+description: TypeScript strict configuration requirements
+globs: ["*.ts", "*.tsx"]
+alwaysApply: true
 ---
 
 Enable "strict": true in tsconfig.json.

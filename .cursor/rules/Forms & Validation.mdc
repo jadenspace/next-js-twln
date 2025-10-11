@@ -1,13 +1,66 @@
 ---
-description: 
+description:
 globs: false
 alwaysApply: false
 ---
 
-Use controlled inputs.
+Use controlled inputs with React Hook Form for optimal performance.
 
-For simple forms, write custom hooks; for complex ones, use react-hook-form with generics (e.g. <Controller>).
+For simple forms, write custom hooks; for complex ones, use react-hook-form with TypeScript generics.
 
-Separate client‑side and server‑side validation.
+Form validation patterns:
 
-Optionally integrate a schema library (e.g. Joi) if needed.
+Client-side validation with react-hook-form's built-in validation
+
+Server-side validation with Supabase RLS policies
+
+Use Zod or Yup for schema validation when needed
+
+Form structure example:
+
+```tsx
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const formSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+export function LoginForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+  });
+
+  const onSubmit = async (data: FormData) => {
+    // Handle form submission
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register("email")} />
+      {errors.email && <span>{errors.email.message}</span>}
+
+      <input {...register("password")} type="password" />
+      {errors.password && <span>{errors.password.message}</span>}
+
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Submitting..." : "Submit"}
+      </button>
+    </form>
+  );
+}
+```
+
+Separate client‑side and server‑side validation clearly.
+
+Provide clear, user‑friendly error messages.
+
+Handle loading states and form submission errors gracefully.
