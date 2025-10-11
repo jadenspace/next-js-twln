@@ -1,5 +1,6 @@
 "use client";
 
+import { adminApi } from "@/features/auth/api/admin-api";
 import { approvalApi } from "@/features/auth/api/approval-api";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { ApprovedUser, PendingUser } from "@/shared/types/auth";
@@ -12,21 +13,31 @@ export default function AdminPage() {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<string>("");
 
-  // 개발 모드에서는 인증 체크를 건너뜀
-  const isDevelopment = process.env.NODE_ENV === "development";
+  // 개발 모드에서는 인증 체크를 건너뜀 (테스트를 위해 임시로 false로 설정)
+  const isDevelopment = false; // process.env.NODE_ENV === "development";
+
+  // 현재 사용자가 관리자인지 확인
+  const { data: isAdmin, isLoading: adminLoading } = useQuery({
+    queryKey: ["admin", "is-admin", user?.email],
+    queryFn: () => {
+      if (!user?.email) return false;
+      return adminApi.isUserAdmin(user.email);
+    },
+    enabled: !!user?.email && (isAuthenticated || isDevelopment),
+  });
 
   // 승인 대기 중인 사용자 목록
   const { data: pendingUsers, isLoading: pendingLoading } = useQuery({
     queryKey: ["admin", "pending-users"],
     queryFn: approvalApi.getPendingUsers,
-    enabled: isAuthenticated || isDevelopment,
+    enabled: (isAuthenticated && isAdmin) || isDevelopment,
   });
 
   // 승인된 사용자 목록
   const { data: approvedUsers, isLoading: approvedLoading } = useQuery({
     queryKey: ["admin", "approved-users"],
     queryFn: approvalApi.getApprovedUsers,
-    enabled: isAuthenticated || isDevelopment,
+    enabled: (isAuthenticated && isAdmin) || isDevelopment,
   });
 
   // 사용자 승인 뮤테이션
@@ -49,13 +60,40 @@ export default function AdminPage() {
     },
   });
 
+  // 로딩 중
+  if (adminLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">권한을 확인하고 있습니다...</p>
+        </div>
+      </div>
+    );
+  }
+
   // 관리자가 아닌 경우 접근 차단 (개발 모드에서는 허용)
   if (!isAuthenticated && !isDevelopment) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">접근 권한이 없습니다</h1>
+          <p className="text-muted-foreground">로그인이 필요합니다.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 관리자가 아닌 경우 접근 차단
+  if (isAuthenticated && !isAdmin && !isDevelopment) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">관리자 권한이 없습니다</h1>
           <p className="text-muted-foreground">관리자만 접근할 수 있습니다.</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            현재 계정: {user?.email}
+          </p>
         </div>
       </div>
     );
@@ -73,6 +111,15 @@ export default function AdminPage() {
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>개발 모드:</strong> 현재 개발 환경에서 실행 중입니다.
                 관리자 페이지에 자유롭게 접근할 수 있습니다.
+              </p>
+            </div>
+          )}
+
+          {isAuthenticated && isAdmin && (
+            <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <p className="text-sm text-green-800 dark:text-green-200">
+                <strong>관리자 권한:</strong> {user?.email}님은 관리자 권한을
+                가지고 있습니다.
               </p>
             </div>
           )}
