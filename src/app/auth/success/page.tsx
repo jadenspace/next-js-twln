@@ -4,11 +4,11 @@ import { approvalApi } from "@/features/auth/api/approval-api";
 import { authApi } from "@/features/auth/api/auth-api";
 import { Button } from "@/shared/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function AuthSuccessPage() {
+function AuthSuccessContent() {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
+    "loading",
   );
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -47,7 +47,7 @@ export default function AuthSuccessPage() {
             console.error("자동 승인 실패:", approvalError);
             setStatus("success");
             setMessage(
-              "이메일 인증이 완료되었습니다. 관리자 승인을 기다려주세요."
+              "이메일 인증이 완료되었습니다. 관리자 승인을 기다려주세요.",
             );
           }
         } else {
@@ -59,7 +59,7 @@ export default function AuthSuccessPage() {
         setError(
           `인증 처리 중 오류가 발생했습니다: ${
             err instanceof Error ? err.message : "알 수 없는 오류"
-          }`
+          }`,
         );
       }
     };
@@ -184,5 +184,32 @@ export default function AuthSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-full max-w-md space-y-8 p-8 rounded-lg border-2 bg-card">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-2">이메일 인증</h1>
+          <p className="text-muted-foreground">
+            이메일 인증을 처리하고 있습니다...
+          </p>
+        </div>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">페이지를 로딩하고 있습니다...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function AuthSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AuthSuccessContent />
+    </Suspense>
   );
 }

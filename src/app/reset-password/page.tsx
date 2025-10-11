@@ -5,9 +5,9 @@ import { Label } from "@/components/ui/label";
 import { authApi } from "@/features/auth/api/auth-api";
 import { Button } from "@/shared/ui/button";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -49,14 +49,14 @@ export default function ResetPasswordPage() {
     try {
       await authApi.updatePassword(token, password);
       setMessage(
-        "비밀번호가 성공적으로 변경되었습니다. 로그인 페이지로 이동합니다."
+        "비밀번호가 성공적으로 변경되었습니다. 로그인 페이지로 이동합니다.",
       );
       setTimeout(() => {
         window.location.href = "/login";
       }, 2000);
     } catch (err) {
       setError(
-        "비밀번호 재설정에 실패했습니다. 링크가 만료되었거나 유효하지 않을 수 있습니다."
+        "비밀번호 재설정에 실패했습니다. 링크가 만료되었거나 유효하지 않을 수 있습니다.",
       );
     } finally {
       setIsLoading(false);
@@ -160,5 +160,32 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-full max-w-md space-y-8 p-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">비밀번호 재설정</h1>
+          <p className="text-muted-foreground mt-2">
+            페이지를 로딩하고 있습니다...
+          </p>
+        </div>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">잠시만 기다려주세요...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

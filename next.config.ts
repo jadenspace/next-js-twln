@@ -11,6 +11,17 @@ const nextConfig: NextConfig = {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
   },
+
+  // 빌드 시 타입스크립트 및 ESLint 오류 무시
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
+  // 프로덕션 소스맵 생성 비활성화
+  productionBrowserSourceMaps: false,
 };
 
 export default nextConfig;

@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
     if (isDevelopment) {
       setTimeout(() => {
         setMessage(
-          "개발 모드: 비밀번호 재설정 링크가 전송되었습니다. (실제 이메일은 전송되지 않습니다)"
+          "개발 모드: 비밀번호 재설정 링크가 전송되었습니다. (실제 이메일은 전송되지 않습니다)",
         );
         setEmail("");
         setIsLoading(false);
@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
 
       if ("exists" in checkResult && !checkResult.exists) {
         setError(
-          "입력하신 이메일로 가입된 계정이 없습니다. 이메일 주소를 다시 확인해주세요."
+          "입력하신 이메일로 가입된 계정이 없습니다. 이메일 주소를 다시 확인해주세요.",
         );
         return;
       }
@@ -72,11 +72,11 @@ export default function ForgotPasswordPage() {
 
       if ("error" in resetResult) {
         setError(
-          `비밀번호 재설정 링크 전송에 실패했습니다: ${resetResult.error}`
+          `비밀번호 재설정 링크 전송에 실패했습니다: ${resetResult.error}`,
         );
       } else if ("success" in resetResult) {
         setMessage(
-          "입력하신 이메일로 비밀번호 재설정 링크를 보냈습니다. 이메일을 확인해주세요."
+          "입력하신 이메일로 비밀번호 재설정 링크를 보냈습니다. 이메일을 확인해주세요.",
         );
         setEmail(""); // 성공 시 이메일 필드 초기화
       } else {
