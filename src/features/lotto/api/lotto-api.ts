@@ -42,19 +42,23 @@ export const lottoApi = {
    */
   async fetchLottoDraw(drawNo: number): Promise<LottoApiData | null> {
     try {
-      // CORS 문제를 피하기 위해 Next.js API 라우트를 통해 요청을 보냅니다.
-      // 여기서는 임시로 클라이언트 측 fetch를 사용하지만, 실제로는 API 라우트를 만들어야 합니다.
-      // 우선 개념 증명을 위해 직접 호출합니다.
+      // User-Agent 헤더를 추가하여 서버의 차단을 우회합니다.
       const response = await fetch(
-        `https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=${"$"}{drawNo}`
+        `https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=${drawNo}`,
+        {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+          },
+        },
       );
       if (!response.ok) {
-        console.error(`HTTP error! status: ${"$"}{response.status}`);
+        console.error(`HTTP error! status: ${response.status}`);
         return null;
       }
       const data: LottoApiData = await response.json();
       if (data.returnValue === "fail") {
-        // console.log(`No data for draw number: ${"$"}{drawNo}`);
+        // console.log(`No data for draw number: ${drawNo}`);
         return null;
       }
       return data;
@@ -91,7 +95,8 @@ export const lottoApi = {
       .limit(1)
       .single();
 
-    if (error && error.code !== "PGRST116") { // PGRST116: 'single' found no rows
+    if (error && error.code !== "PGRST116") {
+      // PGRST116: 'single' found no rows
       console.error("Failed to get latest draw number:", error);
       return 0;
     }
