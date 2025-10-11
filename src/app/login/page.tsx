@@ -161,6 +161,25 @@ export default function LoginPage() {
           </button>
         </div>
 
+        {!isSignUp && (
+          <div className="text-center space-y-2">
+            <div className="text-sm text-muted-foreground">
+              <button
+                onClick={() => (window.location.href = "/find-id")}
+                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mr-4"
+              >
+                아이디 찾기
+              </button>
+              <button
+                onClick={() => (window.location.href = "/forgot-password")}
+                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                비밀번호 찾기
+              </button>
+            </div>
+          </div>
+        )}
+
         <div
           className={`mt-8 p-4 rounded-lg border ${
             isSignUp

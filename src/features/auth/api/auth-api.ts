@@ -93,19 +93,42 @@ export const authApi = {
     });
 
     if (error) {
-      throw new Error(error.message);
+      return { error: error.message };
     }
+
+    return { success: true };
   },
 
   async updatePassword(token: string, newPassword: string) {
     const supabase = createClient();
 
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
+    // 먼저 토큰으로 세션을 복원 시도
+    try {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(token);
 
-    if (error) {
-      throw new Error(error.message);
+      if (error) {
+        // exchangeCodeForSession이 실패하면 기존 방식으로 시도
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+
+        if (updateError) {
+          throw new Error(updateError.message);
+        }
+      } else {
+        // 세션 복원 성공 후 비밀번호 업데이트
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+
+        if (updateError) {
+          throw new Error(updateError.message);
+        }
+      }
+    } catch (err) {
+      throw new Error(
+        err instanceof Error ? err.message : "비밀번호 업데이트 실패"
+      );
     }
   },
 
@@ -139,6 +162,38 @@ export const authApi = {
     } catch (err) {
       return {
         error: `인증 처리 중 오류가 발생했습니다: ${
+          err instanceof Error ? err.message : "알 수 없는 오류"
+        }`,
+      };
+    }
+  },
+
+  async checkEmailExists(email: string) {
+    const supabase = createClient();
+
+    try {
+      // Supabase에서 이메일 존재 여부를 확인하는 더 정확한 방법
+      // user_profiles 테이블에서 이메일로 검색
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("email")
+        .eq("email", email)
+        .single();
+
+      if (error) {
+        // 데이터가 없거나 다른 오류
+        if (error.code === "PGRST116") {
+          // 데이터가 없음
+          return { exists: false };
+        }
+        return { error: error.message };
+      }
+
+      // 데이터가 있으면 이메일이 존재함
+      return { exists: true, email: data.email };
+    } catch (err) {
+      return {
+        error: `이메일 확인 중 오류가 발생했습니다: ${
           err instanceof Error ? err.message : "알 수 없는 오류"
         }`,
       };

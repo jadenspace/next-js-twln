@@ -15,7 +15,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState("");
 
   const searchParams = useSearchParams();
-  const token = searchParams?.get("token");
+  const token = searchParams?.get("token") || searchParams?.get("code");
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +35,13 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    // 비밀번호 강도 검증
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{6,}$/;
+    if (!passwordRegex.test(password)) {
+      setError("비밀번호는 영문과 숫자를 포함하여 최소 6자 이상이어야 합니다.");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
     setMessage("");
@@ -48,7 +55,9 @@ export default function ResetPasswordPage() {
         window.location.href = "/login";
       }, 2000);
     } catch (err) {
-      setError("비밀번호 재설정에 실패했습니다. 다시 시도해주세요.");
+      setError(
+        "비밀번호 재설정에 실패했습니다. 링크가 만료되었거나 유효하지 않을 수 있습니다."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -131,13 +140,23 @@ export default function ResetPasswordPage() {
           </Button>
         </form>
 
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <Button
             variant="link"
             onClick={() => (window.location.href = "/login")}
           >
             로그인 페이지로 돌아가기
           </Button>
+          <div className="text-sm text-muted-foreground">
+            비밀번호를 다시 찾으시나요?{" "}
+            <Button
+              variant="link"
+              className="p-0 h-auto text-sm"
+              onClick={() => (window.location.href = "/forgot-password")}
+            >
+              비밀번호 찾기
+            </Button>
+          </div>
         </div>
       </div>
     </div>

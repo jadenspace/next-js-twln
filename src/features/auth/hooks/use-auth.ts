@@ -121,9 +121,32 @@ export const useAuth = () => {
 
   // 비밀번호 재설정 뮤테이션
   const resetPasswordMutation = useMutation({
-    mutationFn: authApi.resetPassword,
+    mutationFn: async (email: string) => {
+      const result = await authApi.resetPassword(email);
+      if ("error" in result) {
+        return Promise.reject({ message: result.error });
+      }
+      return result;
+    },
     onError: (error) => {
       console.error("비밀번호 재설정 실패:", error);
+    },
+  });
+
+  // 이메일 존재 확인 뮤테이션
+  const checkEmailMutation = useMutation({
+    mutationFn: authApi.checkEmailExists,
+    onError: (error) => {
+      console.error("이메일 확인 실패:", error);
+    },
+  });
+
+  // 비밀번호 업데이트 뮤테이션
+  const updatePasswordMutation = useMutation({
+    mutationFn: ({ token, password }: { token: string; password: string }) =>
+      authApi.updatePassword(token, password),
+    onError: (error) => {
+      console.error("비밀번호 업데이트 실패:", error);
     },
   });
 
@@ -142,11 +165,18 @@ export const useAuth = () => {
     signUp: signUpMutation.mutate,
     signOut: signOutMutation.mutate,
     resetPassword: resetPasswordMutation.mutate,
+    checkEmail: checkEmailMutation.mutate,
+    updatePassword: updatePasswordMutation.mutate,
     isSigningIn: signInMutation.isPending,
     isSigningUp: signUpMutation.isPending,
     isSigningOut: signOutMutation.isPending,
     isResettingPassword: resetPasswordMutation.isPending,
+    isCheckingEmail: checkEmailMutation.isPending,
+    isUpdatingPassword: updatePasswordMutation.isPending,
     signInMutation,
     signUpMutation,
+    resetPasswordMutation,
+    checkEmailMutation,
+    updatePasswordMutation,
   };
 };
