@@ -2,15 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/update-lotto",
-      "schedule": "30 12 * * 6"
-    },
-    {
-      "path": "/api/cron/update-lotto",
       "schedule": "30 13 * * 6"
-    },
-    {
-      "path": "/api/cron/update-lotto",
-      "schedule": "30 14 * * 6"
     },
     {
       "path": "/api/cron/update-lotto",
