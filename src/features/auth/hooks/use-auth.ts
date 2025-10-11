@@ -11,12 +11,12 @@ export const useAuth = () => {
     useAuthStore();
   const queryClient = useQueryClient();
 
-  // 현재 사용자 정보 가져오기
-  const { data: currentUser } = useQuery({
+  // 현재 사용자 정보 가져오기 (항상 실행)
+  const { data: currentUser, isLoading: userLoading } = useQuery({
     queryKey: ["auth", "user"],
     queryFn: authApi.getCurrentUser,
-    enabled: !isAuthenticated && !isLoading,
     retry: false,
+    staleTime: 5 * 60 * 1000, // 5분간 캐시
   });
 
   // 사용자 승인 상태 확인
@@ -102,6 +102,17 @@ export const useAuth = () => {
     onSuccess: () => {
       logout();
       queryClient.clear();
+
+      // 로그아웃 후 강제 페이지 새로고침으로 미들웨어 동기화
+      if (typeof window !== "undefined") {
+        // 현재 페이지가 로그인 페이지가 아니면 로그인 페이지로 이동
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        } else {
+          // 이미 로그인 페이지에 있으면 새로고침
+          window.location.reload();
+        }
+      }
     },
     onError: (error) => {
       console.error("로그아웃 실패:", error);
@@ -125,7 +136,7 @@ export const useAuth = () => {
 
   return {
     user,
-    isLoading,
+    isLoading: userLoading || isLoading,
     isAuthenticated,
     signIn: signInMutation.mutate,
     signUp: signUpMutation.mutate,

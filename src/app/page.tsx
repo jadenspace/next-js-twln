@@ -38,7 +38,17 @@ export default function Home() {
             </Button>
             {isAuthenticated ? (
               <>
-                <Button variant="destructive" size="lg" onClick={() => signOut()}>
+                <Button 
+                  variant="destructive" 
+                  size="lg" 
+                  onClick={() => {
+                    signOut();
+                    // 로그아웃 후 즉시 로그인 페이지로 리다이렉트
+                    setTimeout(() => {
+                      window.location.href = '/login';
+                    }, 100);
+                  }}
+                >
                   로그아웃
                 </Button>
                 <Button variant="secondary" size="lg" onClick={() => window.location.href = '/admin'}>
