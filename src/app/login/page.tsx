@@ -141,8 +141,8 @@ export default function LoginPage() {
             {isSigningIn || isSigningUp
               ? "처리 중..."
               : isSignUp
-              ? "회원가입"
-              : "로그인"}
+                ? "회원가입"
+                : "로그인"}
           </Button>
         </form>
 

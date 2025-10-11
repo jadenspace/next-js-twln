@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { Button } from "@/shared/ui/button";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
 
 export default function Home() {
   const { user, isAuthenticated, signOut } = useAuth();
@@ -38,20 +39,24 @@ export default function Home() {
             </Button>
             {isAuthenticated ? (
               <>
-                <Button 
-                  variant="destructive" 
-                  size="lg" 
+                <Button
+                  variant="destructive"
+                  size="lg"
                   onClick={() => {
                     signOut();
                     // 로그아웃 후 즉시 로그인 페이지로 리다이렉트
                     setTimeout(() => {
-                      window.location.href = '/login';
+                      window.location.href = "/login";
                     }, 100);
                   }}
                 >
                   로그아웃
                 </Button>
-                <Button variant="secondary" size="lg" onClick={() => window.location.href = '/admin'}>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  onClick={() => (window.location.href = "/admin")}
+                >
                   관리자
                 </Button>
               </>
@@ -67,24 +72,26 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
-            <div className="p-6 border rounded-lg">
-              <h3 className="font-semibold mb-2">Feature Sliced Design</h3>
-              <p className="text-sm text-muted-foreground">
-                확장 가능하고 유지보수하기 쉬운 아키텍처
-              </p>
-            </div>
-            <div className="p-6 border rounded-lg">
-              <h3 className="font-semibold mb-2">Supabase Auth</h3>
-              <p className="text-sm text-muted-foreground">
-                SSR 지원 인증 시스템
-              </p>
-            </div>
-            <div className="p-6 border rounded-lg">
-              <h3 className="font-semibold mb-2">TanStack Query</h3>
-              <p className="text-sm text-muted-foreground">
-                강력한 서버 상태 관리
-              </p>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Feature Sliced Design</CardTitle>
+                <CardDescription>
+                  확장 가능하고 유지보수하기 쉬운 아키텍처
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Supabase Auth</CardTitle>
+                <CardDescription>SSR 지원 인증 시스템</CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>TanStack Query</CardTitle>
+                <CardDescription>강력한 서버 상태 관리</CardDescription>
+              </CardHeader>
+            </Card>
           </div>
 
           {/* 개발 모드 알림 */}

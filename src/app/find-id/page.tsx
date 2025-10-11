@@ -1,9 +1,9 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { authApi } from "@/features/auth/api/auth-api";
 import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
 import { useState } from "react";
 
 export default function FindIdPage() {
@@ -43,7 +43,7 @@ export default function FindIdPage() {
     if (isDevelopment) {
       setTimeout(() => {
         setMessage(
-          "개발 모드: 입력하신 이메일로 가입된 계정이 있습니다. 해당 이메일 주소가 아이디입니다."
+          "개발 모드: 입력하신 이메일로 가입된 계정이 있습니다. 해당 이메일 주소가 아이디입니다.",
         );
         setIsLoading(false);
       }, 1000);
@@ -58,11 +58,11 @@ export default function FindIdPage() {
       } else if ("exists" in result) {
         if (result.exists) {
           setMessage(
-            "입력하신 이메일로 가입된 계정이 있습니다. 해당 이메일 주소가 아이디입니다."
+            "입력하신 이메일로 가입된 계정이 있습니다. 해당 이메일 주소가 아이디입니다.",
           );
         } else {
           setError(
-            "입력하신 이메일로 가입된 계정이 없습니다. 이메일 주소를 다시 확인해주세요."
+            "입력하신 이메일로 가입된 계정이 없습니다. 이메일 주소를 다시 확인해주세요.",
           );
         }
       }
