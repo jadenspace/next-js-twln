@@ -22,8 +22,8 @@ export interface LottoApiData {
 export interface LottoDraw {
   drw_no: number;
   drw_no_date: string;
-  tot_sell_amnt: number;
-  first_win_amnt: number;
+  tot_sell_amnt: string; // 큰 숫자를 처리하기 위해 string으로 변경
+  first_win_amnt: string; // 큰 숫자를 처리하기 위해 string으로 변경
   first_przwner_co: number;
   drwt_no1: number;
   drwt_no2: number;
@@ -33,6 +33,22 @@ export interface LottoDraw {
   drwt_no6: number;
   bnus_no: number;
 }
+
+// API 데이터를 DB 형식으로 변환하고 큰 숫자를 문자열로 처리
+export const transformLottoData = (apiData: LottoApiData): LottoDraw => ({
+  drw_no: apiData.drwNo,
+  drw_no_date: apiData.drwNoDate,
+  tot_sell_amnt: apiData.totSellamnt.toString(),
+  first_win_amnt: apiData.firstWinamnt.toString(),
+  first_przwner_co: apiData.firstPrzwnerCo,
+  drwt_no1: apiData.drwtNo1,
+  drwt_no2: apiData.drwtNo2,
+  drwt_no3: apiData.drwtNo3,
+  drwt_no4: apiData.drwtNo4,
+  drwt_no5: apiData.drwtNo5,
+  drwt_no6: apiData.drwtNo6,
+  bnus_no: apiData.bnusNo,
+});
 
 export const lottoApi = {
   /**
@@ -58,7 +74,6 @@ export const lottoApi = {
       }
       const data: LottoApiData = await response.json();
       if (data.returnValue === "fail") {
-        // console.log(`No data for draw number: ${drawNo}`);
         return null;
       }
       return data;
