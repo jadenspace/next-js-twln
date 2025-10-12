@@ -29,7 +29,8 @@ export async function middleware(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/reset-password") &&
     !request.nextUrl.pathname.startsWith("/forgot-password") &&
     !request.nextUrl.pathname.startsWith("/find-id") &&
-    !request.nextUrl.pathname.startsWith("/test-supabase")
+    !request.nextUrl.pathname.startsWith("/test-supabase") &&
+    !request.nextUrl.pathname.startsWith("/api")
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
