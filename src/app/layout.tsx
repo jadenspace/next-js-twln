@@ -16,9 +16,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TWLN - Feature Sliced Design App",
+  title: {
+    default: "TWLN | 스마트한 로또 분석 서비스",
+    template: "%s | TWLN",
+  },
   description:
-    "Next.js app with FSD architecture, Supabase Auth, and TanStack Query",
+    "빅데이터와 AI를 활용한 로또 당첨번호 분석, 패턴 분석, 당첨 시뮬레이션 및 추천 번호 서비스를 제공합니다.",
+  keywords: [
+    "로또",
+    "로또분석",
+    "로또번호추천",
+    "로또통계",
+    "로또시뮬레이션",
+    "AI로또",
+  ],
+  openGraph: {
+    title: "TWLN | 스마트한 로또 분석 서비스",
+    description: "빅데이터와 AI 기반의 프리미엄 로또 분석 솔루션",
+    type: "website",
+    locale: "ko_KR",
+  },
 };
 
 export default function RootLayout({

@@ -92,7 +92,7 @@ export default function Home() {
                       </span>
                     </div>
                     <Link href="/points/charge" className="block">
-                      <Button className="w-full font-bold">
+                      <Button id="btn-charge" className="w-full font-bold">
                         포인트 충전하기
                       </Button>
                     </Link>
@@ -104,7 +104,7 @@ export default function Home() {
             <div className="text-center space-y-8">
               <div className="flex justify-center gap-4">
                 <Link href="/login">
-                  <Button size="lg" className="px-8">
+                  <Button id="btn-get-started" size="lg" className="px-8">
                     시작하기
                   </Button>
                 </Link>
