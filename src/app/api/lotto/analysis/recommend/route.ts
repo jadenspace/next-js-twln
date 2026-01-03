@@ -1,0 +1,87 @@
+import { createClient } from "@/shared/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { AiRecommender } from "@/features/lotto/services/ai-recommender";
+import { LottoDraw } from "@/features/lotto/types";
+
+const RECOMMEND_COST = 500;
+
+export async function POST(request: NextRequest) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  try {
+    // Check Balance
+    const { data: userPoints } = await supabase
+      .from("user_points")
+      .select("balance, total_spent")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!userPoints || userPoints.balance < RECOMMEND_COST) {
+      return NextResponse.json(
+        { error: "Insufficient points" },
+        { status: 402 },
+      );
+    }
+
+    // Fetch Data
+    const { data: lottoData, error: lottoError } = await supabase
+      .from("lotto_history")
+      .select("*");
+
+    if (lottoError || !lottoData) throw new Error("Failed to fetch lotto data");
+
+    const draws: LottoDraw[] = lottoData.map((d: any) => ({
+      drwNo: d.drw_no,
+      drwNoDate: d.drw_no_date,
+      totSellamnt: d.tot_sellamnt,
+      firstWinamnt: d.first_winamnt,
+      firstPrzwnerCo: d.first_przwner_co,
+      firstAccumamnt: d.first_accumamnt,
+      drwtNo1: d.drwt_no1,
+      drwtNo2: d.drwt_no2,
+      drwtNo3: d.drwt_no3,
+      drwtNo4: d.drwt_no4,
+      drwtNo5: d.drwt_no5,
+      drwtNo6: d.drwt_no6,
+      bnusNo: d.bnus_no,
+    }));
+
+    const recommender = new AiRecommender(draws);
+    const result = recommender.recommend();
+
+    // Deduct & Save
+    await supabase
+      .from("user_points")
+      .update({
+        balance: userPoints.balance - RECOMMEND_COST,
+        total_spent: (Number(userPoints.total_spent) || 0) + RECOMMEND_COST,
+      })
+      .eq("user_id", user.id);
+
+    await supabase.from("point_transactions").insert({
+      user_id: user.id,
+      transaction_type: "use",
+      amount: -RECOMMEND_COST,
+      balance_after: userPoints.balance - RECOMMEND_COST,
+      description: "AI 번호 추천",
+      feature_type: "ai_recommend",
+    });
+
+    await supabase.from("analysis_results").insert({
+      user_id: user.id,
+      analysis_type: "ai_recommend",
+      result_data: result,
+      points_spent: RECOMMEND_COST,
+    });
+
+    return NextResponse.json({ success: true, data: result });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
