@@ -12,20 +12,16 @@ const nextConfig: NextConfig = {
     pagesBufferLength: 2,
   },
 
-  // 빌드 시 타입스크립트 및 ESLint 오류 무시
+  // 빌드 시 타입스크립트 오류 무시
   typescript: {
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
 
   // 프로덕션 소스맵 생성 비활성화
   productionBrowserSourceMaps: false,
-  // React Compiler 활성화 (자동 메모이제이션)
-  experimental: {
-    reactCompiler: true,
-  },
+
+  // React Compiler 활성화 (자동 메모이제이션) - Next.js 16에서는 최상위 옵션으로 승격됨
+  reactCompiler: true,
 };
 
 export default nextConfig;
