@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/shared/lib/providers/query-provider";
+import { Header } from "@/shared/components/layout/header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "TWLN - Feature Sliced Design App",
-  description: "Next.js app with FSD architecture, Supabase Auth, and TanStack Query",
+  description:
+    "Next.js app with FSD architecture, Supabase Auth, and TanStack Query",
 };
 
 export default function RootLayout({
@@ -29,7 +31,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryProvider>
-          {children}
+          <Header />
+          <main>{children}</main>
         </QueryProvider>
       </body>
     </html>

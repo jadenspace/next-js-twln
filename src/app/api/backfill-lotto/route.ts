@@ -5,7 +5,7 @@ import { type NextRequest } from "next/server";
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function GET(request: NextRequest) {
-  const LATEST_DRAW_NO = 1192;
+  const LATEST_DRAW_NO = 1204;
   const DELAY_MS = 500; // 0.5초 지연
 
   const searchParams = request.nextUrl.searchParams;
