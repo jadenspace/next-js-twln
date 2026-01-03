@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch Data
     const { data: lottoData, error: lottoError } = await supabase
-      .from("lotto_history")
+      .from("lotto_draws")
       .select("*");
 
     if (lottoError || !lottoData) throw new Error("Failed to fetch lotto data");

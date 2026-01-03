@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const drwNo = searchParams.get("drwNo");
   const date = searchParams.get("date");
 
-  let query = supabase.from("lotto_history").select("*");
+  let query = supabase.from("lotto_draws").select("*");
 
   if (drwNo) {
     query = query.eq("drw_no", drwNo);

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     // 3. Perform Analysis
     // Fetch all lotto data (cached or direct DB)
     const { data: lottoData, error: lottoError } = await supabase
-      .from("lotto_history")
+      .from("lotto_draws")
       .select("*");
 
     if (lottoError || !lottoData) {

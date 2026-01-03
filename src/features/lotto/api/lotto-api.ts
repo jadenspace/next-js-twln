@@ -25,6 +25,7 @@ export interface LottoDraw {
   tot_sell_amnt: string; // 큰 숫자를 처리하기 위해 string으로 변경
   first_win_amnt: string; // 큰 숫자를 처리하기 위해 string으로 변경
   first_przwner_co: number;
+  first_accum_amnt: string; // 추가된 필드
   drwt_no1: number;
   drwt_no2: number;
   drwt_no3: number;
@@ -41,6 +42,7 @@ export const transformLottoData = (apiData: LottoApiData): LottoDraw => ({
   tot_sell_amnt: apiData.totSellamnt.toString(),
   first_win_amnt: apiData.firstWinamnt.toString(),
   first_przwner_co: apiData.firstPrzwnerCo,
+  first_accum_amnt: apiData.firstAccumamnt.toString(),
   drwt_no1: apiData.drwtNo1,
   drwt_no2: apiData.drwtNo2,
   drwt_no3: apiData.drwtNo3,
