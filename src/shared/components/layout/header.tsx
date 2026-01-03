@@ -6,6 +6,8 @@ import { Button } from "@/shared/ui/button";
 import { PointBalance } from "@/features/points/components/point-balance";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { adminApi } from "@/features/auth/api/admin-api";
 
 const NAV_ITEMS = [
   { href: "/lotto/search", label: "번호 검색" },
@@ -19,6 +21,12 @@ const NAV_ITEMS = [
 export function Header() {
   const { user, isAuthenticated, signOut } = useAuth();
   const pathname = usePathname();
+
+  const { data: isAdmin } = useQuery({
+    queryKey: ["admin", "is-admin", user?.email],
+    queryFn: () => (user?.email ? adminApi.isUserAdmin(user.email) : false),
+    enabled: !!user?.email,
+  });
 
   return (
     <header className="border-b bg-background sticky top-0 z-50">
@@ -49,6 +57,14 @@ export function Header() {
         <div className="flex items-center gap-4">
           {isAuthenticated ? (
             <>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-xs text-muted-foreground hover:text-primary font-medium mr-2"
+                >
+                  관리자
+                </Link>
+              )}
               <PointBalance />
               <Button variant="ghost" size="sm" onClick={() => signOut()}>
                 로그아웃
