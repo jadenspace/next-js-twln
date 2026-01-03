@@ -72,11 +72,19 @@
   - [x] Create `attendance_logs` table
   - [x] Implement Attendance API
   - [x] Create Attendance UI component
-- [/] Task 17: User Levels & Badges
+- [x] Task 17: User Levels & Badges
+  - [x] Create level/XP and badges tables
+  - [x] Implement XP grant logic (RPC)
+  - [x] Update APIs to grant XP
+  - [x] Create UserLevelInfo UI component
 
 ## Phase 5: Admin & Deployment
 
-- [ ] Task 18: Admin Dashboard
+- [/] Task 18: Admin Dashboard
+  - [ ] Implement Admin Layout
+  - [ ] User Approval Management
+  - [ ] Payment Approval Management
+  - [ ] Point Management (Grant/Revoke)
 - [ ] Task 19: SEO & Performance Optimization
 - [ ] Task 20: Final Testing & QA
 - [ ] Task 21: Deployment

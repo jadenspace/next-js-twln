@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    // Grant XP (10 XP)
+    await supabase.rpc("add_xp", {
+      user_uuid: user.id,
+      xp_to_add: 10,
+    });
+
     return NextResponse.json({ data });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

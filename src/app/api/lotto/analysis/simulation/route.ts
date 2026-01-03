@@ -89,6 +89,12 @@ export async function POST(request: NextRequest) {
       points_spent: SIMULATION_COST,
     });
 
+    // 5. Grant XP (20 XP)
+    await supabase.rpc("add_xp", {
+      user_uuid: user.id,
+      xp_to_add: 20,
+    });
+
     return NextResponse.json({ success: true, data: result });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

@@ -13,6 +13,8 @@ import { AttendanceCard } from "@/features/points/components/attendance-card";
 import { Search, BarChart3, TrendingUp, Sparkles, Binary } from "lucide-react";
 import Link from "next/link";
 
+import { UserLevelInfo } from "@/features/gamification/components/user-level-info";
+
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
 
@@ -73,6 +75,8 @@ export default function Home() {
 
               {/* Right Column: User Info / Points Info */}
               <div className="space-y-6">
+                {user && <UserLevelInfo userId={user.id} />}
+
                 <Card>
                   <CardHeader>
                     <CardTitle>내 정보</CardTitle>
@@ -88,7 +92,9 @@ export default function Home() {
                       </span>
                     </div>
                     <Link href="/points/charge" className="block">
-                      <Button className="w-full">포인트 충전하기</Button>
+                      <Button className="w-full font-bold">
+                        포인트 충전하기
+                      </Button>
                     </Link>
                   </CardContent>
                 </Card>

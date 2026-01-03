@@ -27,6 +27,13 @@ export async function POST(
       .single();
 
     if (error) throw error;
+
+    // Grant XP (5 XP)
+    await supabase.rpc("add_xp", {
+      user_uuid: user.id,
+      xp_to_add: 5,
+    });
+
     return NextResponse.json({ data });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
