@@ -64,9 +64,15 @@
 
 ## Phase 4: Community & Gamification
 
-- [ ] Task 15: Community Features
-- [ ] Task 16: Attendance Check
-- [ ] Task 17: User Levels & Badges
+- [x] Task 15: Community Features
+  - [x] Create `posts` and `comments` tables
+  - [x] Implement Community API
+  - [x] Create Community Board Page
+- [x] Task 16: Attendance Check
+  - [x] Create `attendance_logs` table
+  - [x] Implement Attendance API
+  - [x] Create Attendance UI component
+- [/] Task 17: User Levels & Badges
 
 ## Phase 5: Admin & Deployment
 

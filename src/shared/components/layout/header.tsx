@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/lotto/analysis/pattern", label: "패턴 분석" },
   { href: "/lotto/analysis/recommend", label: "AI 추천" },
   { href: "/lotto/analysis/simulation", label: "시뮬레이션" },
+  { href: "/community", label: "게시판" },
 ];
 
 export function Header() {
