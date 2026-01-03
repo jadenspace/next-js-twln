@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
 
   // 프로덕션 소스맵 생성 비활성화
   productionBrowserSourceMaps: false,
+  // React Compiler 활성화 (자동 메모이제이션)
+  experimental: {
+    reactCompiler: true,
+  },
 };
 
 export default nextConfig;
