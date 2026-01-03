@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       .from("user_points")
       .select("balance, total_spent")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (!userPoints || userPoints.balance < STATS_COST) {
       return NextResponse.json(
@@ -68,32 +68,29 @@ export async function POST(request: NextRequest) {
     const calculator = new StatisticsCalculator(draws);
     const result = calculator.calculateBasicStats();
 
-    // 4. Deduct Points & Save Result
-    // Deduct
-    const { error: updateError } = await supabase.rpc("decrement_balance", {
-      user_uuid: user.id,
-      amount: STATS_COST,
-    });
-    // Note: If 'decrement_balance' RPC doesn't exist, use direct update. Be careful with concurrency.
-    // Fallback manual update if RPC missing (Create RPC is best practice, but for this context assuming direct update)
+    // 4. Deduct Points via RPC (Atomic & Bypasses RLS issues)
+    const { data: deductResult, error: deductError } = await supabase.rpc(
+      "deduct_points",
+      {
+        user_uuid: user.id,
+        amount_to_deduct: STATS_COST,
+        transaction_type: "use",
+        description_text: "로또 기본 통계 분석",
+        feat_type: "stat_analysis",
+      },
+    );
 
-    await supabase
-      .from("user_points")
-      .update({
-        balance: userPoints.balance - STATS_COST,
-        total_spent: (Number(userPoints.total_spent) || 0) + STATS_COST,
-      })
-      .eq("user_id", user.id);
-
-    // Record Transaction
-    await supabase.from("point_transactions").insert({
-      user_id: user.id,
-      transaction_type: "use",
-      amount: -STATS_COST,
-      balance_after: userPoints.balance - STATS_COST,
-      description: "로또 기본 통계 분석",
-      feature_type: "stat_analysis",
-    });
+    if (deductError || !deductResult?.success) {
+      return NextResponse.json(
+        {
+          error:
+            deductError?.message ||
+            deductResult?.error ||
+            "Failed to deduct points",
+        },
+        { status: 402 },
+      );
+    }
 
     // Save Analysis Result
     const { data: savedResult, error: saveError } = await supabase

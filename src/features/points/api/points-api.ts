@@ -9,10 +9,9 @@ export const pointsApi = {
       .from("user_points")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === "PGRST116") return null; // 데이터 없음
       throw error;
     }
 

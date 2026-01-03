@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const supabase = await createClient();
   const {
@@ -14,7 +14,7 @@ export async function POST(
 
   try {
     const { content } = await request.json();
-    const postId = params.id;
+    const { id: postId } = await params;
 
     const { data, error } = await supabase
       .from("comments")

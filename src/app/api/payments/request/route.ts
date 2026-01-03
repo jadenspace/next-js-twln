@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       .from("point_packages")
       .select("*")
       .eq("id", packageId)
-      .single();
+      .maybeSingle();
 
     if (pkgError || !packageInfo) {
       return NextResponse.json({ error: "Invalid package" }, { status: 400 });

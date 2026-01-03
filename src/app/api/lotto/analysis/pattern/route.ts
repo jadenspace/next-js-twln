@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       .from("user_points")
       .select("balance, total_spent")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (!userPoints || userPoints.balance < PATTERN_COST) {
       return NextResponse.json(
@@ -55,23 +55,29 @@ export async function POST(request: NextRequest) {
     const analyzer = new PatternAnalyzer(draws);
     const result = analyzer.calculatePatterns();
 
-    // Deduct & Save
-    await supabase
-      .from("user_points")
-      .update({
-        balance: userPoints.balance - PATTERN_COST,
-        total_spent: (Number(userPoints.total_spent) || 0) + PATTERN_COST,
-      })
-      .eq("user_id", user.id);
+    // 4. Deduct Points via RPC
+    const { data: deductResult, error: deductError } = await supabase.rpc(
+      "deduct_points",
+      {
+        user_uuid: user.id,
+        amount_to_deduct: PATTERN_COST,
+        transaction_type: "use",
+        description_text: "로또 패턴 분석",
+        feat_type: "pattern_analysis",
+      },
+    );
 
-    await supabase.from("point_transactions").insert({
-      user_id: user.id,
-      transaction_type: "use",
-      amount: -PATTERN_COST,
-      balance_after: userPoints.balance - PATTERN_COST,
-      description: "로또 패턴 분석",
-      feature_type: "pattern_analysis",
-    });
+    if (deductError || !deductResult?.success) {
+      return NextResponse.json(
+        {
+          error:
+            deductError?.message ||
+            deductResult?.error ||
+            "Failed to deduct points",
+        },
+        { status: 402 },
+      );
+    }
 
     await supabase.from("analysis_results").insert({
       user_id: user.id,

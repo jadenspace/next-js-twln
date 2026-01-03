@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     .select("*")
     .eq("user_id", user.id)
     .eq("check_in_date", today)
-    .single();
+    .maybeSingle();
 
   return NextResponse.json({ isCheckedIn: !!data });
 }

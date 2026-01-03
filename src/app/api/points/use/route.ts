@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       .from("user_points")
       .select("balance, total_spent")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (fetchError || !userPoints) {
       // If no points record, they imply 0 balance usually, or error

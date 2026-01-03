@@ -13,9 +13,12 @@ export async function GET(request: NextRequest) {
     .select(
       `
         *,
-        user:user_id (email)
+        user:user_profiles!user_id (email),
+        comments (
+            *,
+            user:user_profiles!user_id (email)
+        )
     `,
-      { count: "exact" },
     )
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);

@@ -37,7 +37,8 @@ export function AttendanceCard() {
     onSuccess: (data) => {
       toast.success(`출석체크 완료! ${data.reward}P가 지급되었습니다.`);
       queryClient.invalidateQueries({ queryKey: ["attendanceStatus"] });
-      queryClient.invalidateQueries({ queryKey: ["points"] }); // Invalidate points to update header
+      queryClient.invalidateQueries({ queryKey: ["userPoints"] }); // Invalidate points to update header
+      queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
     },
     onError: (err: Error) => {
       toast.error(err.message);

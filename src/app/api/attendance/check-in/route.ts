@@ -32,37 +32,21 @@ export async function POST(request: NextRequest) {
       throw logError;
     }
 
-    // 2. Grant Points
-    // Fetch Current Points
-    const { data: userPoints } = await supabase
-      .from("user_points")
-      .select("balance, total_earned")
-      .eq("user_id", user.id)
-      .single();
-
-    const newBalance = (userPoints?.balance || 0) + ATTENDANCE_REWARD;
-    const newTotalEarned = (userPoints?.total_earned || 0) + ATTENDANCE_REWARD;
-
-    // Upsert user_points
-    await supabase.from("user_points").upsert(
+    // 2. Grant Points via RPC (Handles user_points and point_transactions)
+    const { data: pointResult, error: pointError } = await supabase.rpc(
+      "add_points",
       {
-        user_id: user.id,
-        balance: newBalance,
-        total_earned: newTotalEarned,
-        updated_at: new Date().toISOString(),
+        user_uuid: user.id,
+        amount_to_add: ATTENDANCE_REWARD,
+        transaction_type: "bonus",
+        description_text: "일일 출석체크 보너스",
+        feat_type: "attendance",
       },
-      { onConflict: "user_id" },
     );
 
-    // 3. Record Point Transaction
-    await supabase.from("point_transactions").insert({
-      user_id: user.id,
-      transaction_type: "bonus",
-      amount: ATTENDANCE_REWARD,
-      balance_after: newBalance,
-      description: "일일 출석체크 보너스",
-      feature_type: "attendance",
-    });
+    if (pointError || !pointResult?.success) {
+      throw new Error(pointError?.message || "Failed to grant points");
+    }
 
     // 4. Grant XP (10 XP)
     await supabase.rpc("add_xp", {

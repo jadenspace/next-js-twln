@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     .select(
       `
         *,
-        user:user_id (email)
+        user:user_profiles!user_id (email)
     `,
     )
     .order("created_at", { ascending: false });

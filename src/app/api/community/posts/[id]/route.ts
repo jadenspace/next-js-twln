@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const supabase = await createClient();
-  const id = params.id;
+  const { id } = await params;
 
   // Increment view count (Simple update)
   await supabase.rpc("increment_view_count", { post_uuid: id });
@@ -18,10 +18,10 @@ export async function GET(
     .select(
       `
         *,
-        user:user_id (email),
+        user:user_profiles!user_id (email),
         comments (
             *,
-            user:user_id (email)
+            user:user_profiles!user_id (email)
         )
     `,
     )

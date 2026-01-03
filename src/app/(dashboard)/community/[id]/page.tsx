@@ -13,18 +13,20 @@ import { Textarea } from "@/shared/ui/textarea";
 import { Loader2, ArrowLeft, MessageSquare, Clock, User } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 
-export default function PostDetailPage({ params }: { params: { id: string } }) {
+export default function PostDetailPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params?.id as string;
   const queryClient = useQueryClient();
   const [comment, setComment] = useState("");
 
   const { data: post, isLoading } = useQuery({
-    queryKey: ["post", params.id],
+    queryKey: ["post", id],
     queryFn: async () => {
-      const res = await fetch(`/api/community/posts/${params.id}`);
+      const res = await fetch(`/api/community/posts/${id}`);
       if (!res.ok) throw new Error("게시글을 불러오지 못했습니다.");
       const data = await res.json();
       return data.data;
@@ -33,7 +35,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
 
   const commentMutation = useMutation({
     mutationFn: async (content: string) => {
-      const res = await fetch(`/api/community/posts/${params.id}/comments`, {
+      const res = await fetch(`/api/community/posts/${id}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
@@ -44,7 +46,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
     onSuccess: () => {
       toast.success("댓글이 등록되었습니다.");
       setComment("");
-      queryClient.invalidateQueries({ queryKey: ["post", params.id] });
+      queryClient.invalidateQueries({ queryKey: ["post", id] });
     },
   });
 

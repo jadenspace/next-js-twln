@@ -127,7 +127,7 @@ export const authApi = {
       }
     } catch (err) {
       throw new Error(
-        err instanceof Error ? err.message : "비밀번호 업데이트 실패"
+        err instanceof Error ? err.message : "비밀번호 업데이트 실패",
       );
     }
   },
@@ -178,7 +178,7 @@ export const authApi = {
         .from("user_profiles")
         .select("email")
         .eq("email", email)
-        .single();
+        .maybeSingle();
 
       if (error) {
         // 데이터가 없거나 다른 오류
@@ -190,7 +190,10 @@ export const authApi = {
       }
 
       // 데이터가 있으면 이메일이 존재함
-      return { exists: true, email: data.email };
+      if (data) {
+        return { exists: true, email: data.email };
+      }
+      return { exists: false };
     } catch (err) {
       return {
         error: `이메일 확인 중 오류가 발생했습니다: ${
