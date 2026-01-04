@@ -29,7 +29,7 @@ export default function StatsAnalysisPage() {
   });
 
   return (
-    <div className="container max-w-5xl py-10">
+    <div className="max-w-5xl mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">기본 통계 분석</h1>
       <p className="text-muted-foreground mb-8">
         역대 로또 당첨번호 데이터를 기반으로 번호별 출현 빈도, 구간별 분포 등

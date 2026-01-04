@@ -37,7 +37,7 @@ export default function RecommendPage() {
   });
 
   return (
-    <div className="container max-w-5xl py-10">
+    <div className="max-w-5xl mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">AI 번호 추천</h1>
       <p className="text-muted-foreground mb-8">
         빅데이터 분석과 통계 가중치를 적용한 AI 알고리즘이 5조합의 번호를

@@ -45,7 +45,7 @@ export default function PaymentsHistoryPage() {
   };
 
   return (
-    <div className="container max-w-5xl py-10">
+    <div className="max-w-5xl mx-auto py-10">
       <div className="flex items-center gap-4 mb-6">
         <Link href="/points/charge">
           <Button variant="ghost" size="icon">
