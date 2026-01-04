@@ -2,108 +2,170 @@
 
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { Button } from "@/shared/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/shared/ui/card";
+import { AttendanceCard } from "@/features/points/components/attendance-card";
+import { Search, BarChart3, TrendingUp, Sparkles, Binary } from "lucide-react";
+import Link from "next/link";
+
+import { UserLevelInfo } from "@/features/gamification/components/user-level-info";
 
 export default function Home() {
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center space-y-8">
-          <h1 className="text-4xl font-bold tracking-tight">
-            TWLN - Feature Sliced Design
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Next.js 앱이 FSD 아키텍처, Supabase Auth, TanStack Query, Zustand,
-            shadcn/ui로 구성되어 있습니다.
-          </p>
-
-          {/* 인증 상태 표시 */}
-          <div className="p-4 bg-muted rounded-lg max-w-md mx-auto">
-            <p className="text-sm">
-              <strong>인증 상태:</strong>{" "}
-              {isAuthenticated ? "로그인됨" : "로그인되지 않음"}
-            </p>
-            {user && (
-              <p className="text-sm text-muted-foreground mt-1">
-                이메일: {user.email}
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg">시작하기</Button>
-            <Button variant="outline" size="lg">
-              문서 보기
-            </Button>
-            {isAuthenticated ? (
-              <>
-                <Button
-                  variant="destructive"
-                  size="lg"
-                  onClick={() => {
-                    signOut();
-                    // 로그아웃 후 즉시 로그인 페이지로 리다이렉트
-                    setTimeout(() => {
-                      window.location.href = "/login";
-                    }, 100);
-                  }}
-                >
-                  로그아웃
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  onClick={() => (window.location.href = "/admin")}
-                >
-                  관리자
-                </Button>
-              </>
-            ) : (
-              <Button
-                variant="secondary"
-                size="lg"
-                onClick={() => (window.location.href = "/login")}
-              >
-                로그인
-              </Button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
-            <Card>
-              <CardHeader>
-                <CardTitle>Feature Sliced Design</CardTitle>
-                <CardDescription>
-                  확장 가능하고 유지보수하기 쉬운 아키텍처
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Supabase Auth</CardTitle>
-                <CardDescription>SSR 지원 인증 시스템</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>TanStack Query</CardTitle>
-                <CardDescription>강력한 서버 상태 관리</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-
-          {/* 개발 모드 알림 */}
-          <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              <strong>개발 모드:</strong> 현재 더미 Supabase 설정을 사용
-              중입니다. 실제 인증을 테스트하려면 Supabase 프로젝트를 설정하고
-              환경 변수를 업데이트하세요.
+      <div className="container mx-auto px-4 py-8 lg:py-16">
+        <div className="space-y-12">
+          {/* Hero Section */}
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight">
+              TWLN 로또 분석 서비스
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              빅데이터와 AI 기반으로 로또 당첨 확률을 높이는 프리미엄 인사이트를
+              경험하세요.
             </p>
           </div>
+
+          {isAuthenticated ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left Column: Dashboard Basics */}
+              <div className="lg:col-span-2 space-y-8">
+                <AttendanceCard />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FeatureLinkCard
+                    title="번호 검색"
+                    description="역대 당첨번호를 회차별, 날짜별로 조회"
+                    href="/lotto/search"
+                    icon={<Search className="w-6 h-6" />}
+                  />
+                  <FeatureLinkCard
+                    title="기본 통계 분석"
+                    description="번호별 빈도 및 홀짝 비율 통계"
+                    href="/lotto/analysis/stats"
+                    icon={<BarChart3 className="w-6 h-6" />}
+                  />
+                  <FeatureLinkCard
+                    title="패턴 분석"
+                    description="연속번호, AC값 등 심층 패턴 매칭"
+                    href="/lotto/analysis/pattern"
+                    icon={<TrendingUp className="w-6 h-6" />}
+                  />
+                  <FeatureLinkCard
+                    title="AI 번호 추천"
+                    description="AI가 제안하는 이번 주 행운의 번호"
+                    href="/lotto/analysis/recommend"
+                    icon={<Sparkles className="w-6 h-6" />}
+                  />
+                  <FeatureLinkCard
+                    title="당첨 시뮬레이션"
+                    description="내 번호로 과거 모든 회차 분석"
+                    href="/lotto/analysis/simulation"
+                    icon={<Binary className="w-6 h-6" />}
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: User Info / Points Info */}
+              <div className="space-y-6">
+                {user && <UserLevelInfo userId={user.id} />}
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>내 정보</CardTitle>
+                    <CardDescription>{user?.email}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center bg-secondary/30 p-3 rounded-lg">
+                      <span className="text-sm font-medium">
+                        관리 승인 상태
+                      </span>
+                      <span className="text-xs px-2 py-1 bg-green-500 text-white rounded">
+                        승인됨
+                      </span>
+                    </div>
+                    <Link href="/points/charge" className="block">
+                      <Button id="btn-charge" className="w-full font-bold">
+                        포인트 충전하기
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center space-y-8">
+              <div className="flex justify-center gap-4">
+                <Link href="/login">
+                  <Button id="btn-get-started" size="lg" className="px-8">
+                    시작하기
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>AI 추천 서비스</CardTitle>
+                    <CardDescription>
+                      머신러닝 알고리즘 기반 추천
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>통계 데이터</CardTitle>
+                    <CardDescription>
+                      1,200회 이상의 누적 데이터
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>포인트 시스템</CardTitle>
+                    <CardDescription>합리적인 포인트 기반 과금</CardDescription>
+                  </CardHeader>
+                </Card>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+function FeatureLinkCard({
+  title,
+  description,
+  href,
+  icon,
+}: {
+  title: string;
+  description: string;
+  href: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link href={href}>
+      <Card className="hover:border-primary transition-colors h-full">
+        <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+          <div className="p-2 bg-secondary rounded-lg">{icon}</div>
+          <div>
+            <CardTitle className="text-lg">{title}</CardTitle>
+            <CardDescription className="line-clamp-1">
+              {description}
+            </CardDescription>
+          </div>
+        </CardHeader>
+      </Card>
+    </Link>
   );
 }

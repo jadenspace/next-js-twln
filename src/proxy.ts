@@ -1,7 +1,7 @@
 import { createMiddlewareClient } from "@/shared/lib/supabase/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { supabase, supabaseResponse } = createMiddlewareClient(request);
 
   // Do not run code between createServerClient and

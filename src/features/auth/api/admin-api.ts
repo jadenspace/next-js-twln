@@ -39,7 +39,7 @@ export const adminApi = {
       .select("email, role")
       .eq("email", userEmail)
       .eq("is_active", true)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       return false;
