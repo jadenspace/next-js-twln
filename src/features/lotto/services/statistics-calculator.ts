@@ -32,18 +32,18 @@ export class StatisticsCalculator {
     // We iterate from oldest to newest or newest to oldest.
     // Logic: Frequency counts all. Recent appearance needs latest index.
 
-    // Sort draws by drwNo ascending just in case
-    const sortedDraws = [...this.draws].sort((a, b) => a.drwNo - b.drwNo);
-    const lastDrawNo = sortedDraws[sortedDraws.length - 1]?.drwNo || 0;
+    // Sort draws by drw_no ascending just in case
+    const sortedDraws = [...this.draws].sort((a, b) => a.drw_no - b.drw_no);
+    const lastDrawNo = sortedDraws[sortedDraws.length - 1]?.drw_no || 0;
 
     sortedDraws.forEach((draw) => {
       const numbers = [
-        draw.drwtNo1,
-        draw.drwtNo2,
-        draw.drwtNo3,
-        draw.drwtNo4,
-        draw.drwtNo5,
-        draw.drwtNo6,
+        draw.drwt_no1,
+        draw.drwt_no2,
+        draw.drwt_no3,
+        draw.drwt_no4,
+        draw.drwt_no5,
+        draw.drwt_no6,
       ];
       let sum = 0;
 
@@ -52,7 +52,7 @@ export class StatisticsCalculator {
         stats.frequency[num] = (stats.frequency[num] || 0) + 1;
 
         // Recent Appearance (Update to current draw No)
-        stats.recentAppearance[num] = draw.drwNo;
+        stats.recentAppearance[num] = draw.drw_no;
 
         // Odd/Even
         if (num % 2 !== 0) stats.oddEvenRatio.odd++;

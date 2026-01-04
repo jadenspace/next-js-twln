@@ -24,12 +24,12 @@ export class PatternAnalyzer {
 
     this.draws.forEach((draw) => {
       const numbers = [
-        draw.drwtNo1,
-        draw.drwtNo2,
-        draw.drwtNo3,
-        draw.drwtNo4,
-        draw.drwtNo5,
-        draw.drwtNo6,
+        draw.drwt_no1,
+        draw.drwt_no2,
+        draw.drwt_no3,
+        draw.drwt_no4,
+        draw.drwt_no5,
+        draw.drwt_no6,
       ];
 
       // 1. Consecutive Numbers (연속번호)

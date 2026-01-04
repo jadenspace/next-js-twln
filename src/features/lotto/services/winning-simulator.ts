@@ -41,14 +41,14 @@ export class WinningSimulator {
 
     this.draws.forEach((draw) => {
       const winNumbers = [
-        draw.drwtNo1,
-        draw.drwtNo2,
-        draw.drwtNo3,
-        draw.drwtNo4,
-        draw.drwtNo5,
-        draw.drwtNo6,
+        draw.drwt_no1,
+        draw.drwt_no2,
+        draw.drwt_no3,
+        draw.drwt_no4,
+        draw.drwt_no5,
+        draw.drwt_no6,
       ];
-      const bonusNumber = draw.bnusNo;
+      const bonusNumber = draw.bnus_no;
 
       const matchCount = winNumbers.filter((n) =>
         sortedMyNumbers.includes(n),
@@ -60,23 +60,24 @@ export class WinningSimulator {
 
       if (matchCount === 6) {
         rank = 1;
-        prize = draw.firstWinamnt; // 1등 당첨금 (실제 데이터 사용)
+        // 실제 1등 당첨금 사용 (string이므로 Number로 변환)
+        prize = Number(draw.first_win_amnt || 0);
       } else if (matchCount === 5 && isBonusMatch) {
         rank = 2;
-        prize = 50000000; // 2등 평균 대략 5천 (데이터에 없으면 근사치 or need DB col for 2nd prize)
-        // Since we only have firstWinamnt in LottoDraw interface currently,
-        // strictly speaking we need more data. For MVP, let's estimate or use 0 if unsafe.
-        // Let's assume fixed prizes for 4,5 and estimate 2,3 for better experience.
-        // *Real implementation should fetch all rank prizes from DB.*
+        // 실제 2등 당첨금 사용
+        prize = Number(draw.rnk2_win_amt || 50000000);
       } else if (matchCount === 5) {
         rank = 3;
-        prize = 1500000; // 3등 근사치
+        // 실제 3등 당첨금 사용
+        prize = Number(draw.rnk3_win_amt || 1500000);
       } else if (matchCount === 4) {
         rank = 4;
-        prize = 50000; // 4등 고정
+        // 실제 4등 당첨금 사용
+        prize = Number(draw.rnk4_win_amt || 50000);
       } else if (matchCount === 3) {
         rank = 5;
-        prize = 5000; // 5등 고정
+        // 실제 5등 당첨금 사용
+        prize = Number(draw.rnk5_win_amt || 5000);
       } else {
         rank = 0; // Fail
       }
@@ -85,10 +86,10 @@ export class WinningSimulator {
         result.rankCounts[rank as keyof typeof result.rankCounts]++;
         result.totalPrize += prize;
         result.history.push({
-          drwNo: draw.drwNo,
+          drwNo: draw.drw_no,
           rank,
           prize,
-          date: draw.drwNoDate,
+          date: draw.drw_no_date,
         });
       } else {
         result.rankCounts.fail++;

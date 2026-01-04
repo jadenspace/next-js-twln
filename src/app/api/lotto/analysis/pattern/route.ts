@@ -36,21 +36,8 @@ export async function POST(request: NextRequest) {
 
     if (lottoError || !lottoData) throw new Error("Failed to fetch lotto data");
 
-    const draws: LottoDraw[] = lottoData.map((d: any) => ({
-      drwNo: d.drw_no,
-      drwNoDate: d.drw_no_date,
-      totSellamnt: d.tot_sellamnt,
-      firstWinamnt: d.first_winamnt,
-      firstPrzwnerCo: d.first_przwner_co,
-      firstAccumamnt: d.first_accumamnt,
-      drwtNo1: d.drwt_no1,
-      drwtNo2: d.drwt_no2,
-      drwtNo3: d.drwt_no3,
-      drwtNo4: d.drwt_no4,
-      drwtNo5: d.drwt_no5,
-      drwtNo6: d.drwt_no6,
-      bnusNo: d.bnus_no,
-    }));
+    // DB 스키마와 타입이 일치하므로 직접 사용
+    const draws: LottoDraw[] = lottoData;
 
     const analyzer = new PatternAnalyzer(draws);
     const result = analyzer.calculatePatterns();

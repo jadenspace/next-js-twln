@@ -1,17 +1,58 @@
+/**
+ * 로또 당첨 정보 (DB 스키마와 일치)
+ * 필드명은 DB의 snake_case를 따릅니다.
+ */
 export interface LottoDraw {
-  drwNo: number;
-  drwNoDate: string;
-  totSellamnt: number;
-  firstWinamnt: number;
-  firstPrzwnerCo: number;
-  firstAccumamnt: number;
-  drwtNo1: number;
-  drwtNo2: number;
-  drwtNo3: number;
-  drwtNo4: number;
-  drwtNo5: number;
-  drwtNo6: number;
-  bnusNo: number;
+  drw_no: number;
+  drw_no_date: string;
+  gm_sq_no?: number;
+
+  // 당첨 번호
+  drwt_no1: number;
+  drwt_no2: number;
+  drwt_no3: number;
+  drwt_no4: number;
+  drwt_no5: number;
+  drwt_no6: number;
+  bnus_no: number;
+
+  // 1등 당첨 정보
+  first_przwner_co?: number;
+  first_win_amnt?: string;
+  first_accum_amnt?: string;
+  win_type_auto?: number;
+  win_type_manual?: number;
+  win_type_semi_auto?: number;
+
+  // 2등 당첨 정보
+  rnk2_win_nope?: number;
+  rnk2_win_amt?: string;
+  rnk2_sum_win_amt?: string;
+
+  // 3등 당첨 정보
+  rnk3_win_nope?: number;
+  rnk3_win_amt?: string;
+  rnk3_sum_win_amt?: string;
+
+  // 4등 당첨 정보
+  rnk4_win_nope?: number;
+  rnk4_win_amt?: string;
+  rnk4_sum_win_amt?: string;
+
+  // 5등 당첨 정보
+  rnk5_win_nope?: number;
+  rnk5_win_amt?: string;
+  rnk5_sum_win_amt?: string;
+
+  // 전체 통계
+  sum_win_nope?: number;
+  rlvt_epsd_sum_ntsl_amt?: string;
+  whol_epsd_sum_ntsl_amt?: string;
+  tot_sell_amnt?: string; // 구 API에서만 제공
+
+  // 기타
+  excel_rnk?: string;
+  created_at?: string;
 }
 
 export interface BasicStats {

@@ -66,40 +66,40 @@ export class AiRecommender {
       recentMap[i] = 1;
     }
 
-    const lastDrawNo = this.draws[0]?.drwNo || 0; // Assuming sorted descending or check
+    const lastDrawNo = this.draws[0]?.drw_no || 0; // Assuming sorted descending or check
 
     // Sort draws descending to check absence easily
-    const sortedDraws = [...this.draws].sort((a, b) => b.drwNo - a.drwNo);
+    const sortedDraws = [...this.draws].sort((a, b) => b.drw_no - a.drw_no);
 
     // Calculate Absence
     for (let i = 1; i <= 45; i++) {
       let lastSeen = -1;
       for (const draw of sortedDraws) {
         const nums = [
-          draw.drwtNo1,
-          draw.drwtNo2,
-          draw.drwtNo3,
-          draw.drwtNo4,
-          draw.drwtNo5,
-          draw.drwtNo6,
+          draw.drwt_no1,
+          draw.drwt_no2,
+          draw.drwt_no3,
+          draw.drwt_no4,
+          draw.drwt_no5,
+          draw.drwt_no6,
         ];
         if (nums.includes(i)) {
-          lastSeen = draw.drwNo;
+          lastSeen = draw.drw_no;
           break;
         }
       }
-      absenceMap[i] = lastSeen === -1 ? 100 : sortedDraws[0].drwNo - lastSeen;
+      absenceMap[i] = lastSeen === -1 ? 100 : sortedDraws[0].drw_no - lastSeen;
     }
 
     // Calculate Frequency & Recent
     sortedDraws.forEach((draw, idx) => {
       const nums = [
-        draw.drwtNo1,
-        draw.drwtNo2,
-        draw.drwtNo3,
-        draw.drwtNo4,
-        draw.drwtNo5,
-        draw.drwtNo6,
+        draw.drwt_no1,
+        draw.drwt_no2,
+        draw.drwt_no3,
+        draw.drwt_no4,
+        draw.drwt_no5,
+        draw.drwt_no6,
       ];
       nums.forEach((n) => {
         freqMap[n]++;

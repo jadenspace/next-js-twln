@@ -114,7 +114,7 @@ export default function SearchPage() {
                     </span>
                   </div>
                   <div className="text-sm font-medium">
-                    1등: {draw.first_winamnt.toLocaleString()}원
+                    1등: {Number(draw.first_win_amnt || 0).toLocaleString()}원
                   </div>
                 </div>
               </CardHeader>
