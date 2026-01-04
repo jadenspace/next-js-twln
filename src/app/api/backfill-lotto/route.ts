@@ -5,7 +5,7 @@ import { type NextRequest } from "next/server";
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function GET(request: NextRequest) {
-  const LATEST_DRAW_NO = 1204;
+  const LATEST_DRAW_NO = 1205;
   const DELAY_MS = 500; // 0.5초 지연
 
   const searchParams = request.nextUrl.searchParams;
@@ -69,7 +69,16 @@ export async function GET(request: NextRequest) {
           // 1. Fetch data from external API
           const rawData = await lottoApi.fetchLottoDraw(i);
 
-          if (rawData && rawData.returnValue === "success") {
+          // Debug logging
+          if (!rawData) {
+            enqueue(`[DEBUG] Draw #${i}: API returned null or undefined
+`);
+          } else {
+            enqueue(`[DEBUG] Draw #${i}: ltEpsd=${rawData.ltEpsd}, has data=${!!rawData}
+`);
+          }
+
+          if (rawData && rawData.ltEpsd > 0) {
             // 2. Transform data for our database
             const drawData = transformLottoData(rawData);
 
