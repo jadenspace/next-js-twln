@@ -4,14 +4,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { pointsApi } from "../api/points-api";
 import { format } from "date-fns";
@@ -68,59 +60,54 @@ export function PointHistoryModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="px-4 pt-6 pb-4 sm:px-6 shrink-0">
           <DialogTitle>포인트 내역</DialogTitle>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6">
           {isLoading ? (
             <div className="flex justify-center p-8">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : transactions.length > 0 ? (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>일시</TableHead>
-                    <TableHead>구분</TableHead>
-                    <TableHead>내용</TableHead>
-                    <TableHead className="text-right">변동금액</TableHead>
-                    <TableHead className="text-right">잔액</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((tx) => (
-                    <TableRow key={tx.id}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(tx.created_at), "yyyy-MM-dd HH:mm", {
+              <div className="space-y-3">
+                {transactions.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="border rounded-lg p-4 space-y-2 bg-card"
+                  >
+                    <div className="flex items-center justify-between">
+                      <Badge
+                        variant={tx.amount > 0 ? "default" : "secondary"}
+                        className="text-xs"
+                      >
+                        {getTransactionTypeLabel(tx.transaction_type)}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(tx.created_at), "MM-dd HH:mm", {
                           locale: ko,
                         })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={tx.amount > 0 ? "default" : "secondary"}
-                        >
-                          {getTransactionTypeLabel(tx.transaction_type)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{tx.description}</TableCell>
-                      <TableCell
-                        className={`text-right font-medium ${getAmountColor(tx.amount)}`}
+                      </span>
+                    </div>
+                    <div className="text-sm">{tx.description}</div>
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <span
+                        className={`font-bold ${getAmountColor(tx.amount)}`}
                       >
                         {tx.amount > 0 ? "+" : ""}
                         {tx.amount.toLocaleString()} P
-                      </TableCell>
-                      <TableCell className="text-right text-gray-500">
-                        {tx.balance_after.toLocaleString()} P
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        잔액: {tx.balance_after.toLocaleString()} P
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-              <div className="flex justify-between items-center mt-4">
+              <div className="flex justify-between items-center mt-6 pt-4 border-t shrink-0">
                 <Button
                   variant="outline"
                   size="sm"

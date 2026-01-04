@@ -31,7 +31,7 @@ export default function PatternAnalysisPage() {
   });
 
   return (
-    <div className="container max-w-5xl py-10">
+    <div className="max-w-5xl mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">패턴 분석</h1>
       <p className="text-muted-foreground mb-8">
         연속 번호, 끝자리 패턴, AC값 등 고급 패턴 정보를 분석하여 제공합니다.

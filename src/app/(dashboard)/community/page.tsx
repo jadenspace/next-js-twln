@@ -68,7 +68,7 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="container max-w-5xl py-10">
+    <div className="max-w-5xl mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">자유 게시판</h1>
@@ -135,9 +135,13 @@ export default function CommunityPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[80px] text-center">번호</TableHead>
+                  <TableHead className="hidden md:table-cell w-[80px] text-center">
+                    번호
+                  </TableHead>
                   <TableHead>제목</TableHead>
-                  <TableHead className="w-[150px]">작성자</TableHead>
+                  <TableHead className="hidden md:table-cell w-[150px]">
+                    작성자
+                  </TableHead>
                   <TableHead className="w-[120px] text-center">
                     작성일
                   </TableHead>
@@ -151,7 +155,7 @@ export default function CommunityPage() {
                     className="cursor-pointer"
                     onClick={() => router.push(`/community/${post.id}`)}
                   >
-                    <TableCell className="text-center text-muted-foreground">
+                    <TableCell className="hidden md:table-cell text-center text-muted-foreground">
                       {posts.count - index}
                     </TableCell>
                     <TableCell className="font-medium">
@@ -165,7 +169,7 @@ export default function CommunityPage() {
                         <MessageSquare className="w-3 h-3" /> 0
                       </span>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                       {post.user?.email?.split("@")[0]}
                     </TableCell>
                     <TableCell className="text-center text-xs text-muted-foreground">

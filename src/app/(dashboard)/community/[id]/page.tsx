@@ -60,7 +60,7 @@ export default function PostDetailPage() {
     return <div className="text-center p-20">게시글을 찾을 수 없습니다.</div>;
 
   return (
-    <div className="container max-w-4xl py-10">
+    <div className="max-w-4xl mx-auto py-10">
       <Button variant="ghost" className="mb-6" onClick={() => router.back()}>
         <ArrowLeft className="w-4 h-4 mr-2" />
         목록으로
