@@ -14,6 +14,7 @@ import { Search, BarChart3, TrendingUp, Sparkles, Binary } from "lucide-react";
 import Link from "next/link";
 
 import { UserLevelInfo } from "@/features/gamification/components/user-level-info";
+import { LottoResultCard } from "@/features/lotto/components/lotto-result-card";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -35,9 +36,9 @@ export default function Home() {
 
           {isAuthenticated ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left Column: Dashboard Basics */}
+              {/* Left Column: Lotto Result & Feature Cards */}
               <div className="lg:col-span-2 space-y-8">
-                <AttendanceCard />
+                <LottoResultCard />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FeatureLinkCard
@@ -73,8 +74,9 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Right Column: User Info / Points Info */}
-              <div className="space-y-6">
+              {/* Right Column: User Info */}
+              <div className="space-y-8">
+                <AttendanceCard />
                 {user && <UserLevelInfo userId={user.id} />}
 
                 <Card>
@@ -102,6 +104,12 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center space-y-8">
+              <div className="flex justify-center">
+                <div className="w-full max-w-md">
+                  <LottoResultCard />
+                </div>
+              </div>
+
               <div className="flex justify-center gap-4">
                 <Link href="/login">
                   <Button id="btn-get-started" size="lg" className="px-8">
