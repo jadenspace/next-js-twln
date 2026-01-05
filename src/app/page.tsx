@@ -14,6 +14,7 @@ import { Search, BarChart3, TrendingUp, Sparkles, Binary } from "lucide-react";
 import Link from "next/link";
 
 import { UserLevelInfo } from "@/features/gamification/components/user-level-info";
+import { LottoResultCard } from "@/features/lotto/components/lotto-result-card";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -31,6 +32,12 @@ export default function Home() {
               빅데이터와 AI 기반으로 로또 당첨 확률을 높이는 프리미엄 인사이트를
               경험하세요.
             </p>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="w-full max-w-md">
+              <LottoResultCard />
+            </div>
           </div>
 
           {isAuthenticated ? (
