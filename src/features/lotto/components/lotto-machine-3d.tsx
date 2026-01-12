@@ -364,6 +364,34 @@ function ExtractionController({
   );
 }
 
+// 초기 로드 시 카메라 무빙 제어
+function IntroCamera({ onComplete }: { onComplete: () => void }) {
+  const [active, setActive] = useState(true);
+
+  useFrame((state) => {
+    if (!active) return;
+
+    // 타겟 위치: [0, 5, 18]
+    // 시작 위치 (캡처 각도): [12, 12, 15]
+    const targetPos = new THREE.Vector3(0, 5, 18);
+    const step = 0.045; // 조금 더 속도감 있게 시작해서 부드럽게 정지
+
+    state.camera.position.lerp(targetPos, step);
+    state.camera.lookAt(0, 0, 0);
+
+    // 훨씬 더 정밀하게 체크하여 '덜컹'이는 느낌 제거
+    if (state.camera.position.distanceTo(targetPos) < 0.001) {
+      state.camera.position.copy(targetPos);
+      state.camera.lookAt(0, 0, 0);
+      state.camera.updateProjectionMatrix();
+      setActive(false);
+      onComplete();
+    }
+  });
+
+  return null;
+}
+
 export function LottoMachine3D({
   isSpinning,
   drawnNumbers,
@@ -414,10 +442,13 @@ export function LottoMachine3D({
     }
   };
 
+  const [isIntroDone, setIsIntroDone] = useState(false);
+
   return (
     <div className="w-full h-[700px] bg-gradient-to-b from-slate-950 via-slate-900 to-black rounded-3xl overflow-hidden shadow-edge border border-white/5 relative">
-      <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 6, 18], fov: 28 }}>
-        <PerspectiveCamera makeDefault position={[0, 5, 18]} fov={28} />
+      <Canvas shadows dpr={[1, 2]} camera={{ position: [12, 12, 15], fov: 28 }}>
+        <PerspectiveCamera makeDefault position={[12, 12, 15]} fov={28} />
+        <IntroCamera onComplete={() => setIsIntroDone(true)} />
         <ambientLight intensity={0.5} />
         <spotLight
           position={[10, 25, 15]}
@@ -481,6 +512,7 @@ export function LottoMachine3D({
         </Suspense>
 
         <OrbitControls
+          enabled={isIntroDone}
           enableZoom={false}
           enablePan={false}
           maxPolarAngle={Math.PI / 1.7}

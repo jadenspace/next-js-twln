@@ -2,9 +2,16 @@
 
 import { useState } from "react";
 import { Button } from "@/shared/ui/button";
-import { Card, CardContent } from "@/shared/ui/card";
 import { LottoMachine3D } from "@/features/lotto/components/lotto-machine-3d";
-import { Sparkles, RotateCcw, Save } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/shared/ui/dialog";
+import { Sparkles, RotateCcw, Save, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
 
@@ -14,12 +21,16 @@ export default function RandomGeneratePage() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [targetNumbers, setTargetNumbers] = useState<number[]>([]);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const startDraw = async () => {
     if (isSpinning) return;
 
     setIsSpinning(true);
     setDrawnNumbers([]);
+    setTargetNumbers([]);
     setIsCompleted(false);
+    setIsModalOpen(false);
 
     // 미리 뽑을 번호 6개를 결정 (타겟)
     const candidates: number[] = [];
@@ -34,19 +45,23 @@ export default function RandomGeneratePage() {
 
   const handleBallDrawn = (num: number) => {
     setDrawnNumbers((prev) => {
-      // 중복 방지 (물리 엔진에서 여러 번 트리거될 수 있음)
       if (prev.includes(num)) return prev;
 
       const next = [...prev, num];
       if (next.length === 6) {
         setIsCompleted(true);
         setIsSpinning(false);
-        toast.success("행운의 번호가 모두 추출되었습니다!", {
-          description: "번호 저장 버튼을 눌러 보관할 수 있습니다.",
-          duration: 3000,
-        });
+        setIsModalOpen(true);
       }
       return next;
+    });
+  };
+
+  const handleCopy = () => {
+    const text = drawnNumbers.sort((a, b) => a - b).join(", ");
+    navigator.clipboard.writeText(text);
+    toast.success("번호가 클립보드에 복사되었습니다.", {
+      description: text,
     });
   };
 
@@ -64,14 +79,6 @@ export default function RandomGeneratePage() {
               <p className="text-sm text-muted-foreground">
                 3D 시뮬레이션을 통해 행운의 번호를 직접 뽑아보세요.
               </p>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/10 rounded-full border border-primary/20">
-                <span className="text-[10px] font-bold text-primary uppercase">
-                  Ball Count
-                </span>
-                <span className="text-xs font-bold text-primary">
-                  {45 - drawnNumbers.length}
-                </span>
-              </div>
             </div>
           </div>
           <div className="flex gap-2">
@@ -82,6 +89,7 @@ export default function RandomGeneratePage() {
                 setDrawnNumbers([]);
                 setTargetNumbers([]);
                 setIsCompleted(false);
+                setIsModalOpen(false);
               }}
               disabled={isSpinning || drawnNumbers.length === 0}
             >
@@ -108,9 +116,9 @@ export default function RandomGeneratePage() {
         <div className="flex justify-center">
           <Button
             size="lg"
-            className="h-16 px-12 text-lg font-bold shadow-xl hover:scale-105 transition-transform"
+            className="h-16 px-12 text-lg font-bold shadow-xl transition-colors"
             onClick={startDraw}
-            disabled={isSpinning}
+            disabled={isSpinning || isCompleted}
           >
             {isSpinning ? (
               <>
@@ -127,43 +135,55 @@ export default function RandomGeneratePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-muted/30 border-none">
-          <CardContent className="pt-6">
-            <h3 className="font-semibold mb-4">현재 추출된 번호</h3>
-            <div className="flex flex-wrap gap-3">
-              {drawnNumbers.length > 0 ? (
-                drawnNumbers.map((num, idx) => (
-                  <div
-                    key={idx}
-                    className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md animate-in zoom-in duration-300",
-                      getLottoBgColor(num),
-                    )}
-                  >
-                    {num}
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground italic">
-                  뽑기 버튼을 누르면 번호가 이곳에 나타납니다.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      {/* 결과 모달 */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-md bg-slate-900 border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl font-black mb-2 flex items-center justify-center gap-2">
+              <Sparkles className="w-6 h-6 text-yellow-400" />
+              추첨 결과
+            </DialogTitle>
+            <DialogDescription className="text-center text-slate-400">
+              오늘의 행운을 잡으셨나요? 번호를 확인하고 복사해보세요.
+            </DialogDescription>
+          </DialogHeader>
 
-        <Card className="bg-primary/5 border-primary/10">
-          <CardContent className="pt-6 border-l-4 border-primary">
-            <h3 className="font-semibold mb-2">오늘의 운세 팁</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              랜덤 추첨 시스템은 물리 법칙을 시뮬레이션하여 가장 공정한 숫자를
-              제공합니다. 마음을 비우고 버튼을 클릭하는 순간의 직관을
-              믿어보세요.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <div className="py-8 flex justify-center gap-3">
+            {drawnNumbers
+              .sort((a, b) => a - b)
+              .map((num, idx) => (
+                <div
+                  key={idx}
+                  className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-white/10 animate-in zoom-in duration-500",
+                    getLottoBgColor(num),
+                  )}
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                >
+                  {num}
+                </div>
+              ))}
+          </div>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
+            <Button
+              variant="outline"
+              className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-white"
+              onClick={handleCopy}
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              번호 복사하기
+            </Button>
+            <Button
+              className="flex-1 bg-primary hover:bg-primary/90"
+              onClick={handleSave}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              서버에 저장하기
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
