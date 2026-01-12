@@ -54,12 +54,6 @@ export default function Home() {
                     icon={<BarChart3 className="w-6 h-6" />}
                   />
                   <FeatureLinkCard
-                    title="패턴 분석"
-                    description="연속번호, AC값 등 심층 패턴 매칭"
-                    href="/lotto/analysis/pattern"
-                    icon={<TrendingUp className="w-6 h-6" />}
-                  />
-                  <FeatureLinkCard
                     title="AI 번호 추천"
                     description="AI가 제안하는 이번 주 행운의 번호"
                     href="/lotto/analysis/recommend"

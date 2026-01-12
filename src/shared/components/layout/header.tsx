@@ -57,12 +57,6 @@ const NAV_ITEMS = [
   },
   { href: "/lotto/generate", label: "번호 생성", icon: Zap, isPublic: false },
   {
-    href: "/lotto/analysis/pattern",
-    label: "패턴 분석",
-    icon: Binary,
-    isPublic: false,
-  },
-  {
     href: "/lotto/analysis/recommend",
     label: "AI 추천",
     icon: Brain,

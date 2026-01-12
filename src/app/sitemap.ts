@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://lotto-detective.vercel.app";
+  const baseUrl = "https://lottodetective.vercel.app";
 
   // 기본 공개 페이지
   const routes = [
@@ -19,7 +19,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/lotto/analysis/stats/japanese",
     "/lotto/analysis/stats/monte-carlo",
     "/lotto/analysis/stats/algorithm",
-    "/lotto/analysis/pattern",
     "/lotto/analysis/recommend",
     "/lotto/analysis/simulation",
   ];
