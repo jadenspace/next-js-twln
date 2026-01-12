@@ -18,7 +18,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const { startDraw, endDraw, limit, includeBonus } = body;
+    const { startDraw, endDraw, limit, includeBonus, style = "basic" } = body;
+    const isAdvanced = style === "advanced";
+    const currentCost = isAdvanced ? 200 : 100;
 
     // 2. Check Point balance
     const { data: userPoints } = await supabase
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (!userPoints || userPoints.balance < STATS_COST) {
+    if (!userPoints || userPoints.balance < currentCost) {
       return NextResponse.json(
         { error: "Insufficient points" },
         { status: 402 },
@@ -41,6 +43,10 @@ export async function POST(request: NextRequest) {
     if (startDraw) query = query.gte("drw_no", startDraw);
     if (endDraw) query = query.lte("drw_no", endDraw);
     query = query.order("drw_no", { ascending: false });
+
+    // For advanced stats like Markov/Regression, we might need more historical data
+    // than the requested limit to calculate tendencies correctly.
+    // But for now, we follow the limit if provided.
     if (limit) query = query.limit(limit);
 
     const { data: lottoData, error: lottoError } = await query;
@@ -49,21 +55,24 @@ export async function POST(request: NextRequest) {
       throw new Error("Failed to fetch lotto data");
     }
 
-    // DB 스키마와 타입이 일치하므로 직접 사용
     const draws: LottoDraw[] = lottoData;
-
     const calculator = new StatisticsCalculator(draws);
-    const result = calculator.calculateBasicStats(includeBonus === true);
 
-    // 4. Deduct Points via RPC (Atomic & Bypasses RLS issues)
+    const result = isAdvanced
+      ? calculator.calculateAdvancedStats(includeBonus === true)
+      : calculator.calculateBasicStats(includeBonus === true);
+
+    // 4. Deduct Points via RPC
     const { data: deductResult, error: deductError } = await supabase.rpc(
       "deduct_points",
       {
         user_uuid: user.id,
-        amount_to_deduct: STATS_COST,
+        amount_to_deduct: currentCost,
         transaction_type: "use",
-        description_text: "로또 기본 통계 분석",
-        feat_type: "stat_analysis",
+        description_text: isAdvanced
+          ? "로또 심화 통계 분석"
+          : "로또 기본 통계 분석",
+        feat_type: isAdvanced ? "advanced_stat_analysis" : "stat_analysis",
       },
     );
 
@@ -84,19 +93,19 @@ export async function POST(request: NextRequest) {
       .from("analysis_results")
       .insert({
         user_id: user.id,
-        analysis_type: "stat",
+        analysis_type: isAdvanced ? "advanced_stat" : "stat",
         result_data: result,
-        points_spent: STATS_COST,
+        points_spent: currentCost,
       })
       .select()
       .single();
 
     if (saveError) throw saveError;
 
-    // 5. Grant XP (20 XP)
+    // 5. Grant XP (20 XP for basic, 50 XP for advanced)
     await supabase.rpc("add_xp", {
       user_uuid: user.id,
-      xp_to_add: 20,
+      xp_to_add: isAdvanced ? 50 : 20,
     });
 
     return NextResponse.json({ success: true, data: result });

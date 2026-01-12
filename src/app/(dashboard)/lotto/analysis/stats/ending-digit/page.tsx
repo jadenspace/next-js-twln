@@ -1,10 +1,183 @@
-import PlaceholderPage from "@/shared/components/layout/placeholder-page";
+"use client";
 
-export default function endingdigitPage() {
+import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { AdvancedStats } from "@/features/lotto/types";
+import { lottoApi } from "@/features/lotto/api/lotto-api";
+import {
+  StatsFilter,
+  FilterValues,
+} from "@/features/lotto/components/stats-filter";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/shared/ui/card";
+import { Hash, BarChart3, Info } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
+
+export default function EndingDigitStatsPage() {
+  const [stats, setStats] = useState<AdvancedStats | null>(null);
+
+  const { data: latestDrawNo } = useQuery({
+    queryKey: ["lotto", "latest-draw-no"],
+    queryFn: () => lottoApi.getLatestDrawNo(),
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (filters: FilterValues) => {
+      const res = await fetch("/api/lotto/analysis/stats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...filters, style: "advanced" }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "분석에 실패했습니다.");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setStats(data.data);
+    },
+    onError: (err) => {
+      alert(err.message);
+    },
+  });
+
+  const endingDigits = stats ? stats.endingDigit : {};
+  const maxFreq = stats ? Math.max(...Object.values(stats.endingDigit)) : 0;
+
   return (
-    <PlaceholderPage
-      title="Ue ndingUd igit"
-      description="Ue ndingUd igit 분석 페이지입니다."
-    />
+    <div className="container mx-auto py-10 px-4 max-w-6xl">
+      <div className="mb-10 text-center md:text-left">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3 text-emerald-600">
+          끝수 분석 통계
+        </h1>
+        <p className="text-xl text-muted-foreground">
+          당첨 번호의 일의 자리(0~9) 분포를 통해 패턴을 분석합니다.
+        </p>
+      </div>
+
+      <StatsFilter
+        onApply={(v) => mutation.mutate(v)}
+        isPending={mutation.isPending}
+        latestDrawNo={latestDrawNo}
+      />
+
+      {!stats ? (
+        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
+          <Hash className="w-16 h-16 text-muted-foreground/30 mb-4" />
+          <h3 className="text-xl font-bold mb-2">끝수 데이터 대기 중</h3>
+          <p className="text-muted-foreground">
+            일의 자리 패턴을 분석하려면 버튼을 눌러주세요.
+          </p>
+        </Card>
+      ) : (
+        <div className="space-y-8 animate-in slide-in-from-bottom-10 duration-700">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-emerald-600" />
+                끝수별 출현 빈도 (0~9)
+              </CardTitle>
+              <CardDescription>
+                어떤 끝수가 로또 당첨의 중심에 있는지 확인하세요.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] w-full flex items-end gap-2 md:gap-4 pt-10">
+                {Array.from({ length: 10 }, (_, i) => i).map((digit) => {
+                  const freq = endingDigits[digit] || 0;
+                  const height = maxFreq > 0 ? (freq / maxFreq) * 100 : 0;
+                  return (
+                    <div
+                      key={digit}
+                      className="flex-1 flex flex-col items-center group relative h-full justify-end"
+                    >
+                      <span className="text-xs font-bold mb-1 text-emerald-600">
+                        {freq}
+                      </span>
+                      <div
+                        className={cn(
+                          "w-full rounded-t-lg transition-all duration-700 bg-emerald-400 group-hover:bg-emerald-500 shadow-sm",
+                          freq === maxFreq && "bg-emerald-600 shadow-lg",
+                        )}
+                        style={{ height: `${height}%` }}
+                      />
+                      <div className="w-full text-center py-2 bg-muted/30 rounded-b-lg mt-1 font-black text-sm">
+                        {digit}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>인사이트 가이드</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                <p>
+                  <b>일의 자리 분포</b>는 로또 번호를 조합할 때 숫자의 뒷자리를
+                  고르게 섞는 데 도움을 줍니다. 보통 한 회차에는 2~3개의 동일한
+                  끝수가 나타나는 경우가 많습니다.
+                </p>
+                <div className="p-4 bg-muted rounded-xl flex gap-3">
+                  <Info className="w-5 h-5 text-primary shrink-0" />
+                  <p className="text-xs leading-relaxed">
+                    특정 끝수가 과도하게 출현했다면(그래프 최상단), 다음
+                    회차에는 해당 끝수보다는 분포가 낮은 끝수를 고려해 보시는
+                    것이 좋습니다.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-emerald-50/30 border-emerald-100">
+              <CardHeader>
+                <CardTitle className="text-emerald-800">
+                  최빈 끝수 리포트
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-emerald-100 shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                      가장 많이 나온 끝수
+                    </span>
+                    <h4 className="text-4xl font-black text-emerald-600">
+                      {
+                        Object.entries(endingDigits).sort(
+                          ([, a], [, b]) => (b as number) - (a as number),
+                        )[0][0]
+                      }
+                    </h4>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                      출현 횟수
+                    </span>
+                    <h4 className="text-4xl font-black text-emerald-600">
+                      {
+                        Object.entries(endingDigits).sort(
+                          ([, a], [, b]) => (b as number) - (a as number),
+                        )[0][1]
+                      }
+                      회
+                    </h4>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

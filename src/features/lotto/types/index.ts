@@ -69,9 +69,44 @@ export interface BasicStats {
   };
 }
 
+export interface AdvancedStats extends BasicStats {
+  regression: {
+    averageCycles: Record<number, number>;
+    lastCycles: Record<number, number>;
+    stdDev: Record<number, number>;
+  };
+  markov: {
+    transitionMatrix: Record<number, Record<number, number>>; // [prevNum][nextNum] = count
+  };
+  endingDigit: Record<number, number>; // 0~9 빈도
+  compatibility: {
+    pairs: Record<string, number>; // 6C2 조합 빈도
+  };
+  mathProperty: {
+    primes: number;
+    multiplesOf3: number;
+    composites: number;
+  };
+  nineRanges: Record<string, number>; // 1-5, 6-10... 빈도
+  interval: {
+    averageGaps: number[]; // n번째와 n+1번째 번호 사이의 평균 간격
+    drawGaps: Record<number, number[]>; // 회차별 간격 리스트
+  };
+  expertBalance: {
+    sums: number[];
+    averages: number[];
+    spreads: number[]; // (max - min)
+  };
+}
+
 export interface AnalysisResult {
   id: string;
-  analysis_type: "stat" | "pattern" | "ai_recommend" | "simulation";
+  analysis_type:
+    | "stat"
+    | "advanced_stat"
+    | "pattern"
+    | "ai_recommend"
+    | "simulation";
   created_at: string;
   result_data: any;
   is_bookmarked: boolean;

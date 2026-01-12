@@ -34,7 +34,7 @@ const STATS_MENU = {
       href: "/lotto/analysis/stats/markov",
       label: "마르코프 체인 / 전이 확률",
     },
-    { href: "/lotto/analysis/stats/japanese", label: "일본 유명인사 방법" },
+    { href: "/lotto/analysis/stats/japanese", label: "후나츠 사카이 분석" },
     {
       href: "/lotto/analysis/stats/monte-carlo",
       label: "몬테카를로 시뮬레이션",
