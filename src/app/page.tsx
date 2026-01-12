@@ -26,7 +26,7 @@ export default function Home() {
           {/* Hero Section */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight">
-              TWLN 로또 분석 서비스
+              로또탐정 분석 서비스
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               빅데이터와 AI 기반으로 로또 당첨 확률을 높이는 프리미엄 인사이트를
@@ -52,12 +52,6 @@ export default function Home() {
                     description="번호별 빈도 및 홀짝 비율 통계"
                     href="/lotto/analysis/stats"
                     icon={<BarChart3 className="w-6 h-6" />}
-                  />
-                  <FeatureLinkCard
-                    title="패턴 분석"
-                    description="연속번호, AC값 등 심층 패턴 매칭"
-                    href="/lotto/analysis/pattern"
-                    icon={<TrendingUp className="w-6 h-6" />}
                   />
                   <FeatureLinkCard
                     title="AI 번호 추천"

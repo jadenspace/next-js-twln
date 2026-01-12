@@ -1,4 +1,4 @@
-# TWLN Development Task List
+# 로또탐정 Development Task List
 
 ## Phase 1: Point System
 
@@ -46,10 +46,6 @@
   - [x] Implement stats calculator
   - [x] Implement Stats API
   - [x] Create Stats Page and Charts
-- [x] Task 11: Pattern Analysis
-  - [x] Implement pattern analyzer
-  - [x] Implement Pattern API
-  - [x] Create Pattern Page and Charts
 - [x] Task 12: Winning Simulation
   - [x] Implement simulator
   - [x] Implement Simulation API

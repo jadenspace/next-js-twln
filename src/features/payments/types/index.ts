@@ -20,5 +20,5 @@ export interface Payment {
 export const BANK_INFO = {
   bankName: "토스뱅크",
   accountNumber: "1000-0000-0000",
-  accountHolder: "TWLN 서비스",
+  accountHolder: "로또탐정 서비스",
 };

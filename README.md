@@ -1,4 +1,4 @@
-# TWLN - Feature Sliced Design Next.js App
+# 로또탐정 - Feature Sliced Design Next.js App
 
 Next.js 15와 Feature Sliced Design (FSD) 아키텍처를 기반으로, 사용자 관리 및 데이터 자동화 시스템을 갖춘 풀스택 웹 애플리케이션입니다.
 
@@ -58,7 +58,7 @@ Next.js 15와 Feature Sliced Design (FSD) 아키텍처를 기반으로, 사용�
 
 ```bash
 git clone [repository-url]
-cd twln
+cd lotto-detective
 npm install
 ```
 
