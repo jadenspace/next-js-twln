@@ -19,6 +19,7 @@ import {
   CylinderCollider,
 } from "@react-three/rapier";
 import * as THREE from "three";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { getLottoBallColor } from "@/features/lotto/lib/lotto-colors";
 
 /**
@@ -171,13 +172,13 @@ function LottoBall({
             emissiveIntensity={0.2}
           />
           <Text
-            position={[0, 0, 0.25]}
+            position={[0, 0, 0.22]}
             fontSize={0.16}
-            color="white"
+            color="#000"
             anchorX="center"
             anchorY="middle"
             outlineWidth={0.01}
-            outlineColor="black"
+            outlineColor="#fff"
           >
             {number}
           </Text>
@@ -219,12 +220,12 @@ function LottoBall({
         />
         <Text
           position={[0, 0, 0.22]}
-          fontSize={0.14}
-          color="white"
+          fontSize={0}
+          color="black"
           anchorX="center"
           anchorY="middle"
           outlineWidth={0.01}
-          outlineColor="black"
+          outlineColor="white"
         >
           {number}
         </Text>
@@ -244,8 +245,8 @@ function VenusMachineBody() {
             <sphereGeometry args={[2.5, 64, 64]} />
             <meshPhysicalMaterial
               transparent
-              opacity={0.08}
-              transmission={1}
+              opacity={0.1}
+              transmission={0.9}
               thickness={2}
               roughness={0}
               ior={1.5}
@@ -387,6 +388,8 @@ export function LottoMachine3D({
 }) {
   // 실제 3D 상에서 "추출 완료"된 것으로 간주되는 번호들 관리 (애니메이션 동기화용)
   const [visualExtracted, setVisualExtracted] = useState<number[]>([]);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const controlsRef = useRef<OrbitControlsImpl | null>(null);
 
   // 45개 공 데이터 생성
   const ballsData = useMemo(() => {
@@ -427,11 +430,26 @@ export function LottoMachine3D({
   };
 
   const [isIntroDone, setIsIntroDone] = useState(false);
+  const resetCameraToFront = () => {
+    const camera = cameraRef.current;
+    if (!camera) return;
+
+    camera.position.set(0, 5, 18);
+    camera.lookAt(0, 0, 0);
+    camera.updateProjectionMatrix();
+    controlsRef.current?.target.set(0, 0, 0);
+    controlsRef.current?.update();
+  };
 
   return (
     <div className="w-full h-[700px] bg-gradient-to-b from-slate-950 via-slate-900 to-black rounded-3xl overflow-hidden shadow-edge border border-white/5 relative">
       <Canvas shadows dpr={[1, 2]} camera={{ position: [12, 12, 15], fov: 28 }}>
-        <PerspectiveCamera makeDefault position={[12, 12, 15]} fov={28} />
+        <PerspectiveCamera
+          ref={cameraRef}
+          makeDefault
+          position={[12, 12, 15]}
+          fov={28}
+        />
         <IntroCamera onComplete={() => setIsIntroDone(true)} />
         <ambientLight intensity={0.5} />
         <spotLight
@@ -496,6 +514,7 @@ export function LottoMachine3D({
         </Suspense>
 
         <OrbitControls
+          ref={controlsRef}
           enabled={isIntroDone}
           enableZoom={false}
           enablePan={false}
@@ -503,6 +522,14 @@ export function LottoMachine3D({
           minPolarAngle={Math.PI / 4}
         />
       </Canvas>
+
+      <button
+        type="button"
+        onClick={resetCameraToFront}
+        className="absolute top-4 right-4 rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-white/80 shadow-md backdrop-blur transition hover:bg-white/20"
+      >
+        정면 보기
+      </button>
 
       {/* 바닥 정보 데코레이션 */}
       <div className="absolute bottom-8 right-10 text-right pointer-events-none">
