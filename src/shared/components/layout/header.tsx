@@ -95,9 +95,9 @@ export function Header() {
         <div className="flex items-center gap-8">
           <Link href="/" className="font-bold text-xl flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-              T
+              D
             </div>
-            TWLN
+            로또탐정
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1">

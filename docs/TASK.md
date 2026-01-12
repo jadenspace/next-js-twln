@@ -1,4 +1,4 @@
-# TWLN Development Task List
+# 로또탐정 Development Task List
 
 ## Phase 1: Point System
 

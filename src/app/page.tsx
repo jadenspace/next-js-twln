@@ -26,7 +26,7 @@ export default function Home() {
           {/* Hero Section */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight">
-              TWLN 로또 분석 서비스
+              로또탐정 분석 서비스
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               빅데이터와 AI 기반으로 로또 당첨 확률을 높이는 프리미엄 인사이트를

@@ -1,9 +1,9 @@
-# TWLN 로또 분석 서비스 PRD (Product Requirements Document)
+# 로또탐정 로또 분석 서비스 PRD (Product Requirements Document)
 
 ## 1. 프로젝트 개요
 
 ### 1.1 서비스 소개
-TWLN은 로또 당첨번호 데이터를 기반으로 통계 분석, 패턴 분석, 번호 추천 등의 인사이트를 제공하는 유료 SaaS 서비스입니다.
+로또탐정은 로또 당첨번호 데이터를 기반으로 통계 분석, 패턴 분석, 번호 추천 등의 인사이트를 제공하는 유료 SaaS 서비스입니다.
 
 ### 1.2 비즈니스 모델
 - **프리미엄 기능**: 포인트 기반 과금 모델
@@ -548,4 +548,4 @@ ADD COLUMN notification_enabled BOOLEAN DEFAULT TRUE;
 
 **문서 버전**: 1.0
 **최종 수정일**: 2026-01-03
-**작성자**: TWLN 개발팀
+**작성자**: 로또탐정 개발팀
