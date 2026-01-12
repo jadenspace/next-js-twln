@@ -208,16 +208,7 @@ export default function NumbersStatsPage() {
                       className="flex items-center justify-between p-3 bg-background rounded-lg border border-primary/10 shadow-sm"
                     >
                       <div className="flex items-center gap-3">
-                        <span
-                          className={cn(
-                            "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
-                            idx === 0
-                              ? "bg-yellow-500 text-white"
-                              : idx === 1
-                                ? "bg-gray-300 text-gray-700"
-                                : "bg-orange-400 text-white",
-                          )}
-                        >
+                        <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-muted/60 text-foreground">
                           {idx + 1}
                         </span>
                         <LotteryBall number={parseInt(num)} />

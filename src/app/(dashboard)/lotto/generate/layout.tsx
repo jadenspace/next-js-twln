@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
 
 const TABS = [
-  { href: "/lotto/generate/random", label: "랜덤 뽑기" },
+  { href: "/lotto/generate/random", label: "실시간 추첨" },
   { href: "/lotto/generate/pattern", label: "패턴 조합" },
 ];
 

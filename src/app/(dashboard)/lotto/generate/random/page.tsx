@@ -14,6 +14,7 @@ import {
 import { Sparkles, RotateCcw, Save, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
+import { getLottoBallColor } from "@/features/lotto/lib/lotto-colors";
 
 export default function RandomGeneratePage() {
   const [isSpinning, setIsSpinning] = useState(false);
@@ -98,11 +99,11 @@ export default function RandomGeneratePage() {
             </Button>
             <Button
               size="sm"
-              onClick={handleSave}
-              disabled={!isCompleted || isSpinning}
+              onClick={() => setIsModalOpen(true)}
+              disabled={!isCompleted}
             >
               <Save className="w-4 h-4 mr-2" />
-              번호 저장
+              추첨 결과
             </Button>
           </div>
         </div>
@@ -156,9 +157,11 @@ export default function RandomGeneratePage() {
                   key={idx}
                   className={cn(
                     "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ring-2 ring-white/10 animate-in zoom-in duration-500",
-                    getLottoBgColor(num),
                   )}
-                  style={{ animationDelay: `${idx * 100}ms` }}
+                  style={{
+                    animationDelay: `${idx * 100}ms`,
+                    backgroundColor: getLottoBallColor(num),
+                  }}
                 >
                   {num}
                 </div>
@@ -186,12 +189,4 @@ export default function RandomGeneratePage() {
       </Dialog>
     </div>
   );
-}
-
-function getLottoBgColor(num: number): string {
-  if (num <= 10) return "bg-[#fbc400]";
-  if (num <= 20) return "bg-[#69c8f2]";
-  if (num <= 30) return "bg-[#ff7272]";
-  if (num <= 40) return "bg-[#aaa]";
-  return "bg-[#b0d840]";
 }

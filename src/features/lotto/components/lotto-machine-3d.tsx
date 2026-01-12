@@ -19,28 +19,12 @@ import {
   CylinderCollider,
 } from "@react-three/rapier";
 import * as THREE from "three";
+import { getLottoBallColor } from "@/features/lotto/lib/lotto-colors";
 
 /**
  * 프로젝트 목표: 한국형 로또 추첨기 (비너스 모델, Air-mix 방식) 3D 시뮬레이션
  * 기술 스택: Three.js + Rapier Physics (@react-three/rapier)
  */
-
-// 로또 당첨 색상 기준
-const LOTTO_COLORS = {
-  yellow: "#fbc400", // 1-10
-  blue: "#69c8f2", // 11-20
-  red: "#ff7272", // 21-30
-  gray: "#aaaaaa", // 31-40
-  green: "#b0d840", // 41-45
-};
-
-function getBallColor(num: number) {
-  if (num <= 10) return LOTTO_COLORS.yellow;
-  if (num <= 20) return LOTTO_COLORS.blue;
-  if (num <= 30) return LOTTO_COLORS.red;
-  if (num <= 40) return LOTTO_COLORS.gray;
-  return LOTTO_COLORS.green;
-}
 
 // 개별 로또 볼 컴포넌트
 function LottoBall({
@@ -127,8 +111,8 @@ function LottoBall({
         );
       }
 
-      // 4. 추출 로직 (Extraction Logic)
-      if (isTargeted && pos.y > 2.0 && distFromCenter < 0.8) {
+      // 4. 추출 로직 (Extraction Logic) - 확률 상향
+      if (isTargeted && pos.y > 1.8 && distFromCenter < 1.0) {
         rigidBody.current.applyImpulse({ x: 0, y: 6.0 * mass, z: 0 }, true);
         onCapture(number);
       }
@@ -187,7 +171,7 @@ function LottoBall({
             emissiveIntensity={0.2}
           />
           <Text
-            position={[0, 0, 0.22]}
+            position={[0, 0, 0.25]}
             fontSize={0.16}
             color="white"
             anchorX="center"
@@ -234,7 +218,7 @@ function LottoBall({
           emissiveIntensity={0.15}
         />
         <Text
-          position={[0, 0, 0.19]}
+          position={[0, 0, 0.22]}
           fontSize={0.14}
           color="white"
           anchorX="center"
@@ -408,7 +392,7 @@ export function LottoMachine3D({
   const ballsData = useMemo(() => {
     return Array.from({ length: 45 }, (_, i) => ({
       id: i + 1,
-      color: getBallColor(i + 1),
+      color: getLottoBallColor(i + 1),
     }));
   }, []);
 
