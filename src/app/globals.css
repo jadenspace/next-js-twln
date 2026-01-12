@@ -121,6 +121,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  button, a, [role="button"] {
+    cursor: pointer;
+  }
+  button:disabled, [role="button"]:disabled {
+    cursor: not-allowed;
+  }
 }
 
 /* React Date Range 모바일 최적화 */

@@ -26,6 +26,7 @@ interface StatsFilterProps {
   onApply: (values: FilterValues) => void;
   isPending?: boolean;
   latestDrawNo?: number;
+  isAdvanced?: boolean;
 }
 
 import { Switch } from "@/shared/ui/switch";
@@ -34,6 +35,7 @@ export function StatsFilter({
   onApply,
   isPending,
   latestDrawNo = 1100,
+  isAdvanced = false,
 }: StatsFilterProps) {
   const [filterType, setFilterType] = useState<FilterValues["type"]>("recent");
   const [startDraw, setStartDraw] = useState<number>(latestDrawNo - 100);
@@ -150,8 +152,9 @@ export function StatsFilter({
           </Button>
         </div>
         <p className="text-[10px] text-muted-foreground mt-3 italic">
-          * 분석 적용 시 마다 100P가 소모되며, 최신 데이터를 기반으로 통계가
-          갱신됩니다.
+          {isAdvanced
+            ? "* 심화 분석 적용 시 200P가 소모되며, 정밀 알고리즘이 가동됩니다. (50 XP 지급)"
+            : "* 기본 분석은 무료로 제공되며, 최신 데이터를 기반으로 통계가 갱신됩니다."}
         </p>
       </CardContent>
     </Card>

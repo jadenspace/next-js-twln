@@ -8,32 +8,36 @@ const STATS_COST = 100;
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
 
-  // 1. Authenticate
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
     const body = await request.json().catch(() => ({}));
     const { startDraw, endDraw, limit, includeBonus, style = "basic" } = body;
     const isAdvanced = style === "advanced";
-    const currentCost = isAdvanced ? 200 : 100;
 
-    // 2. Check Point balance
-    const { data: userPoints } = await supabase
-      .from("user_points")
-      .select("balance, total_spent")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    // 1. Authenticate (optional for basic stats, required for advanced)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!userPoints || userPoints.balance < currentCost) {
-      return NextResponse.json(
-        { error: "Insufficient points" },
-        { status: 402 },
-      );
+    if (isAdvanced && !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const currentCost = isAdvanced ? 200 : 0; // Basic stats are free now as per "전부 접근 가능"
+
+    // 2. Check Point balance (only if cost > 0)
+    if (user && currentCost > 0) {
+      const { data: userPoints } = await supabase
+        .from("user_points")
+        .select("balance, total_spent")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!userPoints || userPoints.balance < currentCost) {
+        return NextResponse.json(
+          { error: "Insufficient points" },
+          { status: 402 },
+        );
+      }
     }
 
     // 3. Perform Analysis
@@ -62,51 +66,53 @@ export async function POST(request: NextRequest) {
       ? calculator.calculateAdvancedStats(includeBonus === true)
       : calculator.calculateBasicStats(includeBonus === true);
 
-    // 4. Deduct Points via RPC
-    const { data: deductResult, error: deductError } = await supabase.rpc(
-      "deduct_points",
-      {
-        user_uuid: user.id,
-        amount_to_deduct: currentCost,
-        transaction_type: "use",
-        description_text: isAdvanced
-          ? "로또 심화 통계 분석"
-          : "로또 기본 통계 분석",
-        feat_type: isAdvanced ? "advanced_stat_analysis" : "stat_analysis",
-      },
-    );
-
-    if (deductError || !deductResult?.success) {
-      return NextResponse.json(
+    // 4. Deduct Points via RPC (if user is logged in and there is a cost)
+    if (user && currentCost > 0) {
+      const { data: deductResult, error: deductError } = await supabase.rpc(
+        "deduct_points",
         {
-          error:
-            deductError?.message ||
-            deductResult?.error ||
-            "Failed to deduct points",
+          user_uuid: user.id,
+          amount_to_deduct: currentCost,
+          transaction_type: "use",
+          description_text: isAdvanced
+            ? "로또 심화 통계 분석"
+            : "로또 기본 통계 분석",
+          feat_type: isAdvanced ? "advanced_stat_analysis" : "stat_analysis",
         },
-        { status: 402 },
       );
+
+      if (deductError || !deductResult?.success) {
+        return NextResponse.json(
+          {
+            error:
+              deductError?.message ||
+              deductResult?.error ||
+              "Failed to deduct points",
+          },
+          { status: 402 },
+        );
+      }
+
+      // Save Analysis Result
+      const { data: savedResult, error: saveError } = await supabase
+        .from("analysis_results")
+        .insert({
+          user_id: user.id,
+          analysis_type: isAdvanced ? "advanced_stat" : "stat",
+          result_data: result,
+          points_spent: currentCost,
+        })
+        .select()
+        .single();
+
+      if (saveError) throw saveError;
+
+      // 5. Grant XP (50 XP for advanced, basic is now free so maybe no XP)
+      await supabase.rpc("add_xp", {
+        user_uuid: user.id,
+        xp_to_add: isAdvanced ? 50 : 0,
+      });
     }
-
-    // Save Analysis Result
-    const { data: savedResult, error: saveError } = await supabase
-      .from("analysis_results")
-      .insert({
-        user_id: user.id,
-        analysis_type: isAdvanced ? "advanced_stat" : "stat",
-        result_data: result,
-        points_spent: currentCost,
-      })
-      .select()
-      .single();
-
-    if (saveError) throw saveError;
-
-    // 5. Grant XP (20 XP for basic, 50 XP for advanced)
-    await supabase.rpc("add_xp", {
-      user_uuid: user.id,
-      xp_to_add: isAdvanced ? 50 : 20,
-    });
 
     return NextResponse.json({ success: true, data: result });
   } catch (err: any) {

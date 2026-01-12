@@ -49,12 +49,32 @@ const STATS_MENU = {
 };
 
 const NAV_ITEMS = [
-  { href: "/lotto/generate", label: "번호 생성", icon: Zap },
-  { href: "/lotto/search", label: "번호 검색", icon: Search },
-  { href: "/lotto/analysis/pattern", label: "패턴 분석", icon: Binary },
-  { href: "/lotto/analysis/recommend", label: "AI 추천", icon: Brain },
-  { href: "/lotto/analysis/simulation", label: "시뮬레이션", icon: PlayCircle },
-  { href: "/community", label: "게시판", icon: Users },
+  {
+    href: "/lotto/search",
+    label: "당첨번호 검색",
+    icon: Search,
+    isPublic: true,
+  },
+  { href: "/lotto/generate", label: "번호 생성", icon: Zap, isPublic: false },
+  {
+    href: "/lotto/analysis/pattern",
+    label: "패턴 분석",
+    icon: Binary,
+    isPublic: false,
+  },
+  {
+    href: "/lotto/analysis/recommend",
+    label: "AI 추천",
+    icon: Brain,
+    isPublic: false,
+  },
+  {
+    href: "/lotto/analysis/simulation",
+    label: "시뮬레이션",
+    icon: PlayCircle,
+    isPublic: false,
+  },
+  { href: "/community", label: "게시판", icon: Users, isPublic: true },
 ];
 
 export function Header() {
@@ -92,7 +112,7 @@ export function Header() {
                   )}
                 >
                   <BarChart2 className="w-4 h-4" />
-                  통계
+                  번호 통계
                   <ChevronDown className="w-3 h-3 opacity-50" />
                 </button>
               </PopoverTrigger>
@@ -120,8 +140,13 @@ export function Header() {
                     </div>
                   </div>
                   <div className="p-4">
-                    <h4 className="text-xs font-semibold text-muted-foreground px-2 mb-3 uppercase tracking-wider">
+                    <h4 className="text-xs font-semibold text-muted-foreground px-2 mb-3 uppercase tracking-wider flex justify-between items-center">
                       심화 통계
+                      {!isAuthenticated && (
+                        <span className="text-[10px] text-orange-500 font-bold border border-orange-200 px-1.5 rounded animate-pulse">
+                          로그인 필요
+                        </span>
+                      )}
                     </h4>
                     <div className="space-y-1">
                       {STATS_MENU.advanced.map((item) => (
@@ -133,6 +158,7 @@ export function Header() {
                             pathname === item.href
                               ? "bg-primary/10 text-primary font-medium"
                               : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                            !isAuthenticated && "opacity-60",
                           )}
                         >
                           {item.label}
@@ -146,15 +172,17 @@ export function Header() {
 
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
+              const isPrivate = !item.isPublic && !isAuthenticated;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md",
+                    "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md relative",
                     pathname === item.href
                       ? "text-primary bg-primary/5"
                       : "text-muted-foreground hover:bg-muted/50",
+                    isPrivate && "opacity-60",
                   )}
                 >
                   <Icon className="w-4 h-4" />
