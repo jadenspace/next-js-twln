@@ -12,6 +12,7 @@ export default function RandomGeneratePage() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [targetNumbers, setTargetNumbers] = useState<number[]>([]);
 
   const startDraw = async () => {
     if (isSpinning) return;
@@ -20,32 +21,32 @@ export default function RandomGeneratePage() {
     setDrawnNumbers([]);
     setIsCompleted(false);
 
-    // 1. 초기 셔플 단계 (강하게 섞기) - 1.5초
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    const numbers: number[] = [];
-    while (numbers.length < 6) {
+    // 미리 뽑을 번호 6개를 결정 (타겟)
+    const candidates: number[] = [];
+    while (candidates.length < 6) {
       const num = Math.floor(Math.random() * 45) + 1;
-      if (!numbers.includes(num)) {
-        numbers.push(num);
+      if (!candidates.includes(num)) {
+        candidates.push(num);
       }
     }
+    setTargetNumbers(candidates);
+  };
 
-    // 2. 숫자를 하나씩 추출하는 단계
-    // 공들이 통 안에서 사라지며 하단 UI에 나타남
-    for (let i = 0; i < 6; i++) {
-      // 추출 간격 단축 (더 깔끔한 느낌)
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      setDrawnNumbers((prev) => [...prev, numbers[i]]);
-    }
+  const handleBallDrawn = (num: number) => {
+    setDrawnNumbers((prev) => {
+      // 중복 방지 (물리 엔진에서 여러 번 트리거될 수 있음)
+      if (prev.includes(num)) return prev;
 
-    // 3. 종료 단계
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setIsSpinning(false);
-    setIsCompleted(true);
-    toast.success("행운의 번호가 추출되었습니다!", {
-      description: "번호 저장 버튼을 눌러 보관할 수 있습니다.",
-      duration: 3000,
+      const next = [...prev, num];
+      if (next.length === 6) {
+        setIsCompleted(true);
+        setIsSpinning(false);
+        toast.success("행운의 번호가 모두 추출되었습니다!", {
+          description: "번호 저장 버튼을 눌러 보관할 수 있습니다.",
+          duration: 3000,
+        });
+      }
+      return next;
     });
   };
 
@@ -79,6 +80,7 @@ export default function RandomGeneratePage() {
               size="sm"
               onClick={() => {
                 setDrawnNumbers([]);
+                setTargetNumbers([]);
                 setIsCompleted(false);
               }}
               disabled={isSpinning || drawnNumbers.length === 0}
@@ -97,7 +99,11 @@ export default function RandomGeneratePage() {
           </div>
         </div>
 
-        <LottoMachine3D isSpinning={isSpinning} drawnNumbers={drawnNumbers} />
+        <LottoMachine3D
+          isSpinning={isSpinning}
+          drawnNumbers={targetNumbers}
+          onBallDrawn={handleBallDrawn}
+        />
 
         <div className="flex justify-center">
           <Button

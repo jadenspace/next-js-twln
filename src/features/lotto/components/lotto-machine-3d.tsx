@@ -70,88 +70,102 @@ function LottoBall({
   useFrame((state) => {
     if (!rigidBody.current || isCaptured) return;
 
-    if (isSpinning) {
-      const pos = rigidBody.current.translation();
-      const vel = rigidBody.current.linvel();
+    const pos = rigidBody.current.translation();
+    const vel = rigidBody.current.linvel();
 
-      // 1. 하단 에어 블로어 (Upward Force)
+    if (isSpinning) {
+      // 1. 하단 에어 블로어 (Upward Force) - 1.2배 상향
       const distFromCenter = Math.sqrt(pos.x ** 2 + pos.z ** 2);
-      if (pos.y < -0.5 && distFromCenter < 1.4) {
-        const heightFactor = Math.pow(Math.max(0, 1.5 - pos.y), 2) * 6.0;
-        const lift = (12.0 + heightFactor + Math.random() * 8.0) * mass;
+      if (pos.y < -0.2 && distFromCenter < 1.2) {
+        const heightFactor = Math.pow(Math.max(0, 2.0 - pos.y), 2) * 9.6;
+        const targetBonus = isTargeted ? 1.2 : 1.0;
+        const lift =
+          (18.0 + heightFactor + Math.random() * 12.0) * mass * targetBonus;
 
         rigidBody.current.applyImpulse(
           {
-            x: (Math.random() - 0.5) * 2 * mass,
+            x: (Math.random() - 0.5) * 3.6 * mass,
             y: lift,
-            z: (Math.random() - 0.5) * 2 * mass,
+            z: (Math.random() - 0.5) * 3.6 * mass,
           },
           true,
         );
       }
 
-      // 2. 난류 (Turbulence) - Perlin Noise 느낌의 랜덤 기류
+      // 2. 난류 (Turbulence) - 1.2배 상향
       const t = state.clock.getElapsedTime();
-      const noiseX = Math.sin(t * 10 + number) * 0.2;
-      const noiseZ = Math.cos(t * 12 + number) * 0.2;
-
+      const noiseStrength = pos.y < -1.5 ? 0.96 : 0.36;
       rigidBody.current.applyImpulse(
         {
-          x: noiseX * mass,
-          y: Math.random() * 0.5 * mass,
-          z: noiseZ * mass,
+          x: Math.sin(t * 15 + number) * noiseStrength * mass,
+          y: Math.random() * 0.72 * mass,
+          z: Math.cos(t * 13 + number) * noiseStrength * mass,
         },
         true,
       );
 
-      // 3. 소용돌이 (Vortex)
-      const swirl = 0.6;
-      rigidBody.current.applyImpulse(
-        {
-          x: -pos.z * swirl * mass,
-          y: 0,
-          z: pos.x * swirl * mass,
-        },
-        true,
-      );
+      // 3. 소용돌이 및 유도 기류 (Vortex & Homing) - 1.2배 상향
+      if (isTargeted && pos.y > 0.5) {
+        const homingStrength = 0.96;
+        rigidBody.current.applyImpulse(
+          {
+            x: -pos.x * homingStrength * mass,
+            y: 0.12 * mass,
+            z: -pos.z * homingStrength * mass,
+          },
+          true,
+        );
+      } else {
+        const swirl = 0.84;
+        rigidBody.current.applyImpulse(
+          {
+            x: -pos.z * swirl * mass,
+            y: 0,
+            z: pos.x * swirl * mass,
+          },
+          true,
+        );
+      }
 
       // 4. 추출 로직 (Extraction Logic)
-      // 이번에 뽑힐 공(isTargeted)이 상단 추출구(y > 2.2) 근처에 우연히 진입하면 포획
-      if (isTargeted && pos.y > 2.1 && distFromCenter < 0.6) {
+      if (isTargeted && pos.y > 2.0 && distFromCenter < 0.8) {
+        rigidBody.current.applyImpulse({ x: 0, y: 6.0 * mass, z: 0 }, true);
         onCapture(number);
       }
-
-      // 5. 완벽한 구체 봉쇄 (Hard Containment)
-      const dist = Math.sqrt(pos.x ** 2 + pos.y ** 2 + pos.z ** 2);
-      if (dist > 2.45) {
-        const nx = pos.x / dist;
-        const ny = pos.y / dist;
-        const nz = pos.z / dist;
-        rigidBody.current.setTranslation(
-          { x: nx * 2.42, y: ny * 2.42, z: nz * 2.42 },
-          true,
-        );
-        rigidBody.current.setLinvel(
-          { x: -vel.x * 0.5, y: -vel.y * 0.5, z: -vel.z * 0.5 },
-          true,
-        );
-      }
-
-      // 속도 제한
-      const speed = Math.sqrt(vel.x ** 2 + vel.y ** 2 + vel.z ** 2);
-      if (speed > 22) {
-        rigidBody.current.setLinvel(
-          {
-            x: (vel.x / speed) * 22,
-            y: (vel.y / speed) * 22,
-            z: (vel.z / speed) * 22,
-          },
-          true,
-        );
-      }
     } else {
+      // 대기/종료 시 댐핑 강화
       rigidBody.current.setLinearDamping(3);
       rigidBody.current.setAngularDamping(3);
+    }
+
+    // 5. 완벽한 구체 봉쇄 (Hard Containment) - 항상 작동해야 함
+    const dist = Math.sqrt(pos.x ** 2 + pos.y ** 2 + pos.z ** 2);
+    if (dist > 2.45) {
+      const nx = pos.x / dist;
+      const ny = pos.y / dist;
+      const nz = pos.z / dist;
+      rigidBody.current.setTranslation(
+        { x: nx * 2.42, y: ny * 2.42, z: nz * 2.42 },
+        true,
+      );
+      rigidBody.current.setLinvel(
+        { x: -vel.x * 0.4, y: -vel.y * 0.4, z: -vel.z * 0.4 },
+        true,
+      );
+    }
+
+    // 속도 제한 (항상 작동)
+    const speed = Math.sqrt(vel.x ** 2 + vel.y ** 2 + vel.z ** 2);
+    const maxSpeed = isSpinning ? 30 : 15;
+    if (speed > maxSpeed) {
+      rigidBody.current.setLinvel(
+        {
+          x: (vel.x / speed) * maxSpeed,
+          y: (vel.y / speed) * maxSpeed,
+          z: (vel.z / speed) * maxSpeed,
+        },
+        true,
+      );
     }
   });
 
@@ -353,9 +367,11 @@ function ExtractionController({
 export function LottoMachine3D({
   isSpinning,
   drawnNumbers,
+  onBallDrawn,
 }: {
   isSpinning: boolean;
   drawnNumbers: number[];
+  onBallDrawn?: (num: number) => void;
 }) {
   // 실제 3D 상에서 "추출 완료"된 것으로 간주되는 번호들 관리 (애니메이션 동기화용)
   const [visualExtracted, setVisualExtracted] = useState<number[]>([]);
@@ -368,18 +384,33 @@ export function LottoMachine3D({
     }));
   }, []);
 
+  // 추첨 시작 시간 기록 (초반 무효 처리용)
+  const spinningStartTime = useRef<number>(0);
+
   // 외부(Props)에서 DrawnNumbers가 변할 때 시각적 동기화 초기화
   useEffect(() => {
     if (drawnNumbers.length === 0) {
       setVisualExtracted([]);
     }
-  }, [drawnNumbers]);
+  }, [drawnNumbers.length]);
+
+  // 추첨 상태 변화 감지
+  useEffect(() => {
+    if (isSpinning) {
+      spinningStartTime.current = Date.now();
+    }
+  }, [isSpinning]);
 
   // 공이 상단 트랩 근처에 도달했을 때의 포획 이벤트 핸들러
   const handleBallCapture = (id: number) => {
-    // 이미 추출된 번호가 아니고, 현재 뽑아야 할 번호 후보군에 있다면
+    // 1. 최소 1초 동안은 믹싱 시간으로 간주하여 추출 무효화
+    if (Date.now() - spinningStartTime.current < 1000) return;
+
+    // 2. 이미 추출된 번호가 아니고, 현재 뽑아야 할 번호 후보군에 있다면
     if (!visualExtracted.includes(id) && drawnNumbers.includes(id)) {
       setVisualExtracted((prev) => [...prev, id]);
+      // 부모에게 실제 추출 성공을 알림
+      onBallDrawn?.(id);
     }
   };
 
@@ -456,37 +487,6 @@ export function LottoMachine3D({
           minPolarAngle={Math.PI / 4}
         />
       </Canvas>
-
-      {/* 실시간 추첨 상태 UI */}
-      <div className="absolute top-10 left-10 pointer-events-none">
-        <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-3xl">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse shadow-glow" />
-            <h4 className="text-white/80 font-bold text-xs tracking-[0.2em] uppercase">
-              Venus Simulation
-            </h4>
-          </div>
-          <div className="flex gap-2.5">
-            {visualExtracted.map((num) => (
-              <div
-                key={`status-${num}`}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm shadow-xl ring-2 ring-white/10"
-                style={{ backgroundColor: getBallColor(num) }}
-              >
-                {num}
-              </div>
-            ))}
-            {Array.from({ length: 6 - visualExtracted.length }).map((_, i) => (
-              <div
-                key={`empty-${i}`}
-                className="w-10 h-10 rounded-full border border-dashed border-white/10 flex items-center justify-center text-white/10 text-xs"
-              >
-                ?
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* 바닥 정보 데코레이션 */}
       <div className="absolute bottom-8 right-10 text-right pointer-events-none">
