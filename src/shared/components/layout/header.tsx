@@ -47,6 +47,10 @@ const STATS_MENU = {
     { href: "/lotto/analysis/stats/math", label: "소수/합성수/3배수 통계" },
   ],
 };
+const GENERATE_MENU = [
+  { href: "/lotto/generate/random", label: "랜덤 뽑기" },
+  { href: "/lotto/generate/pattern", label: "패턴 조합" },
+];
 
 const NAV_ITEMS = [
   {
@@ -55,7 +59,6 @@ const NAV_ITEMS = [
     icon: Search,
     isPublic: true,
   },
-  { href: "/lotto/generate", label: "번호 생성", icon: Zap, isPublic: false },
   {
     href: "/lotto/analysis/recommend",
     label: "AI 추천",
@@ -82,6 +85,7 @@ export function Header() {
   });
 
   const isStatsActive = pathname?.includes("/lotto/analysis/stats");
+  const isGenerateActive = pathname?.includes("/lotto/generate");
 
   return (
     <header className="border-b bg-background sticky top-0 z-50">
@@ -160,6 +164,42 @@ export function Header() {
                       ))}
                     </div>
                   </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md",
+                    isGenerateActive
+                      ? "text-primary bg-primary/5"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  <Zap className="w-4 h-4" />
+                  번호 생성
+                  <ChevronDown className="w-3 h-3 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-2" align="start">
+                <div className="space-y-1">
+                  {GENERATE_MENU.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "block px-3 py-2 text-sm rounded-md transition-colors",
+                        pathname === item.href
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                        !isAuthenticated && "opacity-60",
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
                 </div>
               </PopoverContent>
             </Popover>
