@@ -62,6 +62,11 @@ export interface BasicStats {
   oddEvenRatio: { odd: number; even: number }; // 전체 홀짝 비율
   sectionDistribution: Record<string, number>; // 구간별 분포 (1-10, 11-20...)
   sumDistribution: Record<string, number>; // 합계 구간 분포
+  consecutiveOccurrences: {
+    total: number; // 전체 연번 발생 횟수
+    pairs: Record<string, number>; // 연번 쌍별 빈도 (e.g. "1,2")
+    byDraw: Record<number, number>; // 회차별 연번 개수
+  };
 }
 
 export interface AnalysisResult {

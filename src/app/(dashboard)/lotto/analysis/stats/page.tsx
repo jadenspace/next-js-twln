@@ -1,116 +1,117 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/shared/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
-import { useMutation } from "@tanstack/react-query";
-import { BasicStats } from "@/features/lotto/types";
-import { Loader2, BarChart2 } from "lucide-react";
-// import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'; // Would use this effectively if installed
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/shared/ui/card";
+import { BarChart2, PieChart, Timer, Binary, Hash } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
 
-export default function StatsAnalysisPage() {
-  const [stats, setStats] = useState<BasicStats | null>(null);
+const STAT_MENUS = [
+  {
+    title: "번호별 통계",
+    description: "각 번호의 출현 빈도와 확률 분석",
+    href: "/lotto/analysis/stats/numbers",
+    icon: Hash,
+    color: "text-blue-600",
+    bgColor: "bg-blue-50",
+  },
+  {
+    title: "구간별 출현횟수",
+    description: "10단위 번호대별 분포 확인",
+    href: "/lotto/analysis/stats/ranges",
+    icon: BarChart2,
+    color: "text-orange-600",
+    bgColor: "bg-orange-50",
+  },
+  {
+    title: "미출현 번호",
+    description: "최근 나오지 않은 장기 미출현수",
+    href: "/lotto/analysis/stats/missing",
+    icon: Timer,
+    color: "text-red-600",
+    bgColor: "bg-red-50",
+  },
+  {
+    title: "홀짝 통계",
+    description: "당첨 번호의 홀수/짝수 비율",
+    href: "/lotto/analysis/stats/odd-even",
+    icon: PieChart,
+    color: "text-purple-600",
+    bgColor: "bg-purple-50",
+  },
+  {
+    title: "연속번호 출현",
+    description: "이웃한 번호들의 동반 출현 패턴",
+    href: "/lotto/analysis/stats/consecutive",
+    icon: Binary,
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-50",
+  },
+];
 
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("/api/lotto/analysis/stats", { method: "POST" });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Analysis failed");
-      }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setStats(data.data);
-    },
-    onError: (err) => {
-      alert(err.message);
-    },
-  });
-
+export default function StatsAnalysisDashboard() {
   return (
-    <div className="max-w-5xl mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">기본 통계 분석</h1>
-      <p className="text-muted-foreground mb-8">
-        역대 로또 당첨번호 데이터를 기반으로 번호별 출현 빈도, 구간별 분포 등
-        다양한 통계 정보를 제공합니다.
-        <br />
-        분석 시 <span className="font-bold text-primary">100P</span>가
-        소모됩니다.
-      </p>
+    <div className="container mx-auto py-10 px-4 max-w-5xl">
+      <div className="mb-12 text-center">
+        <h1 className="text-4xl font-black mb-4">기본 통계 분석 센터</h1>
+        <p className="text-muted-foreground text-lg">
+          역대 로또 당첨 데이터를 기반으로 한 5가지 핵심 기본 통계를 제공합니다.
+        </p>
+      </div>
 
-      {!stats ? (
-        <div className="flex flex-col items-center justify-center p-12 border rounded-lg bg-card shadow-sm">
-          <BarChart2 className="w-16 h-16 text-muted-foreground mb-4" />
-          <p className="text-lg font-medium mb-4">
-            분석 데이터를 불러오시겠습니까?
-          </p>
-          <Button
-            size="lg"
-            onClick={() => mutation.mutate()}
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending && (
-              <Loader2 className="mr-2 w-4 h-4 animate-spin" />
-            )}
-            포인트 사용하고 분석 시작
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {/* Top Frequently Appearing Numbers (Simple text viz for MVP without heavy graph lib setup yet) */}
-          <Card>
-            <CardHeader>
-              <CardTitle>가장 많이 나온 번호 (Top 5)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4 justify-center">
-                {Object.entries(stats.frequency)
-                  .sort(([, a], [, b]) => b - a)
-                  .slice(0, 5)
-                  .map(([num, count]) => (
-                    <div key={num} className="text-center">
-                      <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mx-auto mb-2">
-                        {num}
-                      </div>
-                      <span className="text-sm font-medium">{count}회</span>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {STAT_MENUS.map((menu) => {
+          const Icon = menu.icon;
+          return (
+            <Link key={menu.href} href={menu.href}>
+              <Card className="h-full hover:shadow-xl transition-all cursor-pointer group border-primary/5 hover:border-primary/20">
+                <CardHeader>
+                  <div
+                    className={cn(
+                      "w-12 h-12 rounded-2xl flex items-center justify-center mb-2 transition-transform group-hover:scale-110",
+                      menu.bgColor,
+                    )}
+                  >
+                    <Icon className={cn("w-6 h-6", menu.color)} />
+                  </div>
+                  <CardTitle className="group-hover:text-primary transition-colors">
+                    {menu.title}
+                  </CardTitle>
+                  <CardDescription>{menu.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xs font-bold text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    자세히 보기 &rarr;
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
 
-          {/* Odd/Even Ratio */}
-          <Card>
-            <CardHeader>
-              <CardTitle>홀/짝 비율</CardTitle>
-            </CardHeader>
-            <CardContent className="flex justify-center items-center gap-8">
-              <div className="text-center">
-                <span className="block text-4xl font-bold text-blue-500">
-                  {stats.oddEvenRatio.odd}
-                </span>
-                <span className="text-sm text-muted-foreground">홀수</span>
-              </div>
-              <div className="text-2xl font-bold">:</div>
-              <div className="text-center">
-                <span className="block text-4xl font-bold text-red-500">
-                  {stats.oddEvenRatio.even}
-                </span>
-                <span className="text-sm text-muted-foreground">짝수</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Raw JSON Dump for Debug/Verification */}
-          <details className="text-xs text-muted-foreground cursor-pointer">
-            <summary>전체 데이터 보기 (JSON)</summary>
-            <pre className="mt-2 p-4 bg-gray-100 rounded overflow-auto h-64">
-              {JSON.stringify(stats, null, 2)}
-            </pre>
-          </details>
-        </div>
-      )}
+      <Card className="mt-12 bg-muted/30 border-dashed">
+        <CardContent className="py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="px-3 py-1 bg-yellow-400 text-yellow-900 text-[10px] font-black rounded-full uppercase">
+              VIP Only
+            </div>
+            <p className="text-sm font-medium">
+              심화 통계 분석 기능은 드롭다운 메뉴에서 확인 가능합니다.
+            </p>
+          </div>
+          <Link href="/lotto/analysis/stats/markov">
+            <span className="text-sm font-bold text-primary hover:underline">
+              심화 통계 바로가기
+            </span>
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   );
 }

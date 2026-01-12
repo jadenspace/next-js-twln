@@ -17,11 +17,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // 2. Check Point Balance & Deduct Points
-    // Using RPC or simple checking - for MVP doing simple check then transaction record
-    // Ideally use a database transaction or stored procedure to ensure atomicity
+    const body = await request.json().catch(() => ({}));
+    const { startDraw, endDraw, limit, includeBonus } = body;
 
-    // Check balance
+    // 2. Check Point balance
     const { data: userPoints } = await supabase
       .from("user_points")
       .select("balance, total_spent")
@@ -36,10 +35,15 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Perform Analysis
-    // Fetch all lotto data
-    const { data: lottoData, error: lottoError } = await supabase
-      .from("lotto_draws")
-      .select("*");
+    // Fetch lotto data with filters
+    let query = supabase.from("lotto_draws").select("*");
+
+    if (startDraw) query = query.gte("drw_no", startDraw);
+    if (endDraw) query = query.lte("drw_no", endDraw);
+    query = query.order("drw_no", { ascending: false });
+    if (limit) query = query.limit(limit);
+
+    const { data: lottoData, error: lottoError } = await query;
 
     if (lottoError || !lottoData) {
       throw new Error("Failed to fetch lotto data");
@@ -49,7 +53,7 @@ export async function POST(request: NextRequest) {
     const draws: LottoDraw[] = lottoData;
 
     const calculator = new StatisticsCalculator(draws);
-    const result = calculator.calculateBasicStats();
+    const result = calculator.calculateBasicStats(includeBonus === true);
 
     // 4. Deduct Points via RPC (Atomic & Bypasses RLS issues)
     const { data: deductResult, error: deductError } = await supabase.rpc(

@@ -1,10 +1,286 @@
-import PlaceholderPage from "@/shared/components/layout/placeholder-page";
+"use client";
 
-export default function numbersPage() {
+import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { BasicStats } from "@/features/lotto/types";
+import { lottoApi } from "@/features/lotto/api/lotto-api";
+import {
+  StatsFilter,
+  FilterValues,
+} from "@/features/lotto/components/stats-filter";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/shared/ui/card";
+import { Info } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
+import { LotteryBall } from "@/shared/ui/lottery-ball";
+
+export default function NumbersStatsPage() {
+  const [stats, setStats] = useState<BasicStats | null>(null);
+
+  const { data: latestDrawNo } = useQuery({
+    queryKey: ["lotto", "latest-draw-no"],
+    queryFn: () => lottoApi.getLatestDrawNo(),
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (filters: FilterValues) => {
+      const res = await fetch("/api/lotto/analysis/stats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(filters),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "분석에 실패했습니다.");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setStats(data.data);
+    },
+    onError: (err) => {
+      alert(err.message);
+    },
+  });
+
+  const maxFreq = stats ? Math.max(...Object.values(stats.frequency)) : 0;
+
+  // Top 3 and Bottom 3 identification
+  const sortedByFreq = stats
+    ? Object.entries(stats.frequency)
+        .sort(([, a], [, b]) => b - a)
+        .map(([num]) => parseInt(num))
+    : [];
+
+  const top3 = sortedByFreq.slice(0, 3);
+  const bottom3 = sortedByFreq.slice(-3);
+
   return (
-    <PlaceholderPage
-      title="Un umbers"
-      description="Un umbers 분석 페이지입니다."
-    />
+    <div className="container mx-auto py-10 px-4 max-w-6xl">
+      <div className="mb-10 text-center md:text-left">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3">
+          번호별 통계
+        </h1>
+        <p className="text-xl text-muted-foreground">
+          각 번호(1~45)의 출현 빈도를 통해 행운의 패턴을 발견하세요.
+        </p>
+      </div>
+
+      <StatsFilter
+        onApply={(v) => mutation.mutate(v)}
+        isPending={mutation.isPending}
+        latestDrawNo={latestDrawNo}
+      />
+
+      {!stats ? (
+        <div className="grid grid-cols-1 gap-6">
+          <Card className="p-8 flex flex-col items-center justify-center text-center border-dashed border-2">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <Info className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">분석을 시작해 주세요</h3>
+            <p className="text-muted-foreground mb-6">
+              상단의 필터를 설정하고 분석 적용 버튼을 누르면 통계 데이터가
+              표시됩니다.
+            </p>
+          </Card>
+        </div>
+      ) : (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Card className="w-full overflow-hidden">
+            <CardHeader>
+              <CardTitle>번호별 출현 빈도 현황</CardTitle>
+              <CardDescription>
+                선택된 범위 내에서 각 번호가 몇 번 당첨되었는지 보여줍니다.
+                (파랑: 상위 3개, 빨강: 하위 3개)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Desktop Chart */}
+              <div className="hidden md:flex h-[350px] w-full items-end gap-[2px] pt-10 pb-6 border-b">
+                {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => {
+                  const freq = stats.frequency[num] || 0;
+                  const height = maxFreq > 0 ? (freq / maxFreq) * 100 : 0;
+                  const isTop3 = top3.includes(num);
+                  const isBottom3 = bottom3.includes(num);
+
+                  return (
+                    <div
+                      key={num}
+                      className="flex-1 flex flex-col items-center group relative h-full justify-end"
+                    >
+                      <span
+                        className={cn(
+                          "text-[9px] mb-1 font-bold transition-colors",
+                          isTop3
+                            ? "text-blue-500"
+                            : isBottom3
+                              ? "text-red-500"
+                              : "text-muted-foreground/50",
+                        )}
+                      >
+                        {freq}
+                      </span>
+                      <div
+                        className={cn(
+                          "w-full rounded-t-[1px] transition-all duration-700 group-hover:brightness-110",
+                          isTop3
+                            ? "bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.3)]"
+                            : isBottom3
+                              ? "bg-red-400"
+                              : "bg-muted-foreground/20",
+                        )}
+                        style={{ height: `${height}%` }}
+                      />
+                      <span
+                        className={cn(
+                          "text-[10px] mt-1.5 font-medium text-muted-foreground group-hover:text-blue-500",
+                          isTop3 && "text-blue-600 font-black",
+                          isBottom3 && "text-red-600 font-black",
+                        )}
+                      >
+                        {num}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Mobile Chart (Vertical Bar) */}
+              <div className="md:hidden space-y-2 mt-4">
+                {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => {
+                  const freq = stats.frequency[num] || 0;
+                  const width = maxFreq > 0 ? (freq / maxFreq) * 100 : 0;
+                  const isTop3 = top3.includes(num);
+                  const isBottom3 = bottom3.includes(num);
+
+                  return (
+                    <div key={num} className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          "text-xs font-bold w-5 text-right",
+                          isTop3 && "text-primary",
+                          isBottom3 && "text-destructive",
+                        )}
+                      >
+                        {num}
+                      </span>
+                      <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={cn(
+                            "h-full transition-all duration-1000",
+                            isTop3
+                              ? "bg-primary"
+                              : isBottom3
+                                ? "bg-destructive/80"
+                                : "bg-primary/20",
+                          )}
+                          style={{ width: `${width}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-bold w-6">{freq}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="md:col-span-1 border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="text-lg text-primary">
+                  가장 많이 나온 수 (Top 3)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {Object.entries(stats.frequency)
+                  .sort(([, a], [, b]) => b - a)
+                  .slice(0, 3)
+                  .map(([num, count], idx) => (
+                    <div
+                      key={num}
+                      className="flex items-center justify-between p-3 bg-background rounded-lg border border-primary/10 shadow-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={cn(
+                            "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+                            idx === 0
+                              ? "bg-yellow-500 text-white"
+                              : idx === 1
+                                ? "bg-gray-300 text-gray-700"
+                                : "bg-orange-400 text-white",
+                          )}
+                        >
+                          {idx + 1}
+                        </span>
+                        <LotteryBall number={parseInt(num)} />
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold">{count}회</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          출현 빈도
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
+
+            <Card className="md:col-span-1 border-destructive/20 bg-destructive/5">
+              <CardHeader>
+                <CardTitle className="text-lg text-destructive">
+                  가장 적게 나온 수 (Bottom 3)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {Object.entries(stats.frequency)
+                  .sort(([, a], [, b]) => a - b)
+                  .slice(0, 3)
+                  .map(([num, count]) => (
+                    <div
+                      key={num}
+                      className="flex items-center justify-between p-3 bg-background rounded-lg border border-destructive/10 shadow-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        <LotteryBall number={parseInt(num)} />
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold">{count}회</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          최저 빈도
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+              </CardContent>
+            </Card>
+
+            <Card className="md:col-span-1">
+              <CardHeader>
+                <CardTitle className="text-lg">평균 출현 횟수</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center justify-center h-[140px]">
+                <div className="text-5xl font-black text-primary mb-2">
+                  {(
+                    Object.values(stats.frequency).reduce((a, b) => a + b, 0) /
+                    45
+                  ).toFixed(1)}
+                </div>
+                <p className="text-sm text-muted-foreground font-medium">
+                  전체 번호 평균 빈도
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
