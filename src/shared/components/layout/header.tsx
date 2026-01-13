@@ -117,11 +117,11 @@ export function Header() {
   return (
     <>
       <header className="border-b bg-background sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4 lg:gap-8">
+        <div className="w-full max-w-screen-xl mx-auto px-4 h-16 flex items-center justify-between relative">
+          <div className="flex items-center gap-4 xl:gap-8">
             {/* Mobile Hamburger Button */}
             <button
-              className="lg:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground"
+              className="xl:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu className="w-6 h-6" />
@@ -129,16 +129,16 @@ export function Header() {
 
             <Link
               href="/"
-              className="font-bold text-xl flex items-center gap-2"
+              className="font-bold text-xl flex items-center gap-2 absolute left-1/2 -translate-x-1/2 xl:static xl:left-auto xl:translate-x-0"
             >
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
+              <div className="hidden xl:flex w-8 h-8 bg-primary rounded-lg items-center justify-center text-primary-foreground">
                 D
               </div>
               <span className="hidden sm:inline-block">로또탐정</span>
               <span className="sm:hidden">로또탐정</span>
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden xl:flex items-center gap-1">
               <Popover open={isStatsOpen} onOpenChange={setIsStatsOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -299,7 +299,12 @@ export function Header() {
                   </Link>
                 )}
                 <PointBalance />
-                <Button variant="ghost" size="sm" onClick={() => signOut()}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => signOut()}
+                  className="hidden xl:inline-flex"
+                >
                   로그아웃
                 </Button>
               </>
@@ -315,7 +320,7 @@ export function Header() {
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 lg:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 bg-black/50 z-50 xl:hidden animate-in fade-in duration-200"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -323,7 +328,7 @@ export function Header() {
       {/* Mobile Sidebar Menu */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 w-[80%] max-w-[320px] bg-background z-[51] lg:hidden flex flex-col shadow-xl transition-transform duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 w-[80%] max-w-[320px] bg-background z-[51] xl:hidden flex flex-col shadow-xl transition-transform duration-300 ease-in-out",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
