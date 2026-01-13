@@ -27,11 +27,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { orderId } = body;
+    const { paymentId } = body;
 
-    if (!orderId) {
+    if (!paymentId) {
       return NextResponse.json(
-        { error: "OrderId is required" },
+        { error: "PaymentId is required" },
         { status: 400 },
       );
     }
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const { data: payment, error: paymentError } = await supabase
       .from("payments")
       .select("*")
-      .eq("order_id", orderId)
+      .eq("id", paymentId)
       .single();
 
     if (paymentError || !payment) {
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       transaction_type: "charge",
       amount: payment.points_amount,
       balance_after: currentBalance + payment.points_amount,
-      description: `포인트 충전 (주문번호: ${orderId})`,
+      description: `포인트 충전 (주문번호: ${payment.order_id})`,
       reference_id: payment.id,
       feature_type: "charge",
       created_at: new Date().toISOString(),

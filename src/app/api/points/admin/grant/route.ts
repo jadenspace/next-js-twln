@@ -1,8 +1,8 @@
-import { createClient } from "@/shared/lib/supabase/server";
+import { createClient as createSsrClient } from "@/shared/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
+  const supabase = await createSsrClient();
 
   // 1. Authenticate & Check Admin
   const {
@@ -13,19 +13,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Check if user is admin (using app_metadata or specific table lookup)
-  // For now, assuming detailed admin check is handled or we check email/metadata
-  // Implementing a basic check based on public.approved_users or metadata if available
-  // Adjust logic based on actual admin implementation.
-  // Here relying on "approved_users" table check or service role key if this was a protected route?
-  // But this runs on server with user's context.
-
-  // Checking admin status from 'approved_users' if that's the design
-  // Or check specific email list
-
-  // NOTE: This logic needs to be robust. For MVP, I'll check if the user is in 'approved_users' table AND is active.
   const { data: adminCheck, error: adminError } = await supabase
-    .from("approved_users")
+    .from("admin_users")
     .select("id")
     .eq("email", user.email)
     .eq("is_active", true)
@@ -37,69 +26,54 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { targetUserId, amount, description, transactionType } = body;
+    const { targetEmail, amount, description, transactionType } = body;
 
-    if (!targetUserId || !amount) {
+    if (!targetEmail || !amount) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 },
       );
     }
 
-    // 2. Get Target User Current Balance
-    const { data: userPoints, error: fetchError } = await supabase
-      .from("user_points")
-      .select("balance, total_earned")
-      .eq("user_id", targetUserId)
+    // 2. Get Target User ID from email using user_profiles table
+    // 관리자는 user_profiles 테이블의 모든 데이터를 조회할 수 있는 RLS 정책이 있으므로,
+    // service_role 키 없이도 이메일로 사용자 ID를 조회할 수 있습니다.
+    const { data: targetUserProfile, error: userProfileError } = await supabase
+      .from("user_profiles")
+      .select("id")
+      .eq("email", targetEmail)
       .single();
 
-    let currentBalance = 0;
-    let currentTotalEarned = 0;
+    if (userProfileError || !targetUserProfile) {
+      return NextResponse.json(
+        { error: "Target user not found in user_profiles" },
+        { status: 404 },
+      );
+    }
+    const targetUserId = targetUserProfile.id;
 
-    if (fetchError && fetchError.code === "PGRST116") {
-      // Create if not exists
-      const { error: insertError } = await supabase
-        .from("user_points")
-        .insert({ user_id: targetUserId, balance: 0 });
-      if (insertError) throw insertError;
-    } else if (userPoints) {
-      currentBalance = userPoints.balance;
-      currentTotalEarned = userPoints.total_earned;
+    // 3. Call 'add_points' RPC function
+    // add_points 함수는 SECURITY DEFINER로 정의되어 있어 RLS를 우회하므로,
+    // 일반 supabase 클라이언트로 호출해도 권한 문제가 발생하지 않습니다.
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      "add_points",
+      {
+        user_uuid: targetUserId,
+        amount_to_add: amount,
+        transaction_type: transactionType || "bonus",
+        description_text: description || "Admin grant",
+        feat_type: "admin_grant",
+      },
+    );
+
+    if (rpcError) {
+      console.error("RPC Error:", rpcError);
+      throw new Error(rpcError.message);
     }
 
-    // 3. Update Balance
-    const newBalance = currentBalance + amount;
-    const newTotalEarned =
-      amount > 0 ? currentTotalEarned + amount : currentTotalEarned;
-
-    const { error: updateError } = await supabase
-      .from("user_points")
-      .update({
-        balance: newBalance,
-        total_earned: newTotalEarned,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", targetUserId);
-
-    if (updateError) throw updateError;
-
-    // 4. Record Transaction
-    const { error: transactionError } = await supabase
-      .from("point_transactions")
-      .insert({
-        user_id: targetUserId,
-        transaction_type: transactionType || "bonus",
-        amount: amount,
-        balance_after: newBalance,
-        description: description || "Admin grant",
-        feature_type: "admin_grant",
-        created_at: new Date().toISOString(),
-      });
-
-    if (transactionError) throw transactionError;
-
-    return NextResponse.json({ success: true, balance: newBalance });
+    return NextResponse.json(rpcData);
   } catch (err: any) {
+    console.error("Grant Points Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

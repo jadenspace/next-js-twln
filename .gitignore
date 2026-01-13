@@ -41,3 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 .claude
+
+
+#Ignore cursor AI rules
+.cursor/rules/codacy.mdc
+.cursor/mcp.json

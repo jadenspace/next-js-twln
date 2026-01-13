@@ -14,8 +14,8 @@ export const approvalApi = {
     const { data, error } = await supabase
       .from("approved_users")
       .select("is_active, approved_at, approved_by")
-      .eq("email", email)
-      .single();
+      .ilike("email", email)
+      .maybeSingle();
 
     if (error && error.code !== "PGRST116") {
       // PGRST116는 데이터가 없는 경우
@@ -106,7 +106,7 @@ export const approvalApi = {
   // 직접 승인 처리 (백업 방법)
   async approveUserDirectly(
     email: string,
-    approvedByEmail: string
+    approvedByEmail: string,
   ): Promise<void> {
     const supabase = createClient();
 

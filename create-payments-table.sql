@@ -37,15 +37,18 @@ ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 -- 기존 정책 삭제 (재생성 시 오류 방지)
 DROP POLICY IF EXISTS "Users can view own payments" ON payments;
 DROP POLICY IF EXISTS "Admins can view all payments" ON payments;
+DROP POLICY IF EXISTS "Users can create payments" ON payments;
 
 -- 정책 생성
 -- 1. 사용자는 자신의 결제 내역만 조회 가능
 CREATE POLICY "Users can view own payments" ON payments
   FOR SELECT USING (auth.uid() = user_id);
 
--- 2. 사용자는 자신의 결제 요청(입금 대기)을 생성 가능
+-- 2. 관리자는 모든 결제 내역 조회 가능
+-- is_admin() 함수는 fix-rls-policies.sql 에서 생성되어야 합니다.
+CREATE POLICY "Admins can view all payments" ON payments
+  FOR SELECT USING (is_admin());
+
+-- 3. 사용자는 자신의 결제 요청(입금 대기)을 생성 가능
 CREATE POLICY "Users can create payments" ON payments
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- (관리자 정책은 별도 admin 테이블/로직이나 Supabase 대시보드에서 관리, 
---  혹은 service_role 키를 사용하는 API 라우트에서 처리하므로 여기서는 사용자 조회/생성만 허용)

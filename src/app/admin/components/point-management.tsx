@@ -26,7 +26,7 @@ export function PointManagement() {
 
   const grantMutation = useMutation({
     mutationFn: async (payload: {
-      targetUserId: string;
+      targetEmail: string;
       amount: number;
       description: string;
     }) => {
@@ -35,27 +35,34 @@ export function PointManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Grant failed");
+      if (!res.ok) {
+        const errorBody = await res
+          .json()
+          .catch(() => ({ error: "포인트 처리 실패" }));
+        throw new Error(errorBody.error || "알 수 없는 오류가 발생했습니다.");
+      }
       return res.json();
     },
     onSuccess: () => {
       toast.success("포인트 처리가 완료되었습니다.");
       setAmount(0);
       setDescription("");
-      queryClient.invalidateQueries({ queryKey: ["points"] });
+      queryClient.invalidateQueries({ queryKey: ["userPoints"] }); // 헤더의 포인트 잔액 쿼리 키와 일치
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 
   const handleGrant = () => {
-    const targetUser = approvedUsers?.find((u) => u.email === targetEmail);
-    if (!targetUser) {
-      toast.error("대상을 찾을 수 없습니다.");
+    if (!targetEmail) {
+      toast.error("대상을 선택해주세요.");
       return;
     }
     if (amount === 0) return;
 
     grantMutation.mutate({
-      targetUserId: targetUser.id,
+      targetEmail,
       amount,
       description: description || "Admin manual adjustment",
     });

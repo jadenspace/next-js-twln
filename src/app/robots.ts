@@ -16,6 +16,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: "https://lotto-detective.vercel.app/sitemap.xml",
+    sitemap: "https://lottodetective.vercel.app/sitemap.xml",
   };
 }
