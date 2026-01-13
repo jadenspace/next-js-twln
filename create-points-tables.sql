@@ -19,8 +19,13 @@ CREATE INDEX IF NOT EXISTS idx_user_points_user_id ON user_points(user_id);
 ALTER TABLE user_points ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can view own points" ON user_points;
+DROP POLICY IF EXISTS "Admins can manage user points" ON user_points;
+
 CREATE POLICY "Users can view own points" ON user_points
   FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Admins can manage user points" ON user_points
+  FOR ALL USING (is_admin()); -- is_admin() 함수는 fix-all-rls.sql에 정의되어 있어야 합니다.
 
 -- 2. point_transactions 테이블 생성
 CREATE TABLE IF NOT EXISTS point_transactions (
@@ -45,8 +50,13 @@ CREATE INDEX IF NOT EXISTS idx_point_transactions_type ON point_transactions(tra
 ALTER TABLE point_transactions ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can view own transactions" ON point_transactions;
+DROP POLICY IF EXISTS "Admins can manage point transactions" ON point_transactions;
+
 CREATE POLICY "Users can view own transactions" ON point_transactions
   FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Admins can manage point transactions" ON point_transactions
+  FOR ALL USING (is_admin()); -- is_admin() 함수는 fix-all-rls.sql에 정의되어 있어야 합니다.
 
 -- 3. point_packages 테이블 생성
 CREATE TABLE IF NOT EXISTS point_packages (

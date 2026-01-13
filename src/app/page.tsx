@@ -42,8 +42,8 @@ export default function Home() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FeatureLinkCard
-                    title="번호 검색"
-                    description="역대 당첨번호를 회차별, 날짜별로 조회"
+                    title="당첨번호 검색"
+                    description="역대 당첨번호를 회차별로 조회"
                     href="/lotto/search"
                     icon={<Search className="w-6 h-6" />}
                   />

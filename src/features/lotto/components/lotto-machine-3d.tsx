@@ -530,16 +530,6 @@ export function LottoMachine3D({
       >
         정면 보기
       </button>
-
-      {/* 바닥 정보 데코레이션 */}
-      <div className="absolute bottom-8 right-10 text-right pointer-events-none">
-        <p className="text-white/20 text-[10px] font-medium tracking-widest uppercase">
-          Air-Mix System v2.0
-        </p>
-        <p className="text-white/10 text-[9px] mt-1 font-mono italic">
-          Physical Chaos & Fluid Dynamics Active
-        </p>
-      </div>
     </div>
   );
 }

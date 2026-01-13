@@ -18,7 +18,11 @@ import { format } from "date-fns";
 export function PaymentManagement() {
   const queryClient = useQueryClient();
 
-  const { data: payments, isLoading } = useQuery({
+  const {
+    data: payments,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["admin", "payments"],
     queryFn: async () => {
       const res = await fetch("/api/payments/admin/all");
@@ -40,8 +44,9 @@ export function PaymentManagement() {
     },
     onSuccess: () => {
       toast.success("결제 승인이 완료되었습니다.");
-      queryClient.invalidateQueries({ queryKey: ["admin", "payments"] });
+      refetch(); // 데이터를 직접 다시 불러옵니다.
       queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+      queryClient.invalidateQueries({ queryKey: ["userPoints"] }); // 헤더의 포인트 잔액 쿼리 키와 일치
     },
   });
 
