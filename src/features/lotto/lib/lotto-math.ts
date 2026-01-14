@@ -204,6 +204,32 @@ export function generateRandomCombination(): number[] {
 }
 
 /**
+ * 고정수가 포함된 랜덤 조합 생성 (1~45에서 6개)
+ */
+export function generateRandomCombinationWithFixed(
+  fixedNumbers: number[],
+): number[] {
+  const uniqueFixed = Array.from(new Set(fixedNumbers)).filter(
+    (num) => num >= 1 && num <= 45,
+  );
+
+  if (uniqueFixed.length > 6) {
+    throw new Error("고정수는 최대 6개까지 허용됩니다.");
+  }
+
+  const numbers = [...uniqueFixed];
+
+  while (numbers.length < 6) {
+    const num = Math.floor(Math.random() * 45) + 1;
+    if (!numbers.includes(num)) {
+      numbers.push(num);
+    }
+  }
+
+  return numbers.sort((a, b) => a - b);
+}
+
+/**
  * 조합의 모든 패턴 정보 계산
  */
 export function calculateAllPatterns(numbers: number[]) {

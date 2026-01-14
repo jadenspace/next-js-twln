@@ -16,7 +16,7 @@ interface GeneratedResultsProps {
 export function GeneratedResults({ results, onSave }: GeneratedResultsProps) {
   const handleCopyAll = () => {
     const text = results
-      .map((r, i) => `${i + 1}. ${r.numbers.join(", ")}`)
+      .map((r, i) => `(${i + 1}) ${r.numbers.join(", ")}`)
       .join("\n");
     navigator.clipboard.writeText(text);
     toast.success("전체 조합이 복사되었습니다.", {

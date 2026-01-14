@@ -3,10 +3,41 @@
  */
 
 // 연속번호 패턴 옵션
-export type ConsecutivePattern = "none" | "2-pair-1" | "2-pair-2";
+export type ConsecutivePattern =
+  | "any"
+  | "none"
+  | "2-pair-1"
+  | "2-pair-2"
+  | "3-run-1"
+  | "4-run-1";
 
 // 경우의 수 상태
 export type CombinationStatus = "comfortable" | "recommended" | "excessive";
+
+// 번호 빈도 타입 (핫/콜드)
+export type FrequencyType = "hot" | "cold" | "normal";
+
+// 통계 기반 필터 설정
+export interface StatsFilterConfig {
+  // 핫 번호 포함 개수 (최근 N회차 기준 상위 출현 번호)
+  hotNumberCount: [number, number]; // [최소, 최대] 0-6
+  // 콜드 번호 포함 개수 (최근 N회차 기준 하위 출현 번호)
+  coldNumberCount: [number, number]; // [최소, 최대] 0-6
+  // 직전 회차 번호 포함 개수
+  previousDrawCount: [number, number]; // [최소, 최대] 0-6
+  // 미출현 회차 기준 (N회차 이상 미출현 번호)
+  missCountThreshold: number; // 10, 20, 30 등
+  missNumberCount: [number, number]; // 미출현 번호 포함 개수
+}
+
+// 통계 데이터 (API에서 받아올 데이터)
+export interface StatsData {
+  hotNumbers: number[]; // 핫 번호 목록 (상위 15개)
+  coldNumbers: number[]; // 콜드 번호 목록 (하위 15개)
+  previousNumbers: number[]; // 직전 회차 당첨 번호 (6개)
+  missNumbers: Record<number, number[]>; // 미출현 회차별 번호 목록 {10: [...], 20: [...]}
+  lastDrawNo: number; // 최신 회차 번호
+}
 
 /**
  * 패턴 필터 상태
@@ -24,17 +55,23 @@ export interface PatternFilterState {
   sameSection: number; // 동일 구간 (0, 2, 3)
 
   // C. 수학적 성질
-  primeCount: [number, number]; // 소수 개수 범위 (0-3)
-  compositeCount: [number, number]; // 합성수 개수 범위 (0-3)
-  multiplesOf3: [number, number]; // 3의 배수 (0-3)
-  multiplesOf5: [number, number]; // 5의 배수 (0-2)
-  squareCount: [number, number]; // 제곱수 (0-2)
+  primeCount: [number, number]; // 소수 개수 범위 (0-6)
+  compositeCount: [number, number]; // 합성수 개수 범위 (0-6)
+  multiplesOf3: [number, number]; // 3의 배수 (0-6)
+  multiplesOf5: [number, number]; // 5의 배수 (0-6)
+  squareCount: [number, number]; // 제곱수 (0-6)
+
+  // D. 고정수
+  fixedNumbers: number[]; // 고정 번호 (1~45 중 최대 6개)
+
+  // E. 통계 기반 (유료)
+  statsFilter?: StatsFilterConfig;
 }
 
 /**
  * 선택된 카테고리
  */
-export type PatternCategory = "basic" | "repeat" | "math";
+export type PatternCategory = "basic" | "repeat" | "math" | "fixed" | "stats";
 
 /**
  * 생성 옵션
@@ -84,16 +121,74 @@ export const DEFAULT_FILTER_STATE: PatternFilterState = {
   acRange: [7, 10],
 
   // 반복 패턴
-  consecutivePattern: "none",
+  consecutivePattern: "any",
+  sameEndDigit: 3,
+  sameSection: 3,
+
+  // 수학 성질
+  primeCount: [0, 5],
+  compositeCount: [0, 5],
+  multiplesOf3: [0, 5],
+  multiplesOf5: [0, 5],
+  squareCount: [0, 5],
+
+  // 고정수
+  fixedNumbers: [],
+
+  // 통계 기반 (기본값)
+  statsFilter: {
+    hotNumberCount: [0, 6],
+    coldNumberCount: [0, 6],
+    previousDrawCount: [0, 6],
+    missCountThreshold: 10,
+    missNumberCount: [0, 6],
+  },
+};
+
+/**
+ * 통계 필터 기본값 (필터 미적용)
+ */
+export const DEFAULT_STATS_FILTER: StatsFilterConfig = {
+  hotNumberCount: [0, 6],
+  coldNumberCount: [0, 6],
+  previousDrawCount: [0, 6],
+  missCountThreshold: 10,
+  missNumberCount: [0, 6],
+};
+
+/**
+ * 필터 미적용 상태
+ */
+export const UNFILTERED_FILTER_STATE: PatternFilterState = {
+  // 기본 수치
+  sumRange: [21, 255],
+  oddEvenRatios: [],
+  highLowRatios: [],
+  acRange: [0, 10],
+
+  // 반복 패턴
+  consecutivePattern: "any",
   sameEndDigit: 0,
   sameSection: 0,
 
-  // 수학 성질
-  primeCount: [0, 3],
-  compositeCount: [0, 3],
-  multiplesOf3: [0, 3],
-  multiplesOf5: [0, 2],
-  squareCount: [0, 2],
+  // 수학 성질 (6개 선택이므로 최대 6)
+  primeCount: [0, 6],
+  compositeCount: [0, 6],
+  multiplesOf3: [0, 6],
+  multiplesOf5: [0, 6],
+  squareCount: [0, 6],
+
+  // 고정수
+  fixedNumbers: [],
+
+  // 통계 기반 (필터 미적용)
+  statsFilter: {
+    hotNumberCount: [0, 6],
+    coldNumberCount: [0, 6],
+    previousDrawCount: [0, 6],
+    missCountThreshold: 10,
+    missNumberCount: [0, 6],
+  },
 };
 
 /**

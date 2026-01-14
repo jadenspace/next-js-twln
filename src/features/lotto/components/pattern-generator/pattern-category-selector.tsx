@@ -1,8 +1,17 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Badge } from "@/shared/ui/badge";
 import { cn } from "@/shared/lib/utils";
-import { Calculator, Repeat, Sigma, Check } from "lucide-react";
+import {
+  Calculator,
+  Repeat,
+  Sigma,
+  Check,
+  Pin,
+  TrendingUp,
+  Crown,
+} from "lucide-react";
 import type { PatternCategory } from "../../types/pattern-filter.types";
 
 interface Category {
@@ -10,6 +19,7 @@ interface Category {
   title: string;
   description: string;
   icon: React.ElementType;
+  isPremium?: boolean;
 }
 
 const CATEGORIES: Category[] = [
@@ -30,6 +40,19 @@ const CATEGORIES: Category[] = [
     title: "수학적 성질",
     description: "소수, 합성수, 배수, 제곱수",
     icon: Sigma,
+  },
+  {
+    id: "fixed",
+    title: "고정수",
+    description: "1~45 번호 고정 선택",
+    icon: Pin,
+  },
+  {
+    id: "stats",
+    title: "통계 기반 패턴",
+    description: "핫/콜드 번호, 미출현 번호",
+    icon: TrendingUp,
+    isPremium: true,
   },
 ];
 
@@ -83,6 +106,15 @@ export function PatternCategorySelector({
                     <Check className="w-3 h-3 text-primary-foreground" />
                   </div>
                 )}
+                {category.isPremium && !isSelected && (
+                  <Badge
+                    variant="secondary"
+                    className="absolute top-2 right-2 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 gap-1 text-[10px] px-1.5"
+                  >
+                    <Crown className="w-2.5 h-2.5" />
+                    유료
+                  </Badge>
+                )}
                 <div
                   className={cn(
                     "p-2 rounded-lg",
@@ -99,7 +131,7 @@ export function PatternCategorySelector({
                 <div>
                   <h3
                     className={cn(
-                      "font-semibold",
+                      "font-semibold flex items-center gap-1.5",
                       isSelected ? "text-primary" : "text-foreground",
                     )}
                   >

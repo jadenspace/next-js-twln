@@ -7,6 +7,7 @@ import {
   PatternFilterState,
   GeneratedCombination,
   CombinationPatterns,
+  StatsData,
 } from "../types/pattern-filter.types";
 import {
   calculateSum,
@@ -22,6 +23,7 @@ import {
   countMultiplesOf5,
   countSquares,
   generateRandomCombination,
+  generateRandomCombinationWithFixed,
 } from "../lib/lotto-math";
 
 export class PatternFilter {
@@ -30,6 +32,16 @@ export class PatternFilter {
    */
   matchesFilter(numbers: number[], filters: PatternFilterState): boolean {
     const sorted = [...numbers].sort((a, b) => a - b);
+
+    // 0. 고정수 포함 여부 검사
+    if (filters.fixedNumbers.length > 0) {
+      const fixedSet = new Set(filters.fixedNumbers);
+      for (const fixed of fixedSet) {
+        if (!sorted.includes(fixed)) {
+          return false;
+        }
+      }
+    }
 
     // 1. 총합 검사
     const sum = calculateSum(sorted);
@@ -123,6 +135,84 @@ export class PatternFilter {
   }
 
   /**
+   * 통계 기반 필터 검증
+   * statsData가 제공된 경우에만 검사
+   */
+  matchesStatsFilter(
+    numbers: number[],
+    filters: PatternFilterState,
+    statsData: StatsData | null,
+  ): boolean {
+    // statsFilter가 없거나 statsData가 없으면 통과
+    if (!filters.statsFilter || !statsData) {
+      return true;
+    }
+
+    const sorted = [...numbers].sort((a, b) => a - b);
+    const statsFilter = filters.statsFilter;
+
+    // 1. 핫 번호 포함 개수 검사
+    const hotCount = sorted.filter((n) =>
+      statsData.hotNumbers.includes(n),
+    ).length;
+    if (
+      hotCount < statsFilter.hotNumberCount[0] ||
+      hotCount > statsFilter.hotNumberCount[1]
+    ) {
+      return false;
+    }
+
+    // 2. 콜드 번호 포함 개수 검사
+    const coldCount = sorted.filter((n) =>
+      statsData.coldNumbers.includes(n),
+    ).length;
+    if (
+      coldCount < statsFilter.coldNumberCount[0] ||
+      coldCount > statsFilter.coldNumberCount[1]
+    ) {
+      return false;
+    }
+
+    // 3. 직전 회차 번호 포함 개수 검사
+    const previousCount = sorted.filter((n) =>
+      statsData.previousNumbers.includes(n),
+    ).length;
+    if (
+      previousCount < statsFilter.previousDrawCount[0] ||
+      previousCount > statsFilter.previousDrawCount[1]
+    ) {
+      return false;
+    }
+
+    // 4. 미출현 번호 포함 개수 검사
+    const missNumbers =
+      statsData.missNumbers[statsFilter.missCountThreshold] ?? [];
+    const missCount = sorted.filter((n) => missNumbers.includes(n)).length;
+    if (
+      missCount < statsFilter.missNumberCount[0] ||
+      missCount > statsFilter.missNumberCount[1]
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * 모든 필터 (기본 + 통계) 검사
+   */
+  matchesAllFilters(
+    numbers: number[],
+    filters: PatternFilterState,
+    statsData: StatsData | null,
+  ): boolean {
+    return (
+      this.matchesFilter(numbers, filters) &&
+      this.matchesStatsFilter(numbers, filters, statsData)
+    );
+  }
+
+  /**
    * 기타 필터만 검사 (경우의 수 추정용)
    */
   matchesOtherFilters(numbers: number[], filters: PatternFilterState): boolean {
@@ -198,42 +288,67 @@ export class PatternFilter {
     numbers: number[],
     pattern: PatternFilterState["consecutivePattern"],
   ): boolean {
-    const consecutiveCount = countConsecutivePairs(numbers);
+    const runs = this.getConsecutiveRuns(numbers);
+    const maxRun = Math.max(...runs);
+    const runsGe2 = runs.filter((len) => len >= 2).length;
+    const runsEq2 = runs.filter((len) => len === 2).length;
 
     switch (pattern) {
+      case "any":
+        return true;
       case "none":
-        return consecutiveCount === 0;
+        return runsGe2 === 0;
       case "2-pair-1":
-        return consecutiveCount === 1;
+        return runsGe2 === 1 && maxRun === 2;
       case "2-pair-2":
-        return consecutiveCount === 2;
+        return runsEq2 === 2 && maxRun === 2;
+      case "3-run-1":
+        return runsGe2 === 1 && maxRun === 3;
+      case "4-run-1":
+        return runsGe2 === 1 && maxRun === 4;
       default:
         return true;
     }
+  }
+
+  private getConsecutiveRuns(numbers: number[]): number[] {
+    const sorted = [...numbers].sort((a, b) => a - b);
+    const runs: number[] = [];
+    let runLength = 1;
+
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i] === sorted[i - 1] + 1) {
+        runLength++;
+      } else {
+        runs.push(runLength);
+        runLength = 1;
+      }
+    }
+
+    runs.push(runLength);
+    return runs;
   }
 
   /**
    * 동일 끝수 검사
    */
   private checkSameEndDigit(numbers: number[], targetCount: number): boolean {
-    if (targetCount === 0) {
-      // 0이면 동일 끝수가 2개 이상 없어야 함
-      return countSameEndDigit(numbers) < 2;
+    if (targetCount <= 0) {
+      return true;
     }
-    // 그 외의 경우 해당 개수와 일치해야 함
-    return countSameEndDigit(numbers) === targetCount;
+    // 그 외의 경우 해당 개수 이하만 허용
+    return countSameEndDigit(numbers) <= targetCount;
   }
 
   /**
    * 동일 구간 검사
    */
   private checkSameSection(numbers: number[], targetCount: number): boolean {
-    if (targetCount === 0) {
-      // 0이면 동일 구간이 2개 이상 없어야 함
-      return countSameSection(numbers) < 2;
+    if (targetCount <= 0) {
+      return true;
     }
-    // 그 외의 경우 해당 개수와 일치해야 함
-    return countSameSection(numbers) === targetCount;
+    // 그 외의 경우 해당 개수 이하만 허용
+    return countSameSection(numbers) <= targetCount;
   }
 
   /**
@@ -260,14 +375,37 @@ export class PatternFilter {
     filters: PatternFilterState,
     count: number,
     maxAttempts: number = 100000,
+    statsData: StatsData | null = null,
   ): GeneratedCombination[] {
+    const fixedNumbers = Array.from(new Set(filters.fixedNumbers));
+
+    if (fixedNumbers.length > 6) {
+      throw new Error("고정수는 최대 6개까지 선택할 수 있습니다.");
+    }
+
+    if (fixedNumbers.length === 6) {
+      if (!this.matchesAllFilters(fixedNumbers, filters, statsData)) {
+        throw new Error("고정수가 현재 필터 조건에 맞지 않습니다.");
+      }
+
+      return [
+        {
+          numbers: [...fixedNumbers].sort((a, b) => a - b),
+          patterns: this.calculatePatterns(fixedNumbers),
+        },
+      ];
+    }
+
     const results: GeneratedCombination[] = [];
     let attempts = 0;
 
     while (results.length < count && attempts < maxAttempts) {
-      const combination = generateRandomCombination();
+      const combination =
+        fixedNumbers.length > 0
+          ? generateRandomCombinationWithFixed(fixedNumbers)
+          : generateRandomCombination();
 
-      if (this.matchesFilter(combination, filters)) {
+      if (this.matchesAllFilters(combination, filters, statsData)) {
         // 중복 검사
         const isDuplicate = results.some(
           (r) =>

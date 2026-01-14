@@ -69,7 +69,7 @@ export function MathFilterPanel({
           description="1~45 중 소수: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43 (14개)"
           value={filters.primeCount}
           min={0}
-          max={3}
+          max={6}
           onChange={(value) =>
             onFiltersChange({ ...filters, primeCount: value })
           }
@@ -81,7 +81,7 @@ export function MathFilterPanel({
           description="1과 소수를 제외한 숫자 (4, 6, 8, 9, 10, ... 총 30개)"
           value={filters.compositeCount}
           min={0}
-          max={3}
+          max={6}
           onChange={(value) =>
             onFiltersChange({ ...filters, compositeCount: value })
           }
@@ -93,7 +93,7 @@ export function MathFilterPanel({
           description="3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 (15개)"
           value={filters.multiplesOf3}
           min={0}
-          max={3}
+          max={6}
           onChange={(value) =>
             onFiltersChange({ ...filters, multiplesOf3: value })
           }
@@ -105,7 +105,7 @@ export function MathFilterPanel({
           description="5, 10, 15, 20, 25, 30, 35, 40, 45 (9개)"
           value={filters.multiplesOf5}
           min={0}
-          max={2}
+          max={6}
           onChange={(value) =>
             onFiltersChange({ ...filters, multiplesOf5: value })
           }
@@ -117,7 +117,7 @@ export function MathFilterPanel({
           description="1, 4, 9, 16, 25, 36 (6개)"
           value={filters.squareCount}
           min={0}
-          max={2}
+          max={6}
           onChange={(value) =>
             onFiltersChange({ ...filters, squareCount: value })
           }

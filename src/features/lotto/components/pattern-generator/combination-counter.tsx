@@ -18,20 +18,27 @@ const STATUS_CONFIG = {
     bgColor:
       "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800",
     textColor: "text-green-700 dark:text-green-300",
+    iconBgColor: "bg-green-100 dark:bg-green-900",
     icon: CheckCircle,
-    badgeVariant: "default" as const,
   },
   recommended: {
     bgColor: "bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800",
     textColor: "text-blue-700 dark:text-blue-300",
+    iconBgColor: "bg-blue-100 dark:bg-blue-900",
     icon: ThumbsUp,
-    badgeVariant: "secondary" as const,
+  },
+  warning: {
+    bgColor:
+      "bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800",
+    textColor: "text-amber-700 dark:text-amber-300",
+    iconBgColor: "bg-amber-100 dark:bg-amber-900",
+    icon: AlertTriangle,
   },
   excessive: {
     bgColor: "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800",
     textColor: "text-red-700 dark:text-red-300",
+    iconBgColor: "bg-red-100 dark:bg-red-900",
     icon: AlertTriangle,
-    badgeVariant: "destructive" as const,
   },
 };
 
@@ -52,23 +59,33 @@ export function CombinationCounter({
     );
   }
 
-  const config = STATUS_CONFIG[info.status];
+  const isHardLimit = info.total <= 5;
+  const isUnfiltered = info.total === TOTAL_COMBINATIONS;
+  const displayStatus =
+    info.status === "excessive" && !isHardLimit ? "warning" : info.status;
+  const config = isUnfiltered
+    ? {
+        bgColor:
+          "bg-slate-50 border-slate-200 dark:bg-slate-950 dark:border-slate-800",
+        textColor: "text-slate-700 dark:text-slate-300",
+        iconBgColor: "bg-slate-100 dark:bg-slate-900",
+        icon: AlertTriangle,
+      }
+    : STATUS_CONFIG[displayStatus];
   const Icon = config.icon;
+  const statusLabel = isUnfiltered
+    ? "필터 필요"
+    : CombinationCalculator.getStatusLabel(info.status);
+  const statusMessage = isUnfiltered
+    ? "필터를 적용해 주세요."
+    : CombinationCalculator.getStatusMessage(info.status);
 
   return (
     <Card className={cn("border-2 transition-colors", config.bgColor)}>
       <CardContent className="py-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div
-              className={cn(
-                "p-3 rounded-xl",
-                info.status === "comfortable" &&
-                  "bg-green-100 dark:bg-green-900",
-                info.status === "recommended" && "bg-blue-100 dark:bg-blue-900",
-                info.status === "excessive" && "bg-red-100 dark:bg-red-900",
-              )}
-            >
+            <div className={cn("p-3 rounded-xl", config.iconBgColor)}>
               <Icon className={cn("w-6 h-6", config.textColor)} />
             </div>
             <div>
@@ -90,12 +107,16 @@ export function CombinationCounter({
           </div>
 
           <div className="flex flex-col items-start md:items-end gap-2">
-            <Badge variant={config.badgeVariant} className="text-sm px-3 py-1">
-              {CombinationCalculator.getStatusLabel(info.status)}
+            <Badge
+              variant="secondary"
+              className={cn(
+                "text-sm px-3 py-1 bg-muted/70 dark:bg-muted/40",
+                config.textColor,
+              )}
+            >
+              {statusLabel}
             </Badge>
-            <p className={cn("text-sm", config.textColor)}>
-              {CombinationCalculator.getStatusMessage(info.status)}
-            </p>
+            <p className={cn("text-sm", config.textColor)}>{statusMessage}</p>
           </div>
         </div>
       </CardContent>

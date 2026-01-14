@@ -9,7 +9,10 @@ import {
   CombinationStatus,
   TOTAL_COMBINATIONS,
 } from "../types/pattern-filter.types";
-import { generateRandomCombination } from "../lib/lotto-math";
+import {
+  generateRandomCombination,
+  generateRandomCombinationWithFixed,
+} from "../lib/lotto-math";
 import { PatternFilter } from "./pattern-filter";
 
 // 사전 계산된 홀짝 비율별 조합 수
@@ -51,6 +54,9 @@ const AC_VALUE_RATIOS: Record<number, number> = {
 
 // 총합 구간별 비율 (정규분포 근사)
 function getSumRangeRatio(min: number, max: number): number {
+  if (min <= 21 && max >= 255) {
+    return 1;
+  }
   // 총합 범위: 21 (1+2+3+4+5+6) ~ 255 (40+41+42+43+44+45)
   // 평균: 약 138, 표준편차: 약 28
   const mean = 138;
@@ -97,6 +103,61 @@ export class CombinationCalculator {
    * 샘플링 + 사전 계산 비율 조합
    */
   estimateCombinations(filters: PatternFilterState): CombinationInfo {
+    const fixedNumbers = Array.from(new Set(filters.fixedNumbers));
+    const fixedCount = fixedNumbers.length;
+
+    if (fixedCount > 6) {
+      return { total: 0, percentage: 0, status: "excessive" };
+    }
+
+    const fixedBaseTotal =
+      fixedCount > 0 ? combination(45 - fixedCount, 6 - fixedCount) : null;
+
+    const isUnfiltered =
+      filters.oddEvenRatios.length === 0 &&
+      filters.highLowRatios.length === 0 &&
+      filters.sumRange[0] <= 21 &&
+      filters.sumRange[1] >= 255 &&
+      filters.acRange[0] <= 0 &&
+      filters.acRange[1] >= 10 &&
+      filters.consecutivePattern === "any" &&
+      filters.sameEndDigit <= 0 &&
+      filters.sameSection <= 0 &&
+      filters.primeCount[0] <= 0 &&
+      filters.primeCount[1] >= 6 &&
+      filters.compositeCount[0] <= 0 &&
+      filters.compositeCount[1] >= 6 &&
+      filters.multiplesOf3[0] <= 0 &&
+      filters.multiplesOf3[1] >= 6 &&
+      filters.multiplesOf5[0] <= 0 &&
+      filters.multiplesOf5[1] >= 6 &&
+      filters.squareCount[0] <= 0 &&
+      filters.squareCount[1] >= 6;
+
+    if (fixedBaseTotal !== null && isUnfiltered) {
+      const ratio = fixedBaseTotal / TOTAL_COMBINATIONS;
+      return {
+        total: fixedBaseTotal,
+        percentage: ratio * 100,
+        status: this.getStatus(fixedBaseTotal),
+      };
+    }
+
+    if (fixedBaseTotal !== null) {
+      const samplingRatio = this.estimateWithFixedSampling(
+        filters,
+        fixedNumbers,
+      );
+      const estimated = Math.round(fixedBaseTotal * samplingRatio);
+      const ratio = estimated / TOTAL_COMBINATIONS;
+
+      return {
+        total: Math.max(0, estimated),
+        percentage: ratio * 100,
+        status: this.getStatus(estimated),
+      };
+    }
+
     let ratio = 1.0;
 
     // 1. 홀짝 비율 적용
@@ -163,19 +224,19 @@ export class CombinationCalculator {
 
     // 남은 필터가 기본값인지 확인
     const hasOtherFilters =
-      filters.consecutivePattern !== "none" ||
+      filters.consecutivePattern !== "any" ||
       filters.sameEndDigit > 0 ||
       filters.sameSection > 0 ||
       filters.primeCount[0] > 0 ||
-      filters.primeCount[1] < 3 ||
+      filters.primeCount[1] < 6 ||
       filters.compositeCount[0] > 0 ||
-      filters.compositeCount[1] < 3 ||
+      filters.compositeCount[1] < 6 ||
       filters.multiplesOf3[0] > 0 ||
-      filters.multiplesOf3[1] < 3 ||
+      filters.multiplesOf3[1] < 6 ||
       filters.multiplesOf5[0] > 0 ||
-      filters.multiplesOf5[1] < 2 ||
+      filters.multiplesOf5[1] < 6 ||
       filters.squareCount[0] > 0 ||
-      filters.squareCount[1] < 2;
+      filters.squareCount[1] < 6;
 
     if (!hasOtherFilters) {
       return 1.0;
@@ -184,6 +245,27 @@ export class CombinationCalculator {
     for (let i = 0; i < sampleSize; i++) {
       const combination = generateRandomCombination();
       if (this.patternFilter.matchesOtherFilters(combination, otherFilters)) {
+        matchCount++;
+      }
+    }
+
+    return matchCount / sampleSize;
+  }
+
+  private estimateWithFixedSampling(
+    filters: PatternFilterState,
+    fixedNumbers: number[],
+  ): number {
+    if (fixedNumbers.length === 6) {
+      return this.patternFilter.matchesFilter(fixedNumbers, filters) ? 1 : 0;
+    }
+
+    const sampleSize = 10000;
+    let matchCount = 0;
+
+    for (let i = 0; i < sampleSize; i++) {
+      const combination = generateRandomCombinationWithFixed(fixedNumbers);
+      if (this.patternFilter.matchesFilter(combination, filters)) {
         matchCount++;
       }
     }
@@ -227,4 +309,21 @@ export class CombinationCalculator {
         return "과도한 필터링";
     }
   }
+}
+
+function combination(n: number, k: number): number {
+  if (k < 0 || k > n) {
+    return 0;
+  }
+  if (k === 0 || k === n) {
+    return 1;
+  }
+
+  const kEff = Math.min(k, n - k);
+  let result = 1;
+  for (let i = 1; i <= kEff; i++) {
+    result = (result * (n - kEff + i)) / i;
+  }
+
+  return Math.round(result);
 }
