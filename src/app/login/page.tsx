@@ -13,11 +13,11 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
@@ -147,5 +147,25 @@ export default function LoginPage() {
         </form>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/30 p-4">
+          <Card className="w-full max-w-md shadow-lg">
+            <CardHeader className="space-y-1 text-center">
+              <CardTitle className="text-2xl font-bold tracking-tight">
+                로딩 중...
+              </CardTitle>
+            </CardHeader>
+          </Card>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
