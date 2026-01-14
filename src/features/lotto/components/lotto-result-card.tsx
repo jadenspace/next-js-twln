@@ -72,11 +72,11 @@ export function LottoResultCard() {
     if (daysUntilSaturday === 0 && now.getHours() >= 20) {
       nextSaturday = new Date(now);
       nextSaturday.setDate(now.getDate() + 7);
-      nextSaturday.setHours(20, 30, 0, 0);
+      nextSaturday.setHours(20, 35, 0, 0);
     } else {
       nextSaturday = new Date(now);
       nextSaturday.setDate(now.getDate() + daysUntilSaturday);
-      nextSaturday.setHours(20, 30, 0, 0);
+      nextSaturday.setHours(20, 35, 0, 0);
     }
 
     const diff = nextSaturday.getTime() - now.getTime();
@@ -155,7 +155,7 @@ export function LottoResultCard() {
 
         <div className="border-t pt-4">
           <div className="text-center space-y-2">
-            <p className="text-sm font-medium">다음 회차까지</p>
+            <p className="text-sm font-medium">다음 추첨까지 남은 시간</p>
             <div className="flex justify-center gap-3">
               <CountdownItem value={countdown.days} label="일" />
               <CountdownItem value={countdown.hours} label="시" />
