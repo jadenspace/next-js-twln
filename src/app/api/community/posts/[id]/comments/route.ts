@@ -11,6 +11,19 @@ export async function POST(
   } = await supabase.auth.getUser();
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user.email)
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { data: adminCheck, error: adminError } = await supabase
+    .from("admin_users")
+    .select("id")
+    .eq("email", user.email)
+    .eq("is_active", true)
+    .single();
+
+  if (adminError || !adminCheck) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   try {
     const { content } = await request.json();
@@ -27,6 +40,12 @@ export async function POST(
       .single();
 
     if (error) throw error;
+
+    console.info("[admin-answer]", {
+      postId,
+      commentId: data?.id,
+      adminEmail: user.email,
+    });
 
     // Grant XP (5 XP)
     await supabase.rpc("add_xp", {

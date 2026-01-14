@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "자유 게시판",
+  title: "문의/답변",
   description:
-    "로또탐정 분석 서비스의 커뮤니티 공간입니다. 당첨 후기와 나만의 분석 노하우를 공유해보세요.",
+    "서비스 이용 중 궁금한 내용을 문의하고 답변을 확인할 수 있습니다.",
 };
 
 export default function CommunityLayout({
