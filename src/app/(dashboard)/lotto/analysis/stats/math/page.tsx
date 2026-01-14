@@ -17,6 +17,8 @@ import {
 } from "@/shared/ui/card";
 import { Calculator, PieChart, Info, HelpCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function MathPropertyStatsPage() {
   const [stats, setStats] = useState<AdvancedStats | null>(null);
@@ -60,15 +62,11 @@ export default function MathPropertyStatsPage() {
   // but for visualization let's show Prime vs Non-Prime coverage
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3 text-cyan-600">
-          수학적 성질 분석
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          소수(Prime), 합성수, 3의 배수 등 번호가 가진 수학적 특징을 분석합니다.
-        </p>
-      </div>
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="수학적 성질 분석"
+        description="소수(Prime), 합성수, 3의 배수 등 번호가 가진 수학적 특징을 분석합니다."
+      />
 
       <StatsFilter
         onApply={(v) => mutation.mutate(v)}
@@ -77,13 +75,11 @@ export default function MathPropertyStatsPage() {
       />
 
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Calculator className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">수학 통계 데이터 대기 중</h3>
-          <p className="text-muted-foreground">
-            알고리즘 기반의 수치 데이터를 보려면 분석을 눌러주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Calculator}
+          title="수학 통계 데이터 대기 중"
+          description="알고리즘 기반의 수치 데이터를 보려면 분석을 눌러주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in fade-in duration-700">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

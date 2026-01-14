@@ -19,6 +19,8 @@ import { Button } from "@/shared/ui/button";
 import { Play, RotateCcw, Zap, Info } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function MonteCarloStatsPage() {
   const [stats, setStats] = useState<AdvancedStats | null>(null);
@@ -97,16 +99,11 @@ export default function MonteCarloStatsPage() {
     : [];
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3 text-amber-600">
-          몬테카를로 시뮬레이션
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          통계 데이터를 기반으로 10,000번의 가상 추첨을 시행하여 당첨 확률이
-          가장 높은 조합을 예측합니다.
-        </p>
-      </div>
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="몬테카를로 시뮬레이션"
+        description="통계 데이터를 기반으로 10,000번의 가상 추첨을 시행하여 당첨 확률이 가장 높은 조합을 예측합니다."
+      />
 
       <StatsFilter
         onApply={(v) => mutation.mutate(v)}
@@ -115,13 +112,11 @@ export default function MonteCarloStatsPage() {
       />
 
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Zap className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">시뮬레이션 데이터 대기 중</h3>
-          <p className="text-muted-foreground">
-            시뮬레이션의 기초가 될 통계 학습 데이터를 먼저 불러와주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Zap}
+          title="시뮬레이션 데이터 대기 중"
+          description="시뮬레이션의 기초가 될 통계 학습 데이터를 먼저 불러와주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in fade-in duration-700">
           <Card className="bg-amber-50/20 border-amber-200">

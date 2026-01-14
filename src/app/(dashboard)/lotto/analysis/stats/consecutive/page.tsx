@@ -18,6 +18,8 @@ import {
 import { Binary, Layers } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function ConsecutiveStatsPage() {
   const [stats, setStats] = useState<BasicStats | null>(null);
@@ -55,15 +57,11 @@ export default function ConsecutiveStatsPage() {
     : [];
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3">
-          연속번호 출현 분석
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          연속된 숫자가 얼마나 자주 당첨되는지 분석하여 패턴을 예측해 보세요.
-        </p>
-      </div>
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="연속번호 출현 분석"
+        description="연속된 숫자가 얼마나 자주 당첨되는지 분석하여 패턴을 예측해 보세요."
+      />
 
       <StatsFilter
         onApply={(v) => mutation.mutate(v)}
@@ -72,13 +70,11 @@ export default function ConsecutiveStatsPage() {
       />
 
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Binary className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">연번 데이터 대기 중</h3>
-          <p className="text-muted-foreground">
-            분석 범위를 설정하고 버튼을 눌러주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Binary}
+          title="연번 데이터 대기 중"
+          description="분석 범위를 설정하고 버튼을 눌러주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in zoom-in duration-500">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

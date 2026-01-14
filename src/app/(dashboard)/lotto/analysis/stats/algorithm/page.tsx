@@ -18,6 +18,8 @@ import {
 import { Brain, Flame, Snowflake, Scale, Info } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function AlgorithmStatsPage() {
   const [stats, setStats] = useState<AdvancedStats | null>(null);
@@ -63,15 +65,11 @@ export default function AlgorithmStatsPage() {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3 text-blue-800">
-          알고리즘 기법 분석
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          Hot/Cold 이론과 가중치 알고리즘을 통해 추천 번호군을 추출합니다.
-        </p>
-      </div>
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="알고리즘 기법 분석"
+        description="Hot/Cold 이론과 가중치 알고리즘을 통해 추천 번호군을 추출합니다."
+      />
 
       <StatsFilter
         onApply={(v) => mutation.mutate(v)}
@@ -80,13 +78,11 @@ export default function AlgorithmStatsPage() {
       />
 
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Brain className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">알고리즘 분석 대기 중</h3>
-          <p className="text-muted-foreground">
-            정교한 가중치 분석을 시작하려면 버튼을 클릭해 주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Brain}
+          title="알고리즘 분석 대기 중"
+          description="정교한 가중치 분석을 시작하려면 버튼을 클릭해 주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in zoom-in-95 duration-700">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -17,6 +17,8 @@ import {
 } from "@/shared/ui/card";
 import { Scale, Activity, Maximize2, Info } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function JapaneseStatsPage() {
   const [stats, setStats] = useState<AdvancedStats | null>(null);
@@ -51,16 +53,11 @@ export default function JapaneseStatsPage() {
     arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3 text-indigo-600">
-          후나츠 사카이 밸런스 분석
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          일본의 분석가 후나츠 사카이의 이론에 따라 합계(Sum), 평균(Avg),
-          산도(Spread) 균형을 확인합니다.
-        </p>
-      </div>
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="후나츠 사카이 밸런스 분석"
+        description="일본의 분석가 후나츠 사카이의 이론에 따라 합계(Sum), 평균(Avg), 산도(Spread) 균형을 확인합니다."
+      />
 
       <StatsFilter
         onApply={(v) => mutation.mutate(v)}
@@ -69,13 +66,11 @@ export default function JapaneseStatsPage() {
       />
 
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Scale className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">밸런스 분석 데이터 대기 중</h3>
-          <p className="text-muted-foreground">
-            일본 정통 로또 6 분석법을 적용하려면 분석을 시작하세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Scale}
+          title="밸런스 분석 데이터 대기 중"
+          description="일본 정통 로또 6 분석법을 적용하려면 분석을 시작하세요."
+        />
       ) : (
         <div className="space-y-8 animate-in fade-in duration-700">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

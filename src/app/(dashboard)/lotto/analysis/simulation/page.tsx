@@ -16,6 +16,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2, Calculator } from "lucide-react";
 import { toast } from "sonner";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
+import { PageHeader } from "@/shared/ui/page-header";
 
 export default function SimulationPage() {
   const [numbers, setNumbers] = useState<string[]>(Array(6).fill(""));
@@ -102,12 +103,11 @@ export default function SimulationPage() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">당첨 시뮬레이션</h1>
-      <p className="text-muted-foreground mb-8">
-        선택하신 번호로 과거 모든 회차에 응모했다면? 수익률(ROI)과 당첨 내역을
-        시뮬레이션합니다.
-      </p>
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4">
+      <PageHeader
+        title="당첨 시뮬레이션"
+        description="선택하신 번호로 과거 모든 회차에 응모했다면? 수익률(ROI)과 당첨 내역을 시뮬레이션합니다."
+      />
 
       {/* Input Form */}
       <Card className="mb-8">

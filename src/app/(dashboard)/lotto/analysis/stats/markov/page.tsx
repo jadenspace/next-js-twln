@@ -18,6 +18,8 @@ import {
 import { Share2, MousePointer2, Info } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function MarkovStatsPage() {
   const [stats, setStats] = useState<AdvancedStats | null>(null);
@@ -57,16 +59,11 @@ export default function MarkovStatsPage() {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3 text-purple-600">
-          마르코프 전이 확률 분석
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          특정 번호가 당첨된 다음 회차에 어떤 번호가 출현할 확률이 높은지
-          분석합니다.
-        </p>
-      </div>
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="마르코프 전이 확률 분석"
+        description="특정 번호가 당첨된 다음 회차에 어떤 번호가 출현할 확률이 높은지 분석합니다."
+      />
 
       <StatsFilter
         onApply={(v) => mutation.mutate(v)}
@@ -75,15 +72,11 @@ export default function MarkovStatsPage() {
       />
 
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Share2 className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">
-            마르코프 데이터 분석 대기 중
-          </h3>
-          <p className="text-muted-foreground">
-            번호 간의 연결 고리를 찾으려면 분석을 시작해 주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Share2}
+          title="마르코프 데이터 분석 대기 중"
+          description="번호 간의 연결 고리를 찾으려면 분석을 시작해 주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in slide-in-from-left-10 duration-700">
           <Card className="bg-purple-50/30 border-purple-200">

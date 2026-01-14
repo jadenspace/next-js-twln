@@ -18,6 +18,8 @@ import {
 import { History, TrendingUp, AlertTriangle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function RegressionStatsPage() {
   const [stats, setStats] = useState<AdvancedStats | null>(null);
@@ -53,15 +55,11 @@ export default function RegressionStatsPage() {
     : [];
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3">
-          n회귀 통계 분석
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          번호별 당첨 주기를 분석하여 다음 출현 시점을 예측합니다.
-        </p>
-      </div>
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="n회귀 통계 분석"
+        description="번호별 당첨 주기를 분석하여 다음 출현 시점을 예측합니다."
+      />
 
       <StatsFilter
         onApply={(v) => mutation.mutate(v)}
@@ -70,13 +68,11 @@ export default function RegressionStatsPage() {
       />
 
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <History className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">회귀 통계 분석 대기 중</h3>
-          <p className="text-muted-foreground">
-            심화 분석을 위해 필터를 설정하고 버튼을 눌러주세요. (200P 소모)
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={History}
+          title="회귀 통계 분석 대기 중"
+          description="심화 분석을 위해 필터를 설정하고 버튼을 눌러주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in fade-in duration-700">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

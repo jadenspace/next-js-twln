@@ -63,19 +63,22 @@ export function StatsFilter({
   };
 
   return (
-    <Card className="mb-8 border-border bg-muted/30 shadow-sm">
-      <CardContent className="pt-6 pb-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:gap-4">
-          {/* 분석 범위 */}
-          <div className="flex-1 min-w-0 space-y-2">
-            <Label className="text-sm font-medium text-foreground">
+    <Card className="mb-6 md:mb-8 border-border bg-muted/30 shadow-sm">
+      <CardContent className="pt-4 pb-3 md:pt-6 md:pb-4">
+        {/* 모바일: 2열 그리드, 데스크톱: 가로 플렉스 */}
+        <div className="grid grid-cols-2 gap-3 md:flex md:flex-row md:items-end md:gap-4">
+          {/* 분석 범위 - 모바일에서 전체 너비 또는 recent일 때 절반 */}
+          <div
+            className={`space-y-1.5 md:space-y-2 md:flex-1 md:min-w-0 ${filterType === "recent" ? "col-span-1" : "col-span-2"}`}
+          >
+            <Label className="text-xs md:text-sm font-medium text-foreground">
               분석 범위
             </Label>
             <Select
               value={filterType}
               onValueChange={(val: FilterValues["type"]) => setFilterType(val)}
             >
-              <SelectTrigger className="bg-background border-border h-10">
+              <SelectTrigger className="bg-background border-border h-9 md:h-10 text-sm">
                 <SelectValue placeholder="범위 선택" />
               </SelectTrigger>
               <SelectContent>
@@ -88,17 +91,17 @@ export function StatsFilter({
             </Select>
           </div>
 
-          {/* 최근 회차 수 */}
+          {/* 최근 회차 수 - 모바일에서 분석 범위와 나란히 */}
           {filterType === "recent" && (
-            <div className="flex-1 min-w-0 space-y-2">
-              <Label className="text-sm font-medium text-foreground">
+            <div className="col-span-1 space-y-1.5 md:space-y-2 md:flex-1 md:min-w-0">
+              <Label className="text-xs md:text-sm font-medium text-foreground">
                 최근 회차 수
               </Label>
               <Select
                 value={limit.toString()}
                 onValueChange={(val) => setLimit(parseInt(val))}
               >
-                <SelectTrigger className="bg-background border-border h-10">
+                <SelectTrigger className="bg-background border-border h-9 md:h-10 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -112,11 +115,11 @@ export function StatsFilter({
             </div>
           )}
 
-          {/* 직접 구간 입력 */}
+          {/* 직접 구간 입력 - 모바일에서 2열로 배치 */}
           {filterType === "range" && (
             <>
-              <div className="flex-1 min-w-0 space-y-2">
-                <Label className="text-sm font-medium text-foreground">
+              <div className="col-span-1 space-y-1.5 md:space-y-2 md:flex-1 md:min-w-0">
+                <Label className="text-xs md:text-sm font-medium text-foreground">
                   시작 회차
                 </Label>
                 <Input
@@ -125,11 +128,11 @@ export function StatsFilter({
                   onChange={(e) => setStartDraw(parseInt(e.target.value))}
                   min={1}
                   max={latestDrawNo}
-                  className="bg-background border-border h-10"
+                  className="bg-background border-border h-9 md:h-10 text-sm"
                 />
               </div>
-              <div className="flex-1 min-w-0 space-y-2">
-                <Label className="text-sm font-medium text-foreground">
+              <div className="col-span-1 space-y-1.5 md:space-y-2 md:flex-1 md:min-w-0">
+                <Label className="text-xs md:text-sm font-medium text-foreground">
                   종료 회차
                 </Label>
                 <Input
@@ -138,44 +141,44 @@ export function StatsFilter({
                   onChange={(e) => setEndDraw(parseInt(e.target.value))}
                   min={1}
                   max={latestDrawNo}
-                  className="bg-background border-border h-10"
+                  className="bg-background border-border h-9 md:h-10 text-sm"
                 />
               </div>
             </>
           )}
 
-          {/* 보너스 번호 포함 토글 */}
-          <div className="flex items-center justify-between lg:justify-start gap-3 px-3 py-2 rounded-md border border-border bg-background/50 lg:self-end">
+          {/* 보너스 번호 포함 토글 - 모바일에서 컴팩트하게 */}
+          <div className="col-span-1 flex items-center gap-2 px-2.5 py-1.5 md:px-3 md:py-2 rounded-md border border-border bg-background/50 md:self-end h-9 md:h-10">
             <Label
               htmlFor="bonus-toggle"
-              className="text-sm font-medium text-foreground cursor-pointer whitespace-nowrap"
+              className="text-xs md:text-sm font-medium text-foreground cursor-pointer whitespace-nowrap"
             >
-              보너스 번호 포함
+              보너스 포함
             </Label>
             <Switch
               id="bonus-toggle"
               checked={includeBonus}
               onCheckedChange={setIncludeBonus}
-              className="data-[state=checked]:bg-foreground/80 data-[state=unchecked]:bg-muted-foreground/30"
+              className="data-[state=checked]:bg-foreground/80 data-[state=unchecked]:bg-muted-foreground/30 scale-90 md:scale-100"
             />
           </div>
 
-          {/* 분석 적용 버튼 */}
+          {/* 분석 적용 버튼 - 모바일에서 강조 */}
           <Button
-            variant="outline"
-            className="w-full lg:w-auto gap-2 h-10 border-foreground/20 bg-background hover:bg-muted hover:border-foreground/30 text-foreground font-medium"
+            variant="default"
+            className="col-span-1 md:w-auto gap-1.5 md:gap-2 h-9 md:h-10 bg-foreground text-background hover:bg-foreground/90 font-medium text-sm"
             onClick={handleApply}
             disabled={isPending}
           >
             {isPending ? (
-              <RotateCcw className="w-4 h-4 animate-spin" />
+              <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
             ) : (
-              <Search className="w-4 h-4" />
+              <Search className="w-3.5 h-3.5 md:w-4 md:h-4" />
             )}
             분석 적용
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-4 leading-relaxed">
+        <p className="text-[10px] md:text-xs text-muted-foreground mt-3 md:mt-4 leading-relaxed">
           {isAdvanced
             ? "* 심화 분석 적용 시 200P가 소모되며, 정밀 알고리즘이 가동됩니다. (50 XP 지급)"
             : "* 기본 분석은 무료로 제공되며, 최신 데이터를 기반으로 통계가 갱신됩니다."}

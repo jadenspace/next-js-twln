@@ -17,6 +17,8 @@ import {
 } from "@/shared/ui/card";
 import { Ruler, ArrowRightLeft, Info } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function IntervalStatsPage() {
   const [stats, setStats] = useState<AdvancedStats | null>(null);
@@ -50,16 +52,11 @@ export default function IntervalStatsPage() {
   const avgGaps = stats ? stats.interval.averageGaps : [0, 0, 0, 0, 0];
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3 text-slate-700">
-          번호 간격 분석 (Gap)
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          당첨 번호들 사이의 거리(간격)를 분석하여 번호 배열의 패턴을
-          파악합니다.
-        </p>
-      </div>
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="번호 간격 분석 (Gap)"
+        description="당첨 번호들 사이의 거리(간격)를 분석하여 번호 배열의 패턴을 파악합니다."
+      />
 
       <StatsFilter
         onApply={(v) => mutation.mutate(v)}
@@ -68,13 +65,11 @@ export default function IntervalStatsPage() {
       />
 
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Ruler className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">간격 데이터 분석 대기 중</h3>
-          <p className="text-muted-foreground">
-            번호 사이의 밀도와 간격을 분석하려면 시작해 주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Ruler}
+          title="간격 데이터 분석 대기 중"
+          description="번호 사이의 밀도와 간격을 분석하려면 시작해 주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in slide-in-from-left-10 duration-700">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">

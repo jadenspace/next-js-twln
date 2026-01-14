@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { Sparkles, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { PageHeader } from "@/shared/ui/page-header";
 import { useRouter } from "next/navigation";
 import {
   PatternCategorySelector,
@@ -355,15 +356,14 @@ export default function PatternGeneratePage() {
     !isGenerating;
 
   return (
-    <div className="max-w-5xl mx-auto py-8 space-y-6">
+    <div className="max-w-5xl mx-auto py-6 md:py-8 px-4 space-y-6">
       {/* 헤더 */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">패턴 조합 생성</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            원하는 패턴을 선택하고 조건에 맞는 번호 조합을 생성하세요.
-          </p>
-        </div>
+        <PageHeader
+          title="패턴 조합 생성"
+          description="원하는 패턴을 선택하고 조건에 맞는 번호 조합을 생성하세요."
+          className="mb-0"
+        />
         <Button variant="outline" onClick={handleReset} disabled={isGenerating}>
           <RotateCcw className="w-4 h-4 mr-2" />
           초기화

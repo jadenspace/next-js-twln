@@ -18,6 +18,8 @@ import {
 import { Heart, Users, Search } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function CompatibilityStatsPage() {
   const [stats, setStats] = useState<AdvancedStats | null>(null);
@@ -68,15 +70,11 @@ export default function CompatibilityStatsPage() {
     : [];
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3 text-red-500">
-          궁합수 분석 (동반 출현)
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          함께 당첨될 확률이 높은 번호 조합을 분석하여 시너지를 찾습니다.
-        </p>
-      </div>
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="궁합수 분석 (동반 출현)"
+        description="함께 당첨될 확률이 높은 번호 조합을 분석하여 시너지를 찾습니다."
+      />
 
       <StatsFilter
         onApply={(v) => mutation.mutate(v)}
@@ -85,13 +83,11 @@ export default function CompatibilityStatsPage() {
       />
 
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Heart className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">궁합 분석 데이터 대기 중</h3>
-          <p className="text-muted-foreground">
-            번호 간의 찰떡 궁합을 찾으시려면 분석을 가동해 주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Heart}
+          title="궁합 분석 데이터 대기 중"
+          description="번호 간의 궁합 관계를 분석하려면 시작해 주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in slide-in-from-right-10 duration-700">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

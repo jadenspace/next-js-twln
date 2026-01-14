@@ -17,6 +17,8 @@ import {
 } from "@/shared/ui/card";
 import { Info, BarChart3 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function RangesStatsPage() {
   const [stats, setStats] = useState<BasicStats | null>(null);
@@ -60,15 +62,11 @@ export default function RangesStatsPage() {
     : 0;
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3">
-          구간별 출현 횟수
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          번호대별 분포를 통해 어느 구간에서 번호가 집중되는지 확인하세요.
-        </p>
-      </div>
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="구간별 출현 횟수"
+        description="번호대별 분포를 통해 어느 구간에서 번호가 집중되는지 확인하세요."
+      />
 
       <StatsFilter
         onApply={(v) => mutation.mutate(v)}
@@ -77,13 +75,11 @@ export default function RangesStatsPage() {
       />
 
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <BarChart3 className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">구간 분석 대기 중</h3>
-          <p className="text-muted-foreground">
-            필터를 선택하고 분석 시작 버튼을 눌러주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={BarChart3}
+          title="구간 분석 대기 중"
+          description="필터를 선택하고 분석 시작 버튼을 눌러주세요."
+        />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in zoom-in-95 duration-500">
           <Card className="col-span-1 lg:col-span-2">
