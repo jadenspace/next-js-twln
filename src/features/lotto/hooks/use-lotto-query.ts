@@ -33,22 +33,24 @@ export const useLottoDraw = (drawNo: number) => {
 };
 
 // 3. 번호별 통계 조회 (24시간 캐시)
-export const useLottoNumberStats = (filters?: FilterValues) => {
+export const useLottoNumberStats = <T = BasicStats>(
+  filters?: FilterValues,
+  extraParams?: Record<string, any>,
+) => {
   return useQuery({
-    queryKey: ["lotto", "stats", "numbers", filters],
+    queryKey: ["lotto", "stats", "numbers", filters, extraParams],
     queryFn: async () => {
       const res = await fetch("/api/lotto/analysis/stats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filters || {}),
+        body: JSON.stringify({ ...(filters || {}), ...extraParams }),
       });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || "분석에 실패했습니다.");
       }
-      return res.json() as Promise<{ data: BasicStats }>;
+      return res.json() as Promise<{ data: T }>;
     },
     staleTime: 1000 * 60 * 60 * 24, // 24시간
-    // 필터가 없거나 변경될 때마다 쿼리키가 바뀌므로 자동 페칭됨
   });
 };
