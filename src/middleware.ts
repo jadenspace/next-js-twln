@@ -16,6 +16,13 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
+  // Debug log
+  console.log("[Middleware]", {
+    pathname,
+    hasUser: !!user,
+    isDevelopment,
+  });
+
   // Public paths allowed for everyone
   const publicPaths = [
     "/",
@@ -27,14 +34,14 @@ export async function middleware(request: NextRequest) {
     "/test-supabase",
     "/api",
     "/lotto/search",
-    "/community",
     "/lotto/generate/random",
     "/lotto/generate/pattern",
     "/lotto/analysis/simulation",
   ];
 
   const isPublicPath = publicPaths.some(
-    (path) => pathname === path || pathname.startsWith(path),
+    (path) =>
+      pathname === path || (path !== "/" && pathname.startsWith(path + "/")),
   );
 
   // Basic Statistics paths (allowed for everyone)

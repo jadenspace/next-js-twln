@@ -14,9 +14,6 @@ const PATTERN_COSTS = {
   10: 100,
 } as const;
 
-// 통계 필터 사용 시 추가 비용
-const STATS_FILTER_EXTRA_COST = 50;
-
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
 
@@ -76,9 +73,8 @@ export async function POST(request: NextRequest) {
         filters.statsFilter.missNumberCount[0] > 0 ||
         filters.statsFilter.missNumberCount[1] < 6);
 
-    // 총 비용 계산 (기본 + 통계 필터 추가 비용)
-    const totalCost =
-      currentCost + (hasStatsFilter ? STATS_FILTER_EXTRA_COST : 0);
+    // 총 비용 계산
+    const totalCost = currentCost;
 
     const { data: userPoints } = await supabase
       .from("user_points")
