@@ -71,7 +71,6 @@ export function Footer() {
                   이메일 문의
                 </Link>
               </p>
-              <p className="text-xs">* 48시간 내 답변</p>
             </div>
           </div>
         </div>

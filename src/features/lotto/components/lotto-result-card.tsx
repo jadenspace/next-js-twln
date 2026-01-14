@@ -98,6 +98,25 @@ export function LottoResultCard() {
       ]
     : [];
 
+  const BonusLottoNumber = ({ num }: { num: number }) => {
+    const getColor = (n: number) => {
+      if (n <= 10) return "border-yellow-500 text-yellow-500";
+      if (n <= 20) return "border-blue-500 text-blue-500";
+      if (n <= 30) return "border-red-500 text-red-500";
+      if (n <= 40) return "border-gray-500 text-gray-500";
+      return "border-green-500 text-green-500";
+    };
+    return (
+      <div
+        className={`w-10 h-10 rounded-full bg-transparent border-2 flex items-center justify-center font-bold ${getColor(
+          num,
+        )}`}
+      >
+        {num}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <Card>
@@ -143,7 +162,7 @@ export function LottoResultCard() {
                 <span className="text-sm font-medium text-muted-foreground">
                   보너스
                 </span>
-                <LotteryBall number={latestDraw.bnus_no} />
+                <BonusLottoNumber num={latestDraw.bnus_no} />
               </div>
             </div>
           </div>

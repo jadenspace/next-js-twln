@@ -94,6 +94,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
+                tabIndex={1}
               />
             </div>
             <div className="space-y-2">
@@ -103,6 +104,7 @@ export default function LoginPage() {
                   <Link
                     href="/forgot-password"
                     className="text-xs text-muted-foreground hover:underline"
+                    tabIndex={4}
                   >
                     비밀번호 찾기
                   </Link>
@@ -115,11 +117,17 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                tabIndex={2}
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4 pt-4">
-            <Button className="w-full" type="submit" disabled={isLoading}>
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={isLoading}
+              tabIndex={3}
+            >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSignUp ? "가입하기" : "로그인"}
             </Button>
@@ -130,6 +138,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setIsSignUp(!isSignUp)}
                 className="underline underline-offset-4 hover:text-primary"
+                tabIndex={5}
               >
                 {isSignUp ? "로그인" : "회원가입"}
               </button>

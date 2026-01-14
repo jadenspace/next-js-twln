@@ -25,12 +25,9 @@ export default function Home() {
         <div className="space-y-12">
           {/* Hero Section */}
           <div className="text-center space-y-4">
-            <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight">
-              로또탐정 분석 서비스
-            </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              빅데이터와 AI 기반으로 로또 당첨 확률을 높이는 프리미엄 인사이트를
-              경험하세요.
+              통계 분석 기반으로 로또 당첨 확률을 높이는{" "}
+              <br className="md:hidden" /> 프리미엄 인사이트를 경험하세요.
             </p>
           </div>
 
@@ -39,7 +36,7 @@ export default function Home() {
             <div className="lg:col-span-2 space-y-8">
               <LottoResultCard />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FeatureLinkCard
                   title="당첨번호 검색"
                   description="역대 당첨번호를 회차별로 조회"
@@ -69,32 +66,7 @@ export default function Home() {
 
             {/* Right Column: User Info */}
             <div className="space-y-8">
-              <AttendanceCard />
-              {isAuthenticated && user && <UserLevelInfo userId={user.id} />}
-
-              {isAuthenticated ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>내 정보</CardTitle>
-                    <CardDescription>{user?.email}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center bg-secondary/30 p-3 rounded-lg">
-                      <span className="text-sm font-medium">
-                        관리 승인 상태
-                      </span>
-                      <span className="text-xs px-2 py-1 bg-green-500 text-white rounded">
-                        승인됨
-                      </span>
-                    </div>
-                    <Link href="/points/charge" className="block">
-                      <Button id="btn-charge" className="w-full font-bold">
-                        포인트 충전하기
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ) : (
+              {!isAuthenticated ? (
                 <Card>
                   <CardHeader>
                     <CardTitle>내 정보</CardTitle>
@@ -116,6 +88,34 @@ export default function Home() {
                     </Link>
                   </CardContent>
                 </Card>
+              ) : (
+                <>
+                  <div className="-mt-4 md:mt-0">
+                    <AttendanceCard />
+                  </div>
+                  {user && <UserLevelInfo userId={user.id} />}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>내 정보</CardTitle>
+                      <CardDescription>{user?.email}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between items-center bg-secondary/30 p-3 rounded-lg">
+                        <span className="text-sm font-medium">
+                          관리 승인 상태
+                        </span>
+                        <span className="text-xs px-2 py-1 bg-green-500 text-white rounded">
+                          승인됨
+                        </span>
+                      </div>
+                      <Link href="/points/charge" className="block">
+                        <Button id="btn-charge" className="w-full font-bold">
+                          포인트 충전하기
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                </>
               )}
             </div>
           </div>
