@@ -8,12 +8,14 @@ const POLICY_LINKS = [
 
 export function Footer() {
   return (
-    <footer className="border-t bg-muted/30 mt-16">
-      <div className="w-full max-w-screen-xl mx-auto px-4 py-10 text-sm text-muted-foreground">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+    <footer className="border-t bg-muted/30 mt-10 md:mt-16">
+      <div className="w-full max-w-screen-xl mx-auto px-4 py-6 md:py-10 text-xs md:text-sm text-muted-foreground">
+        <div className="grid gap-5 md:gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <h3 className="text-foreground font-semibold mb-3">정책/약관</h3>
-            <ul className="space-y-2">
+            <h3 className="text-foreground font-semibold text-sm md:text-base mb-2 md:mb-3">
+              정책/약관
+            </h3>
+            <ul className="space-y-1.5 md:space-y-2">
               {POLICY_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
@@ -28,8 +30,10 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-foreground font-semibold mb-3">사업자 정보</h3>
-            <div className="space-y-1 leading-relaxed">
+            <h3 className="text-foreground font-semibold text-sm md:text-base mb-2 md:mb-3">
+              사업자 정보
+            </h3>
+            <div className="space-y-0.5 md:space-y-1 leading-relaxed">
               <p>상호명: 로또탐정</p>
               <p>대표자명: 김연호</p>
               <p>사업자등록번호: 미정</p>
@@ -40,7 +44,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-foreground font-semibold mb-3">
+            <h3 className="text-foreground font-semibold text-sm md:text-base mb-2 md:mb-3">
               서비스 면책/고지
             </h3>
             <p className="leading-relaxed">
@@ -51,10 +55,10 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-foreground font-semibold mb-3">
+            <h3 className="text-foreground font-semibold text-sm md:text-base mb-2 md:mb-3">
               고객 문의/운영
             </h3>
-            <div className="space-y-2 leading-relaxed">
+            <div className="space-y-1.5 md:space-y-2 leading-relaxed">
               <p>
                 <Link
                   href="/community"
@@ -75,7 +79,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 text-xs text-muted-foreground">
+        <div className="mt-5 md:mt-8 text-[10px] md:text-xs text-muted-foreground">
           © {new Date().getFullYear()} 로또탐정. All rights reserved.
         </div>
       </div>
