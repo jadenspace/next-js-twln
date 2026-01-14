@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { numbers } = body; // [1, 2, 3, 4, 5, 6]
+    const { numbers, drawRange } = body; // [1, 2, 3, 4, 5, 6], { startDraw?: number, endDraw?: number }
 
     if (!numbers || !Array.isArray(numbers) || numbers.length !== 6) {
       return NextResponse.json({ error: "Invalid numbers" }, { status: 400 });
@@ -37,12 +37,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Fetch Data & Simulate
-    const { data: lottoData, error: lottoError } = await supabase
-      .from("lotto_draws")
-      .select("*");
+    // 3. Fetch Data & Filter by Draw Range
+    let query = supabase.from("lotto_draws").select("*");
+
+    // 회차 범위 필터링
+    if (
+      drawRange?.startDraw !== undefined &&
+      drawRange?.endDraw !== undefined
+    ) {
+      query = query
+        .gte("drw_no", drawRange.startDraw)
+        .lte("drw_no", drawRange.endDraw);
+    }
+
+    const { data: lottoData, error: lottoError } = await query;
 
     if (lottoError || !lottoData) throw new Error("Failed to fetch lotto data");
+
+    if (lottoData.length === 0) {
+      return NextResponse.json(
+        { error: "선택한 회차 범위에 데이터가 없습니다." },
+        { status: 400 },
+      );
+    }
 
     // DB 스키마와 타입이 일치하므로 직접 사용
     const draws: LottoDraw[] = lottoData;

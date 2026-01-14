@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/shared/ui/button";
 import {
   Card,
@@ -10,13 +10,35 @@ import {
   CardDescription,
 } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
-import { useMutation } from "@tanstack/react-query";
+import { Label } from "@/shared/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2, Calculator } from "lucide-react";
 import { toast } from "sonner";
+import { lottoApi } from "@/features/lotto/api/lotto-api";
 
 export default function SimulationPage() {
   const [numbers, setNumbers] = useState<string[]>(Array(6).fill(""));
   const [result, setResult] = useState<any | null>(null);
+  const [rangeType, setRangeType] = useState<"all" | "custom">("all");
+  const [startDraw, setStartDraw] = useState<string>("");
+  const [endDraw, setEndDraw] = useState<string>("");
+
+  // 최근 회차 조회
+  const { data: latestDrawNo } = useQuery({
+    queryKey: ["lotto", "latest-draw-no"],
+    queryFn: () => lottoApi.getLatestDrawNo(),
+  });
+
+  // 회차 범위 지정 선택 시 기본값 설정 (1 ~ 최근 회차)
+  useEffect(() => {
+    if (rangeType === "custom" && latestDrawNo && latestDrawNo > 0) {
+      if (!startDraw || !endDraw) {
+        setStartDraw("1");
+        setEndDraw(latestDrawNo.toString());
+      }
+    }
+  }, [rangeType, latestDrawNo]);
 
   const handleNumberChange = (index: number, value: string) => {
     const newNumbers = [...numbers];
@@ -39,10 +61,30 @@ export default function SimulationPage() {
       if (new Set(numParams).size !== 6)
         throw new Error("중복된 숫자가 있습니다.");
 
+      // 회차 범위 검증
+      let drawRange: { startDraw?: number; endDraw?: number } | undefined;
+      if (rangeType === "custom") {
+        const start = startDraw ? parseInt(startDraw) : undefined;
+        const end = endDraw ? parseInt(endDraw) : undefined;
+
+        if (start !== undefined && end !== undefined) {
+          if (start < 1 || end < 1)
+            throw new Error("회차는 1 이상이어야 합니다.");
+          if (start > end)
+            throw new Error("시작 회차는 종료 회차보다 작거나 같아야 합니다.");
+          drawRange = { startDraw: start, endDraw: end };
+        } else if (start !== undefined || end !== undefined) {
+          throw new Error("시작 회차와 종료 회차를 모두 입력해주세요.");
+        }
+      }
+
       const res = await fetch("/api/lotto/analysis/simulation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ numbers: numParams }),
+        body: JSON.stringify({
+          numbers: numParams,
+          drawRange: drawRange,
+        }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -91,11 +133,89 @@ export default function SimulationPage() {
               />
             ))}
           </div>
+
+          {/* 회차 범위 선택 */}
+          <div className="mt-8 space-y-4">
+            <div>
+              <Label className="text-base font-semibold mb-3 block">
+                회차 범위 선택
+              </Label>
+              <RadioGroup
+                value={rangeType}
+                onValueChange={(value) =>
+                  setRangeType(value as "all" | "custom")
+                }
+                className="flex gap-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="all" />
+                  <Label htmlFor="all" className="cursor-pointer">
+                    전체 회차
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="custom" id="custom" />
+                  <Label htmlFor="custom" className="cursor-pointer">
+                    회차 범위 지정
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {rangeType === "custom" && (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="startDraw" className="whitespace-nowrap">
+                    시작 회차:
+                  </Label>
+                  <Input
+                    id="startDraw"
+                    type="number"
+                    value={startDraw}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (!val || /^\d*$/.test(val)) {
+                        setStartDraw(val);
+                      }
+                    }}
+                    className="w-32"
+                    placeholder="예: 1"
+                    min="1"
+                  />
+                </div>
+                <span className="text-muted-foreground">~</span>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="endDraw" className="whitespace-nowrap">
+                    종료 회차:
+                  </Label>
+                  <Input
+                    id="endDraw"
+                    type="number"
+                    value={endDraw}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (!val || /^\d*$/.test(val)) {
+                        setEndDraw(val);
+                      }
+                    }}
+                    className="w-32"
+                    placeholder="예: 1000"
+                    min="1"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="mt-8 text-center">
             <Button
               size="lg"
               onClick={() => mutation.mutate()}
-              disabled={mutation.isPending || numbers.some((n) => !n)}
+              disabled={
+                mutation.isPending ||
+                numbers.some((n) => !n) ||
+                (rangeType === "custom" && (!startDraw || !endDraw))
+              }
             >
               {mutation.isPending ? (
                 <Loader2 className="animate-spin mr-2" />
