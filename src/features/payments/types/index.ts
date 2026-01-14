@@ -16,9 +16,3 @@ export interface Payment {
   created_at: string;
   updated_at: string;
 }
-
-export const BANK_INFO = {
-  bankName: "토스뱅크",
-  accountNumber: "1000-0000-0000",
-  accountHolder: "로또탐정 서비스",
-};
