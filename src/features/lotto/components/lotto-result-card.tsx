@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { createClient } from "@/shared/lib/supabase/client";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
-import { TrendingUp, ExternalLink } from "lucide-react";
+import { TrendingUp, ExternalLink, MapPin } from "lucide-react";
 
 interface LottoDraw {
   drw_no: number;
@@ -166,17 +166,30 @@ export function LottoResultCard() {
         </div>
 
         <div className="border-t pt-4">
-          <a
-            href="https://dhlottery.co.kr"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block"
-          >
-            <Button className="w-full" size="lg">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              로또 구매하기
-            </Button>
-          </a>
+          <div className="flex gap-2">
+            <a
+              href="https://www.dhlottery.co.kr/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
+              <Button className="w-full" size="lg">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                로또 구매하기
+              </Button>
+            </a>
+            <a
+              href="https://www.dhlottery.co.kr/prchsplcsrch/home"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
+              <Button className="w-full" size="lg" variant="outline">
+                <MapPin className="w-4 h-4 mr-2" />
+                판매점 찾기
+              </Button>
+            </a>
+          </div>
         </div>
       </CardContent>
     </Card>
