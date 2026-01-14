@@ -46,8 +46,18 @@ export function StatsFilter({
   const handleApply = () => {
     onApply({
       type: filterType,
-      startDraw: filterType === "range" ? startDraw : undefined,
-      endDraw: filterType === "range" ? endDraw : undefined,
+      startDraw:
+        filterType === "range"
+          ? startDraw
+          : filterType === "all"
+            ? 1
+            : undefined,
+      endDraw:
+        filterType === "range"
+          ? endDraw
+          : filterType === "all"
+            ? latestDrawNo
+            : undefined,
       limit: filterType === "recent" ? limit : undefined,
       includeBonus,
     });

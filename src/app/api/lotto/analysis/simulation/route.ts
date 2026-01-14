@@ -37,29 +37,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Fetch Data & Filter by Draw Range
-    let query = supabase.from("lotto_draws").select("*");
+    // 3. Fetch Data & Filter by Draw Range with Pagination
+    const PAGE_SIZE = 1000;
+    const allLottoData: LottoDraw[] = [];
+    let offset = 0;
+    let hasMore = true;
 
-    // 회차 범위 필터링
-    if (
-      drawRange?.startDraw !== undefined &&
-      drawRange?.endDraw !== undefined
-    ) {
-      query = query
-        .gte("drw_no", drawRange.startDraw)
-        .lte("drw_no", drawRange.endDraw);
+    while (hasMore) {
+      let query = supabase
+        .from("lotto_draws")
+        .select("*")
+        .order("drw_no", { ascending: true })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      // 회차 범위 필터링
+      if (
+        drawRange?.startDraw !== undefined &&
+        drawRange?.endDraw !== undefined
+      ) {
+        query = query
+          .gte("drw_no", drawRange.startDraw)
+          .lte("drw_no", drawRange.endDraw);
+      }
+
+      const { data: pageData, error: lottoError } = await query;
+
+      if (lottoError) throw new Error("Failed to fetch lotto data");
+
+      if (!pageData || pageData.length === 0) {
+        hasMore = false;
+      } else {
+        allLottoData.push(...(pageData as LottoDraw[]));
+        // 페이지 크기보다 적게 반환되면 마지막 페이지
+        if (pageData.length < PAGE_SIZE) {
+          hasMore = false;
+        } else {
+          offset += PAGE_SIZE;
+        }
+      }
     }
 
-    const { data: lottoData, error: lottoError } = await query;
-
-    if (lottoError || !lottoData) throw new Error("Failed to fetch lotto data");
-
-    if (lottoData.length === 0) {
+    if (allLottoData.length === 0) {
       return NextResponse.json(
         { error: "선택한 회차 범위에 데이터가 없습니다." },
         { status: 400 },
       );
     }
+
+    const lottoData = allLottoData;
 
     // DB 스키마와 타입이 일치하므로 직접 사용
     const draws: LottoDraw[] = lottoData;

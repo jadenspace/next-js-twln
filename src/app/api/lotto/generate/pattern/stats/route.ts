@@ -12,10 +12,29 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient();
 
   try {
+    // 최신 회차 번호 조회
+    const { data: latestDraw, error: latestError } = await supabase
+      .from("lotto_draws")
+      .select("drw_no")
+      .order("drw_no", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (latestError || !latestDraw) {
+      return NextResponse.json(
+        { error: "Failed to fetch latest draw number" },
+        { status: 500 },
+      );
+    }
+
+    const latestDrawNo = latestDraw.drw_no;
+
     // 최근 10회차 데이터 가져오기 (핫/콜드 계산용)
+    // 최신 회차부터 정확히 10개를 가져오기 위해 명시적으로 범위 지정
     const { data: recentDraws, error: recentError } = await supabase
       .from("lotto_draws")
       .select("*")
+      .lte("drw_no", latestDrawNo)
       .order("drw_no", { ascending: false })
       .limit(10);
 
@@ -27,13 +46,15 @@ export async function GET(request: NextRequest) {
     }
 
     // 최근 50회차 데이터 가져오기 (미출현 번호 계산용)
+    // 최신 회차부터 정확히 50개를 가져오기 위해 명시적으로 범위 지정
     const { data: allDraws, error: allError } = await supabase
       .from("lotto_draws")
       .select("*")
+      .lte("drw_no", latestDrawNo)
       .order("drw_no", { ascending: false })
       .limit(50);
 
-    if (allError || !allDraws) {
+    if (allError || !allDraws || allDraws.length === 0) {
       return NextResponse.json(
         { error: "Failed to fetch draws data" },
         { status: 500 },
@@ -42,7 +63,6 @@ export async function GET(request: NextRequest) {
 
     const draws: LottoDraw[] = allDraws;
     const lastDraw = draws[0];
-    const lastDrawNo = lastDraw.drw_no;
 
     // 최근 10회차 기준 출현 빈도 계산
     const recentFrequency: Record<number, number> = {};
@@ -121,7 +141,7 @@ export async function GET(request: NextRequest) {
         const missCount =
           lastAppearance[num] === 0
             ? draws.length // 전체 기간 동안 미출현
-            : lastDrawNo - lastAppearance[num];
+            : latestDrawNo - lastAppearance[num];
 
         if (missCount >= threshold) {
           missNumbersForThreshold.push(num);
@@ -136,7 +156,7 @@ export async function GET(request: NextRequest) {
       coldNumbers,
       previousNumbers,
       missNumbers,
-      lastDrawNo,
+      lastDrawNo: latestDrawNo,
     };
 
     return NextResponse.json({

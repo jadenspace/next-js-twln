@@ -42,24 +42,71 @@ export async function POST(request: NextRequest) {
 
     // 3. Perform Analysis
     // Fetch lotto data with filters
-    let query = supabase.from("lotto_draws").select("*");
+    let draws: LottoDraw[] = [];
 
-    if (startDraw) query = query.gte("drw_no", startDraw);
-    if (endDraw) query = query.lte("drw_no", endDraw);
-    query = query.order("drw_no", { ascending: false });
+    const PAGE_SIZE = 1000;
+    const needsPagination = !limit || limit > PAGE_SIZE;
 
-    // For advanced stats like Markov/Regression, we might need more historical data
-    // than the requested limit to calculate tendencies correctly.
-    // But for now, we follow the limit if provided.
-    if (limit) query = query.limit(limit);
+    if (needsPagination) {
+      // limit이 없거나 1000보다 큰 경우 페이지네이션으로 데이터 가져오기
+      const allLottoData: LottoDraw[] = [];
+      let offset = 0;
+      let hasMore = true;
+      const targetLimit = limit || Infinity;
 
-    const { data: lottoData, error: lottoError } = await query;
+      while (hasMore && allLottoData.length < targetLimit) {
+        const remaining = targetLimit - allLottoData.length;
+        const currentPageSize = Math.min(PAGE_SIZE, remaining);
 
-    if (lottoError || !lottoData) {
-      throw new Error("Failed to fetch lotto data");
+        let query = supabase
+          .from("lotto_draws")
+          .select("*")
+          .order("drw_no", { ascending: false })
+          .range(offset, offset + currentPageSize - 1);
+
+        if (startDraw) query = query.gte("drw_no", startDraw);
+        if (endDraw) query = query.lte("drw_no", endDraw);
+
+        const { data: pageData, error: lottoError } = await query;
+
+        if (lottoError) {
+          throw new Error("Failed to fetch lotto data");
+        }
+
+        if (!pageData || pageData.length === 0) {
+          hasMore = false;
+        } else {
+          allLottoData.push(...(pageData as LottoDraw[]));
+          // 목표 limit에 도달했거나 페이지 크기보다 적게 반환되면 마지막 페이지
+          if (
+            allLottoData.length >= targetLimit ||
+            pageData.length < currentPageSize
+          ) {
+            hasMore = false;
+          } else {
+            offset += currentPageSize;
+          }
+        }
+      }
+
+      // limit이 있는 경우 정확히 limit만큼만 반환
+      draws = limit ? allLottoData.slice(0, limit) : allLottoData;
+    } else {
+      // limit이 1000 이하인 경우 일반 쿼리 사용
+      let query = supabase.from("lotto_draws").select("*");
+
+      if (startDraw) query = query.gte("drw_no", startDraw);
+      if (endDraw) query = query.lte("drw_no", endDraw);
+      query = query.order("drw_no", { ascending: false }).limit(limit);
+
+      const { data: lottoData, error: lottoError } = await query;
+
+      if (lottoError || !lottoData) {
+        throw new Error("Failed to fetch lotto data");
+      }
+
+      draws = lottoData;
     }
-
-    const draws: LottoDraw[] = lottoData;
     const calculator = new StatisticsCalculator(draws);
 
     const result = isAdvanced

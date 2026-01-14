@@ -98,24 +98,39 @@ export async function POST(request: NextRequest) {
 
     if (hasStatsFilter) {
       try {
-        // 최근 10회차 데이터
+        // 최신 회차 번호 조회
+        const { data: latestDraw, error: latestError } = await supabase
+          .from("lotto_draws")
+          .select("drw_no")
+          .order("drw_no", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (latestError || !latestDraw) {
+          throw new Error("Failed to fetch latest draw number");
+        }
+
+        const latestDrawNo = latestDraw.drw_no;
+
+        // 최근 10회차 데이터 (최신 회차부터 정확히 10개)
         const { data: recentDraws } = await supabase
           .from("lotto_draws")
           .select("*")
+          .lte("drw_no", latestDrawNo)
           .order("drw_no", { ascending: false })
           .limit(10);
 
-        // 최근 50회차 데이터
+        // 최근 50회차 데이터 (최신 회차부터 정확히 50개)
         const { data: allDraws } = await supabase
           .from("lotto_draws")
           .select("*")
+          .lte("drw_no", latestDrawNo)
           .order("drw_no", { ascending: false })
           .limit(50);
 
         if (recentDraws && allDraws && recentDraws.length > 0) {
           const draws: LottoDraw[] = allDraws;
           const lastDraw = draws[0];
-          const lastDrawNo = lastDraw.drw_no;
 
           // 출현 빈도 계산
           const recentFrequency: Record<number, number> = {};
@@ -181,7 +196,7 @@ export async function POST(request: NextRequest) {
               const missCount =
                 lastAppearance[num] === 0
                   ? draws.length
-                  : lastDrawNo - lastAppearance[num];
+                  : latestDrawNo - lastAppearance[num];
               if (missCount >= threshold) missNumbersForThreshold.push(num);
             }
             missNumbers[threshold] = missNumbersForThreshold.sort(
@@ -194,7 +209,7 @@ export async function POST(request: NextRequest) {
             coldNumbers,
             previousNumbers,
             missNumbers,
-            lastDrawNo,
+            lastDrawNo: latestDrawNo,
           };
         }
       } catch (statsError) {

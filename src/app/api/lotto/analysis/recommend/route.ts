@@ -29,15 +29,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch Data
-    const { data: lottoData, error: lottoError } = await supabase
-      .from("lotto_draws")
-      .select("*");
+    // Fetch Data with Pagination
+    const PAGE_SIZE = 1000;
+    const allLottoData: LottoDraw[] = [];
+    let offset = 0;
+    let hasMore = true;
 
-    if (lottoError || !lottoData) throw new Error("Failed to fetch lotto data");
+    while (hasMore) {
+      const { data: pageData, error: lottoError } = await supabase
+        .from("lotto_draws")
+        .select("*")
+        .order("drw_no", { ascending: true })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (lottoError) throw new Error("Failed to fetch lotto data");
+
+      if (!pageData || pageData.length === 0) {
+        hasMore = false;
+      } else {
+        allLottoData.push(...(pageData as LottoDraw[]));
+        // 페이지 크기보다 적게 반환되면 마지막 페이지
+        if (pageData.length < PAGE_SIZE) {
+          hasMore = false;
+        } else {
+          offset += PAGE_SIZE;
+        }
+      }
+    }
 
     // DB 스키마와 타입이 일치하므로 직접 사용
-    const draws: LottoDraw[] = lottoData;
+    const draws: LottoDraw[] = allLottoData;
 
     const recommender = new AiRecommender(draws);
     const result = recommender.recommend();
