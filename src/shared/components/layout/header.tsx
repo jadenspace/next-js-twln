@@ -97,6 +97,18 @@ export function Header() {
   const isStatsActive = pathname?.includes("/lotto/analysis/stats");
   const isGenerateActive = pathname?.includes("/lotto/generate");
 
+  // Auto-open submenus when mobile menu opens if on that page
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      if (isStatsActive) {
+        setIsMobileStatsOpen(true);
+      }
+      if (isGenerateActive) {
+        setIsMobileGenerateOpen(true);
+      }
+    }
+  }, [isMobileMenuOpen, isStatsActive, isGenerateActive]);
+
   // Close mobile menu when pathname changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
