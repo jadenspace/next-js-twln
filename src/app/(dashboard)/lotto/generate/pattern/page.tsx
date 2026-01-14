@@ -354,7 +354,7 @@ export default function PatternGeneratePage() {
       {/* 헤더 */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">패턴 조합 생성기</h1>
+          <h1 className="text-2xl font-bold">패턴 조합 생성</h1>
           <p className="text-sm text-muted-foreground mt-1">
             원하는 패턴을 선택하고 조건에 맞는 번호 조합을 생성하세요.
           </p>

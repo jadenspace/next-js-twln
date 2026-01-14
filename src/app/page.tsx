@@ -54,9 +54,9 @@ export default function Home() {
                     icon={<BarChart3 className="w-6 h-6" />}
                   />
                   <FeatureLinkCard
-                    title="AI 번호 추천"
-                    description="AI가 제안하는 이번 주 행운의 번호"
-                    href="/lotto/analysis/recommend"
+                    title="패턴 조합 생성"
+                    description="원하는 패턴을 선택하고 조건에 맞는 번호 조합을 생성"
+                    href="/lotto/generate/pattern"
                     icon={<Sparkles className="w-6 h-6" />}
                   />
                   <FeatureLinkCard

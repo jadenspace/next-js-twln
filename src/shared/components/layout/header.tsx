@@ -21,7 +21,7 @@ import {
   X,
   ChevronUp,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const STATS_MENU = {
   basic: [
@@ -51,23 +51,18 @@ const STATS_MENU = {
   ],
 };
 const GENERATE_MENU = [
-  { href: "/lotto/generate/random", label: "실시간 추첨" },
-  { href: "/lotto/generate/pattern", label: "패턴 조합" },
+  { href: "/lotto/generate/random", label: "랜덤 추첨" },
+  { href: "/lotto/generate/pattern", label: "패턴 조합 생성" },
 ];
 
+const SEARCH_ITEM = {
+  href: "/lotto/search",
+  label: "당첨번호 검색",
+  icon: Search,
+  isPublic: true,
+};
+
 const NAV_ITEMS = [
-  {
-    href: "/lotto/search",
-    label: "당첨번호 검색",
-    icon: Search,
-    isPublic: true,
-  },
-  {
-    href: "/lotto/analysis/recommend",
-    label: "AI 추천",
-    icon: Brain,
-    isPublic: false,
-  },
   {
     href: "/lotto/analysis/simulation",
     label: "시뮬레이션",
@@ -82,6 +77,22 @@ export function Header() {
   const pathname = usePathname();
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
+
+  // Timeout refs for hover delay
+  const statsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const generateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (statsTimeoutRef.current) {
+        clearTimeout(statsTimeoutRef.current);
+      }
+      if (generateTimeoutRef.current) {
+        clearTimeout(generateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Mobile Menu States
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -151,13 +162,36 @@ export function Header() {
             </Link>
 
             <nav className="hidden xl:flex items-center gap-1">
+              {/* 당첨번호 검색 - 맨 첫 번째 */}
+              <Link
+                href={SEARCH_ITEM.href}
+                className={cn(
+                  "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-md relative",
+                  pathname === SEARCH_ITEM.href
+                    ? "text-primary bg-primary/5"
+                    : "text-muted-foreground hover:text-primary hover:bg-muted/50",
+                )}
+              >
+                <Search className="w-4 h-4" />
+                {SEARCH_ITEM.label}
+              </Link>
+
               <Popover open={isStatsOpen} onOpenChange={setIsStatsOpen}>
                 <PopoverTrigger asChild>
                   <button
-                    onMouseEnter={() => setIsStatsOpen(true)}
-                    onMouseLeave={() => setIsStatsOpen(false)}
+                    onMouseEnter={() => {
+                      if (statsTimeoutRef.current) {
+                        clearTimeout(statsTimeoutRef.current);
+                      }
+                      setIsStatsOpen(true);
+                    }}
+                    onMouseLeave={() => {
+                      statsTimeoutRef.current = setTimeout(() => {
+                        setIsStatsOpen(false);
+                      }, 150);
+                    }}
                     className={cn(
-                      "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md",
+                      "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md relative",
                       isStatsActive
                         ? "text-primary bg-primary/5"
                         : "text-muted-foreground",
@@ -169,8 +203,17 @@ export function Header() {
                   </button>
                 </PopoverTrigger>
                 <PopoverContent
-                  onMouseEnter={() => setIsStatsOpen(true)}
-                  onMouseLeave={() => setIsStatsOpen(false)}
+                  onMouseEnter={() => {
+                    if (statsTimeoutRef.current) {
+                      clearTimeout(statsTimeoutRef.current);
+                    }
+                    setIsStatsOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    statsTimeoutRef.current = setTimeout(() => {
+                      setIsStatsOpen(false);
+                    }, 150);
+                  }}
                   className="w-[480px] p-0"
                   align="start"
                 >
@@ -232,10 +275,19 @@ export function Header() {
               <Popover open={isGenerateOpen} onOpenChange={setIsGenerateOpen}>
                 <PopoverTrigger asChild>
                   <button
-                    onMouseEnter={() => setIsGenerateOpen(true)}
-                    onMouseLeave={() => setIsGenerateOpen(false)}
+                    onMouseEnter={() => {
+                      if (generateTimeoutRef.current) {
+                        clearTimeout(generateTimeoutRef.current);
+                      }
+                      setIsGenerateOpen(true);
+                    }}
+                    onMouseLeave={() => {
+                      generateTimeoutRef.current = setTimeout(() => {
+                        setIsGenerateOpen(false);
+                      }, 150);
+                    }}
                     className={cn(
-                      "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md",
+                      "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md relative",
                       isGenerateActive
                         ? "text-primary bg-primary/5"
                         : "text-muted-foreground",
@@ -247,29 +299,42 @@ export function Header() {
                   </button>
                 </PopoverTrigger>
                 <PopoverContent
-                  onMouseEnter={() => setIsGenerateOpen(true)}
-                  onMouseLeave={() => setIsGenerateOpen(false)}
+                  onMouseEnter={() => {
+                    if (generateTimeoutRef.current) {
+                      clearTimeout(generateTimeoutRef.current);
+                    }
+                    setIsGenerateOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    generateTimeoutRef.current = setTimeout(() => {
+                      setIsGenerateOpen(false);
+                    }, 150);
+                  }}
                   className="w-48 p-2"
                   align="start"
                 >
                   <div className="space-y-1">
-                    {GENERATE_MENU.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={!isAuthenticated ? "#" : item.href}
-                        className={cn(
-                          "block px-3 py-2 text-sm rounded-md transition-colors",
-                          pathname === item.href
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-muted-foreground",
-                          !isAuthenticated
-                            ? "opacity-60 pointer-events-none"
-                            : "hover:bg-muted hover:text-foreground",
-                        )}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
+                    {GENERATE_MENU.map((item) => {
+                      const ItemIcon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={!isAuthenticated ? "#" : item.href}
+                          className={cn(
+                            "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
+                            pathname === item.href
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "text-muted-foreground",
+                            !isAuthenticated
+                              ? "opacity-60 pointer-events-none"
+                              : "hover:bg-muted hover:text-foreground",
+                          )}
+                        >
+                          {ItemIcon && <ItemIcon className="w-4 h-4" />}
+                          {item.label}
+                        </Link>
+                      );
+                    })}
                   </div>
                 </PopoverContent>
               </Popover>
@@ -365,6 +430,21 @@ export function Header() {
         </div>
 
         <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
+          {/* 당첨번호 검색 - 맨 첫 번째 */}
+          <Link
+            href={SEARCH_ITEM.href}
+            className={cn(
+              "flex items-center gap-2 px-3 py-3 text-sm font-medium transition-colors rounded-md mb-2",
+              pathname === SEARCH_ITEM.href
+                ? "text-primary bg-primary/5"
+                : "text-foreground hover:bg-muted",
+            )}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <Search className="w-4 h-4" />
+            {SEARCH_ITEM.label}
+          </Link>
+
           {/* Stats Section */}
           <div className="border-b pb-2 mb-2">
             <button
@@ -457,23 +537,27 @@ export function Header() {
             </button>
             {isMobileGenerateOpen && (
               <div className="px-2 py-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
-                {GENERATE_MENU.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={!isAuthenticated ? "#" : item.href}
-                    className={cn(
-                      "block px-3 py-2 text-sm rounded-md pl-9 transition-colors",
-                      pathname === item.href
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground",
-                      !isAuthenticated
-                        ? "opacity-60 pointer-events-none"
-                        : "hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {GENERATE_MENU.map((item) => {
+                  const ItemIcon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={!isAuthenticated ? "#" : item.href}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-2 text-sm rounded-md pl-9 transition-colors",
+                        pathname === item.href
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-muted-foreground",
+                        !isAuthenticated
+                          ? "opacity-60 pointer-events-none"
+                          : "hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      {ItemIcon && <ItemIcon className="w-4 h-4" />}
+                      {item.label}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

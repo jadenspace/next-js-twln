@@ -19,7 +19,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/lotto/analysis/stats/japanese",
     "/lotto/analysis/stats/monte-carlo",
     "/lotto/analysis/stats/algorithm",
-    "/lotto/analysis/recommend",
     "/lotto/analysis/simulation",
   ];
 
