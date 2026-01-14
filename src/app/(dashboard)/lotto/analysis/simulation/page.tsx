@@ -110,21 +110,22 @@ export default function SimulationPage() {
       />
 
       {/* Input Form */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>번호 입력</CardTitle>
-          <CardDescription>
+      <Card className="mb-6 md:mb-8">
+        <CardHeader className="pb-4 md:pb-6">
+          <CardTitle className="text-base md:text-lg">번호 입력</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
             시뮬레이션 할 6개 번호를 입력해주세요.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-4 justify-center">
+          {/* 번호 입력 - 모바일에서 3x2 그리드 */}
+          <div className="grid grid-cols-3 md:flex md:flex-wrap gap-2 md:gap-4 justify-center max-w-xs md:max-w-none mx-auto">
             {numbers.map((num, idx) => (
               <Input
                 key={idx}
                 value={num}
                 onChange={(e) => handleNumberChange(idx, e.target.value)}
-                className="w-16 h-16 text-center text-2xl font-bold rounded-full"
+                className="w-full md:w-16 h-12 md:h-16 text-center text-xl md:text-2xl font-bold rounded-full"
                 maxLength={2}
                 placeholder={(idx + 1).toString()}
               />
@@ -132,9 +133,9 @@ export default function SimulationPage() {
           </div>
 
           {/* 회차 범위 선택 */}
-          <div className="mt-8 space-y-4">
+          <div className="mt-6 md:mt-8 space-y-3 md:space-y-4">
             <div>
-              <Label className="text-base font-semibold mb-3 block">
+              <Label className="text-sm md:text-base font-semibold mb-2 md:mb-3 block">
                 회차 범위 선택
               </Label>
               <RadioGroup
@@ -142,28 +143,37 @@ export default function SimulationPage() {
                 onValueChange={(value) =>
                   setRangeType(value as "all" | "custom")
                 }
-                className="flex gap-6"
+                className="flex gap-4 md:gap-6"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="all" id="all" />
-                  <Label htmlFor="all" className="cursor-pointer">
+                  <Label
+                    htmlFor="all"
+                    className="cursor-pointer text-sm md:text-base"
+                  >
                     전체 회차
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="custom" id="custom" />
-                  <Label htmlFor="custom" className="cursor-pointer">
-                    회차 범위 지정
+                  <Label
+                    htmlFor="custom"
+                    className="cursor-pointer text-sm md:text-base"
+                  >
+                    범위 지정
                   </Label>
                 </div>
               </RadioGroup>
             </div>
 
             {rangeType === "custom" && (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="startDraw" className="whitespace-nowrap">
-                    시작 회차:
+              <div className="grid grid-cols-2 gap-3 md:flex md:items-center md:gap-4 p-3 md:p-4 bg-muted/30 rounded-lg">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="startDraw"
+                    className="text-xs md:text-sm text-muted-foreground"
+                  >
+                    시작 회차
                   </Label>
                   <Input
                     id="startDraw"
@@ -175,15 +185,17 @@ export default function SimulationPage() {
                         setStartDraw(val);
                       }
                     }}
-                    className="w-32"
-                    placeholder="예: 1"
+                    className="h-9 md:h-10 md:w-28 text-sm"
+                    placeholder="1"
                     min="1"
                   />
                 </div>
-                <span className="text-muted-foreground">~</span>
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="endDraw" className="whitespace-nowrap">
-                    종료 회차:
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="endDraw"
+                    className="text-xs md:text-sm text-muted-foreground"
+                  >
+                    종료 회차
                   </Label>
                   <Input
                     id="endDraw"
@@ -195,8 +207,8 @@ export default function SimulationPage() {
                         setEndDraw(val);
                       }
                     }}
-                    className="w-32"
-                    placeholder="예: 1000"
+                    className="h-9 md:h-10 md:w-28 text-sm"
+                    placeholder={latestDrawNo?.toString() || "1000"}
                     min="1"
                   />
                 </div>
@@ -204,9 +216,10 @@ export default function SimulationPage() {
             )}
           </div>
 
-          <div className="mt-8 text-center">
+          <div className="mt-6 md:mt-8">
             <Button
               size="lg"
+              className="w-full md:w-auto md:mx-auto md:flex h-11 md:h-12 text-sm md:text-base"
               onClick={() => mutation.mutate()}
               disabled={
                 mutation.isPending ||
@@ -215,9 +228,9 @@ export default function SimulationPage() {
               }
             >
               {mutation.isPending ? (
-                <Loader2 className="animate-spin mr-2" />
+                <Loader2 className="animate-spin mr-2 w-4 h-4 md:w-5 md:h-5" />
               ) : (
-                <Calculator className="mr-2" />
+                <Calculator className="mr-2 w-4 h-4 md:w-5 md:h-5" />
               )}
               시뮬레이션 시작
             </Button>
@@ -226,63 +239,67 @@ export default function SimulationPage() {
       </Card>
 
       {result && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-sm text-muted-foreground">
-                  총 투자금
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-2xl font-bold">
-                  {result.totalCost.toLocaleString()}원
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {result.totalDraws}회 참여
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-sm text-muted-foreground">
-                  총 당첨금
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-2xl font-bold text-blue-600">
-                  {result.totalPrize.toLocaleString()}원
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-sm text-muted-foreground">
-                  수익률 (ROI)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p
-                  className={`text-2xl font-bold ${result.roi >= 100 ? "text-red-500" : "text-blue-500"}`}
-                >
-                  {result.roi.toFixed(2)}%
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
+        <div className="space-y-2.5 md:space-y-6">
+          {/* 요약 통계 - 모바일에서 하나의 카드에 3칸 */}
           <Card>
-            <CardHeader>
-              <CardTitle>당첨 내역 요약</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+            <CardContent className="px-4 md:px-6">
+              <div className="grid grid-cols-3 gap-2 md:gap-6 text-center">
+                <div className="space-y-0.5 md:space-y-1">
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    총 투자금
+                  </p>
+                  <p className="text-base md:text-2xl font-bold truncate">
+                    {parseFloat((result.totalCost / 10000).toFixed(1))}
+                    <span className="text-sm md:text-base">만원</span>
+                  </p>
+                  <p className="text-xs md:text-xs text-muted-foreground">
+                    {result.totalDraws}회
+                  </p>
+                </div>
+                <div className="space-y-0.5 md:space-y-1">
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    총 당첨금
+                  </p>
+                  <p className="text-base md:text-2xl font-bold text-blue-600 truncate">
+                    {result.totalPrize >= 10000
+                      ? `${parseFloat((result.totalPrize / 10000).toFixed(1))}만원`
+                      : `${result.totalPrize.toLocaleString()}원`}
+                  </p>
+                </div>
+                <div className="space-y-0.5 md:space-y-1">
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    수익률
+                  </p>
+                  <p
+                    className={`text-base md:text-2xl font-bold ${result.roi >= 100 ? "text-red-500" : "text-blue-500"}`}
+                  >
+                    {result.roi.toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 당첨 내역 요약 - 모바일에서 가로 한 줄 */}
+          <Card>
+            <CardContent className="px-4 md:px-6">
+              <p className="text-sm md:text-sm font-medium text-muted-foreground mb-2 md:mb-4">
+                당첨 내역
+              </p>
+              <div className="flex justify-between md:grid md:grid-cols-5 gap-2 md:gap-4">
                 {Object.entries(result.rankCounts).map(([rank, count]: any) => {
                   if (rank === "fail") return null;
                   return (
-                    <div key={rank} className="p-4 bg-secondary/20 rounded-lg">
-                      <div className="text-lg font-bold">{rank}등</div>
-                      <div className="text-primary font-medium">{count}회</div>
+                    <div
+                      key={rank}
+                      className="flex-1 p-2 md:p-4 bg-secondary/20 rounded-lg text-center"
+                    >
+                      <div className="text-sm md:text-lg font-bold">
+                        {rank}등
+                      </div>
+                      <div className="text-xs md:text-base text-primary font-medium">
+                        {count}회
+                      </div>
                     </div>
                   );
                 })}
@@ -290,19 +307,22 @@ export default function SimulationPage() {
             </CardContent>
           </Card>
 
+          {/* 주요 당첨 기록 - 모바일에서 컴팩트 테이블 */}
           <Card>
-            <CardHeader>
-              <CardTitle>주요 당첨 기록 (상위 내역)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="max-h-96 overflow-auto">
-                <table className="w-full text-sm">
+            <CardContent className="px-4 md:px-6">
+              <p className="text-sm md:text-sm font-medium text-muted-foreground mb-2 md:mb-4">
+                주요 당첨 기록
+              </p>
+              <div className="max-h-48 md:max-h-96 overflow-auto">
+                <table className="w-full text-sm md:text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="py-2 text-left">회차</th>
-                      <th className="py-2 text-left">날짜</th>
-                      <th className="py-2 text-center">등수</th>
-                      <th className="py-2 text-right">당첨금</th>
+                      <th className="py-1.5 md:py-2 text-left">회차</th>
+                      <th className="py-1.5 md:py-2 text-left hidden md:table-cell">
+                        날짜
+                      </th>
+                      <th className="py-1.5 md:py-2 text-center">등수</th>
+                      <th className="py-1.5 md:py-2 text-right">당첨금</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -311,13 +331,17 @@ export default function SimulationPage() {
                         key={i}
                         className="border-b last:border-0 hover:bg-muted/50"
                       >
-                        <td className="py-2">{record.drwNo}회</td>
-                        <td className="py-2">{record.date}</td>
-                        <td className="py-2 text-center font-bold">
+                        <td className="py-1.5 md:py-2">{record.drwNo}회</td>
+                        <td className="py-1.5 md:py-2 hidden md:table-cell">
+                          {record.date}
+                        </td>
+                        <td className="py-1.5 md:py-2 text-center font-bold">
                           {record.rank}등
                         </td>
-                        <td className="py-2 text-right">
-                          {record.prize.toLocaleString()}원
+                        <td className="py-1.5 md:py-2 text-right">
+                          {record.prize >= 10000
+                            ? `${(record.prize / 10000).toFixed(0)}만`
+                            : `${record.prize.toLocaleString()}원`}
                         </td>
                       </tr>
                     ))}
