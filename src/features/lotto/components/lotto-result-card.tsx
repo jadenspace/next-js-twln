@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { createClient } from "@/shared/lib/supabase/client";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
-import { TrendingUp, ExternalLink } from "lucide-react";
+import { TrendingUp, ExternalLink, MapPin } from "lucide-react";
+import { useLottoLatest } from "../hooks/use-lotto-query";
 
 interface LottoDraw {
   drw_no: number;
@@ -27,40 +28,20 @@ interface Countdown {
 }
 
 export function LottoResultCard() {
-  const [latestDraw, setLatestDraw] = useState<LottoDraw | null>(null);
+  const { data: latestDraw, isLoading } = useLottoLatest();
   const [countdown, setCountdown] = useState<Countdown>({
     days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0,
   });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchLatestDraw();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  const fetchLatestDraw = async () => {
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("lotto_draws")
-        .select("*")
-        .order("drw_no", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (!error && data) {
-        setLatestDraw(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch latest draw:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // fetchLatestDraw removed as it's replaced by useQuery logic
 
   const updateCountdown = () => {
     const now = new Date();
@@ -72,11 +53,11 @@ export function LottoResultCard() {
     if (daysUntilSaturday === 0 && now.getHours() >= 20) {
       nextSaturday = new Date(now);
       nextSaturday.setDate(now.getDate() + 7);
-      nextSaturday.setHours(20, 30, 0, 0);
+      nextSaturday.setHours(20, 35, 0, 0);
     } else {
       nextSaturday = new Date(now);
       nextSaturday.setDate(now.getDate() + daysUntilSaturday);
-      nextSaturday.setHours(20, 30, 0, 0);
+      nextSaturday.setHours(20, 35, 0, 0);
     }
 
     const diff = nextSaturday.getTime() - now.getTime();
@@ -98,7 +79,26 @@ export function LottoResultCard() {
       ]
     : [];
 
-  if (loading) {
+  const BonusLottoNumber = ({ num }: { num: number }) => {
+    const getColor = (n: number) => {
+      if (n <= 10) return "border-yellow-500 text-yellow-500";
+      if (n <= 20) return "border-blue-500 text-blue-500";
+      if (n <= 30) return "border-red-500 text-red-500";
+      if (n <= 40) return "border-gray-500 text-gray-500";
+      return "border-green-500 text-green-500";
+    };
+    return (
+      <div
+        className={`w-10 h-10 rounded-full bg-transparent border-2 flex items-center justify-center font-bold ${getColor(
+          num,
+        )}`}
+      >
+        {num}
+      </div>
+    );
+  };
+
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
@@ -143,7 +143,7 @@ export function LottoResultCard() {
                 <span className="text-sm font-medium text-muted-foreground">
                   보너스
                 </span>
-                <LotteryBall number={latestDraw.bnus_no} />
+                <BonusLottoNumber num={latestDraw.bnus_no} />
               </div>
             </div>
           </div>
@@ -155,7 +155,7 @@ export function LottoResultCard() {
 
         <div className="border-t pt-4">
           <div className="text-center space-y-2">
-            <p className="text-sm font-medium">다음 회차까지</p>
+            <p className="text-sm font-medium">다음 추첨까지 남은 시간</p>
             <div className="flex justify-center gap-3">
               <CountdownItem value={countdown.days} label="일" />
               <CountdownItem value={countdown.hours} label="시" />
@@ -166,17 +166,30 @@ export function LottoResultCard() {
         </div>
 
         <div className="border-t pt-4">
-          <a
-            href="https://dhlottery.co.kr"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block"
-          >
-            <Button className="w-full" size="lg">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              로또 구매하기
-            </Button>
-          </a>
+          <div className="flex gap-2">
+            <a
+              href="https://www.dhlottery.co.kr/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
+              <Button className="w-full" size="lg">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                로또 구매하기
+              </Button>
+            </a>
+            <a
+              href="https://www.dhlottery.co.kr/prchsplcsrch/home"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
+              <Button className="w-full" size="lg" variant="outline">
+                <MapPin className="w-4 h-4 mr-2" />
+                판매점 찾기
+              </Button>
+            </a>
+          </div>
         </div>
       </CardContent>
     </Card>

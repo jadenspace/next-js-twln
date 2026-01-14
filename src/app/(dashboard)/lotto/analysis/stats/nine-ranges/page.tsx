@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AdvancedStats } from "@/features/lotto/types";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
+import { useLottoNumberStats } from "@/features/lotto/hooks/use-lotto-query";
 import {
   StatsFilter,
   FilterValues,
@@ -17,65 +18,66 @@ import {
 } from "@/shared/ui/card";
 import { Grid, BarChart } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function NineRangesStatsPage() {
-  const [stats, setStats] = useState<AdvancedStats | null>(null);
+  const [filters, setFilters] = useState<FilterValues | null>(null);
 
   const { data: latestDrawNo } = useQuery({
     queryKey: ["lotto", "latest-draw-no"],
     queryFn: () => lottoApi.getLatestDrawNo(),
   });
 
-  const mutation = useMutation({
-    mutationFn: async (filters: FilterValues) => {
-      const res = await fetch("/api/lotto/analysis/stats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...filters, style: "advanced" }),
+  useEffect(() => {
+    if (latestDrawNo && !filters) {
+      setFilters({
+        type: "all",
+        startDraw: 1,
+        endDraw: latestDrawNo,
+        includeBonus: false,
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "분석에 실패했습니다.");
-      }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setStats(data.data);
-    },
-    onError: (err) => {
-      alert(err.message);
-    },
-  });
+    }
+  }, [latestDrawNo, filters]);
+
+  const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
+    filters || undefined,
+    { style: "advanced" },
+  );
+  const stats = statsData?.data || null;
 
   const nineRanges = stats ? stats.nineRanges : {};
   const maxFreq = stats ? Math.max(...Object.values(stats.nineRanges)) : 0;
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3 text-emerald-600">
-          9구간 상세 분포 통계
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          45개 번호를 5개 단위의 9개 구간으로 나누어 더욱 정밀하게 데이터 흐름을
-          추적합니다.
-        </p>
-      </div>
-
-      <StatsFilter
-        onApply={(v) => mutation.mutate(v)}
-        isPending={mutation.isPending}
-        latestDrawNo={latestDrawNo}
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="9구간 상세 분포 통계"
+        description="45개 번호를 5개 단위의 9개 구간으로 나누어 더욱 정밀하게 데이터 흐름을 추적합니다."
       />
 
+      {latestDrawNo ? (
+        <StatsFilter
+          onApply={(v) => setFilters(v)}
+          isPending={isLoading && !!filters}
+          latestDrawNo={latestDrawNo}
+          defaultValues={{
+            type: "all",
+            startDraw: 1,
+            endDraw: latestDrawNo,
+            includeBonus: false,
+          }}
+        />
+      ) : (
+        <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
+      )}
+
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Grid className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">9구간 데이터 대기 중</h3>
-          <p className="text-muted-foreground">
-            상세한 구간별 에너지를 분석하려면 필터를 적용해 주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Grid}
+          title="9구간 데이터 대기 중"
+          description="상세한 구간별 에너지를 분석하려면 필터를 적용해 주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in fade-in duration-700">
           <Card>

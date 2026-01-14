@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AdvancedStats } from "@/features/lotto/types";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
+import { useLottoNumberStats } from "@/features/lotto/hooks/use-lotto-query";
 import {
   StatsFilter,
   FilterValues,
@@ -19,9 +20,11 @@ import { Button } from "@/shared/ui/button";
 import { Play, RotateCcw, Zap, Info } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function MonteCarloStatsPage() {
-  const [stats, setStats] = useState<AdvancedStats | null>(null);
+  const [filters, setFilters] = useState<FilterValues | null>(null);
   const [simResults, setSimResults] = useState<Record<number, number> | null>(
     null,
   );
@@ -32,27 +35,29 @@ export default function MonteCarloStatsPage() {
     queryFn: () => lottoApi.getLatestDrawNo(),
   });
 
-  const mutation = useMutation({
-    mutationFn: async (filters: FilterValues) => {
-      const res = await fetch("/api/lotto/analysis/stats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...filters, style: "advanced" }),
+  useEffect(() => {
+    if (latestDrawNo && !filters) {
+      setFilters({
+        type: "all",
+        startDraw: 1,
+        endDraw: latestDrawNo,
+        includeBonus: false,
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "분석에 실패했습니다.");
-      }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setStats(data.data);
-      setSimResults(null);
-    },
-    onError: (err) => {
-      alert(err.message);
-    },
-  });
+    }
+  }, [latestDrawNo, filters]);
+
+  const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
+    filters || undefined,
+    { style: "advanced" },
+  );
+  // 시뮬레이션 결과 초기화 로직이 필요하다면 useEffect로 처리 가능하지만,
+  // 여기서는 데이터가 바뀌면 시뮬레이션 결과는 그대로 두고 재실행 유도
+  // 만약 필터 변경 시 결과 초기화하고 싶다면 useEffect([filters]) 사용
+  useEffect(() => {
+    setSimResults(null);
+  }, [filters]);
+
+  const stats = statsData?.data || null;
 
   const runSimulation = () => {
     if (!stats) return;
@@ -97,31 +102,34 @@ export default function MonteCarloStatsPage() {
     : [];
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3 text-amber-600">
-          몬테카를로 시뮬레이션
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          통계 데이터를 기반으로 10,000번의 가상 추첨을 시행하여 당첨 확률이
-          가장 높은 조합을 예측합니다.
-        </p>
-      </div>
-
-      <StatsFilter
-        onApply={(v) => mutation.mutate(v)}
-        isPending={mutation.isPending}
-        latestDrawNo={latestDrawNo}
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="몬테카를로 시뮬레이션"
+        description="통계 데이터를 기반으로 10,000번의 가상 추첨을 시행하여 당첨 확률이 가장 높은 조합을 예측합니다."
       />
 
+      {latestDrawNo ? (
+        <StatsFilter
+          onApply={(v) => setFilters(v)}
+          isPending={isLoading && !!filters}
+          latestDrawNo={latestDrawNo}
+          defaultValues={{
+            type: "all",
+            startDraw: 1,
+            endDraw: latestDrawNo,
+            includeBonus: false,
+          }}
+        />
+      ) : (
+        <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
+      )}
+
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Zap className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">시뮬레이션 데이터 대기 중</h3>
-          <p className="text-muted-foreground">
-            시뮬레이션의 기초가 될 통계 학습 데이터를 먼저 불러와주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Zap}
+          title="시뮬레이션 데이터 대기 중"
+          description="시뮬레이션의 기초가 될 통계 학습 데이터를 먼저 불러와주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in fade-in duration-700">
           <Card className="bg-amber-50/20 border-amber-200">

@@ -6,7 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
 import { Badge } from "@/shared/ui/badge";
 import { cn } from "@/shared/lib/utils";
-import { Flame, Snowflake, History, Clock, Loader2, Crown } from "lucide-react";
+import { Flame, Snowflake, History, Clock, Loader2 } from "lucide-react";
 import type {
   PatternFilterState,
   StatsFilterConfig,
@@ -148,17 +148,6 @@ export function StatsFilterPanel({
 
   return (
     <Card className="relative overflow-hidden">
-      {/* 유료 기능 표시 */}
-      <div className="absolute top-3 right-3">
-        <Badge
-          variant="secondary"
-          className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 gap-1"
-        >
-          <Crown className="w-3 h-3" />
-          유료
-        </Badge>
-      </div>
-
       <CardHeader className="pb-4">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">

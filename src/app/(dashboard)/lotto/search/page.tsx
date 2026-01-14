@@ -286,13 +286,6 @@ export default function SearchPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleQuickSelect(5)}
-          >
-            최근 5회
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
             onClick={() => handleQuickSelect(10)}
           >
             최근 10회
@@ -331,13 +324,13 @@ export default function SearchPage() {
           {searchResults?.data?.map((draw: LottoDraw) => (
             <Dialog key={draw.drw_no}>
               <Card className="overflow-hidden">
-                <CardHeader className="bg-muted/50 pb-3">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
+                <CardHeader className="bg-muted/50 py-4">
+                  <div className="flex justify-between items-center gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center gap-0 md:gap-2">
                       <span className="text-lg font-bold text-primary">
                         {draw.drw_no}회
                       </span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-muted-foreground leading-none md:leading-normal">
                         ({draw.drw_no_date})
                       </span>
                     </div>
@@ -443,12 +436,12 @@ export default function SearchPage() {
                         ].map((item) => (
                           <div
                             key={item.rank}
-                            className="p-3 bg-muted/50 rounded-md grid grid-cols-2 items-center"
+                            className="p-3 bg-muted/50 rounded-md grid grid-cols-[auto_1fr] md:grid-cols-2 items-center gap-2 md:gap-0"
                           >
                             <div className="font-bold text-base">
                               {item.rank}등
                             </div>
-                            <div className="text-right">
+                            <div className="text-right min-w-0">
                               <div>
                                 <p className="font-semibold">
                                   {Number(item.amount || 0).toLocaleString()}원
@@ -457,7 +450,7 @@ export default function SearchPage() {
                                   ({(item.winners || 0).toLocaleString()}명)
                                 </p>
                               </div>
-                              <p className="text-xs text-muted-foreground mt-1">
+                              <p className="text-xs text-muted-foreground mt-1 whitespace-nowrap">
                                 {item.note}
                               </p>
                             </div>

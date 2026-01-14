@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { BasicStats } from "@/features/lotto/types";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
+import { useLottoNumberStats } from "@/features/lotto/hooks/use-lotto-query";
 import {
   StatsFilter,
   FilterValues,
@@ -18,66 +19,66 @@ import {
 import { Timer, AlertCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function MissingStatsPage() {
-  const [stats, setStats] = useState<BasicStats | null>(null);
+  const [filters, setFilters] = useState<FilterValues | null>(null);
 
   const { data: latestDrawNo } = useQuery({
     queryKey: ["lotto", "latest-draw-no"],
     queryFn: () => lottoApi.getLatestDrawNo(),
   });
 
-  const mutation = useMutation({
-    mutationFn: async (filters: FilterValues) => {
-      const res = await fetch("/api/lotto/analysis/stats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filters),
+  useEffect(() => {
+    if (latestDrawNo && !filters) {
+      setFilters({
+        type: "all",
+        startDraw: 1,
+        endDraw: latestDrawNo,
+        includeBonus: false,
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "분석에 실패했습니다.");
-      }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setStats(data.data);
-    },
-    onError: (err) => {
-      alert(err.message);
-    },
-  });
+    }
+  }, [latestDrawNo, filters]);
+
+  const { data: statsData, isLoading } = useLottoNumberStats(
+    filters || undefined,
+  );
+  const stats = statsData?.data || null;
 
   const sortedMiss = stats
     ? Object.entries(stats.missCount).sort(([, a], [, b]) => b - a)
     : [];
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3">
-          미출현 번호 분석
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          최근 당첨되지 않은 번호들을 분석하여 '임계점'에 도달한 번호를
-          확인하세요.
-        </p>
-      </div>
-
-      <StatsFilter
-        onApply={(v) => mutation.mutate(v)}
-        isPending={mutation.isPending}
-        latestDrawNo={latestDrawNo}
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="미출현 번호 분석"
+        description="최근 당첨되지 않은 번호들을 분석하여 '임계점'에 도달한 번호를 확인하세요."
       />
 
+      {latestDrawNo ? (
+        <StatsFilter
+          onApply={(v) => setFilters(v)}
+          isPending={isLoading && !!filters}
+          latestDrawNo={latestDrawNo}
+          defaultValues={{
+            type: "all",
+            startDraw: 1,
+            endDraw: latestDrawNo,
+            includeBonus: false,
+          }}
+        />
+      ) : (
+        <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
+      )}
+
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <Timer className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">미출현 데이터 대기 중</h3>
-          <p className="text-muted-foreground">
-            분석 범위를 설정하고 버튼을 눌러주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={Timer}
+          title="미출현 데이터 대기 중"
+          description="분석 범위를 설정하고 버튼을 눌러주세요."
+        />
       ) : (
         <div className="space-y-8 animate-in slide-in-from-right-10 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

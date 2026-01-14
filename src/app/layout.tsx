@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s | 로또탐정",
   },
   description:
-    "빅데이터와 AI를 활용한 로또 당첨번호 분석, 패턴 분석, 당첨 시뮬레이션 및 추천 번호 서비스를 제공합니다. 역대 당첨 결과를 정밀하게 분석하여 당신의 행운을 찾아보세요.",
+    "통계 분석을 활용한 로또 당첨번호 분석, 패턴 분석, 당첨 시뮬레이션 및 추천 번호 서비스를 제공합니다. 역대 당첨 결과를 정밀하게 분석하여 당신의 행운을 찾아보세요.",
   keywords: [
     "로또",
     "로또분석",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "로또탐정 | 스마트한 로또 분석 서비스",
     description:
-      "빅데이터와 AI 기반의 프리미엄 로또 분석 솔루션 - 당신의 당첨 확률을 높여보세요.",
+      "통계 분석 기반의 프리미엄 로또 분석 솔루션 - 당신의 당첨 확률을 높여보세요.",
     url: "https://lottodetective.vercel.app",
     siteName: "로또탐정",
     images: [
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "로또탐정 | 스마트한 로또 분석 서비스",
-    description: "빅데이터와 AI 기반의 프리미엄 로또 분석 솔루션",
+    description: "통계 분석 기반의 프리미엄 로또 분석 솔루션",
     images: ["/og-image.png"],
   },
   robots: {

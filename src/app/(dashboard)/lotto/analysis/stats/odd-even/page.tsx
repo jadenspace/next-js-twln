@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { BasicStats } from "@/features/lotto/types";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
 import {
@@ -17,35 +17,35 @@ import {
 } from "@/shared/ui/card";
 import { PieChart, Info } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { PageHeader } from "@/shared/ui/page-header";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
+
+import { useLottoNumberStats } from "@/features/lotto/hooks/use-lotto-query";
 
 export default function OddEvenStatsPage() {
-  const [stats, setStats] = useState<BasicStats | null>(null);
+  const [filters, setFilters] = useState<FilterValues | null>(null);
 
   const { data: latestDrawNo } = useQuery({
     queryKey: ["lotto", "latest-draw-no"],
     queryFn: () => lottoApi.getLatestDrawNo(),
   });
 
-  const mutation = useMutation({
-    mutationFn: async (filters: FilterValues) => {
-      const res = await fetch("/api/lotto/analysis/stats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filters),
+  // 초기 로딩 시 전체 회차로 필터 설정
+  useEffect(() => {
+    if (latestDrawNo && !filters) {
+      setFilters({
+        type: "all",
+        startDraw: 1,
+        endDraw: latestDrawNo,
+        includeBonus: false,
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "분석에 실패했습니다.");
-      }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setStats(data.data);
-    },
-    onError: (err) => {
-      alert(err.message);
-    },
-  });
+    }
+  }, [latestDrawNo, filters]);
+
+  const { data: statsData, isLoading } = useLottoNumberStats(
+    filters || undefined,
+  );
+  const stats = statsData?.data || null;
 
   const total = stats ? stats.oddEvenRatio.odd + stats.oddEvenRatio.even : 0;
   const oddPercent =
@@ -54,30 +54,34 @@ export default function OddEvenStatsPage() {
     stats && total > 0 ? (stats.oddEvenRatio.even / total) * 100 : 0;
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-6xl">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-3">
-          홀짝 통계 분석
-        </h1>
-        <p className="text-xl text-muted-foreground">
-          당첨 번호의 홀수와 짝수 비율을 통해 행운의 균형을 찾으세요.
-        </p>
-      </div>
-
-      <StatsFilter
-        onApply={(v) => mutation.mutate(v)}
-        isPending={mutation.isPending}
-        latestDrawNo={latestDrawNo}
+    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+      <PageHeader
+        title="홀짝 통계 분석"
+        description="당첨 번호의 홀수와 짝수 비율을 통해 행운의 균형을 찾으세요."
       />
 
+      {latestDrawNo ? (
+        <StatsFilter
+          onApply={(v) => setFilters(v)}
+          isPending={isLoading && !!filters}
+          latestDrawNo={latestDrawNo}
+          defaultValues={{
+            type: "all",
+            startDraw: 1,
+            endDraw: latestDrawNo,
+            includeBonus: false,
+          }}
+        />
+      ) : (
+        <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
+      )}
+
       {!stats ? (
-        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed border-2">
-          <PieChart className="w-16 h-16 text-muted-foreground/30 mb-4" />
-          <h3 className="text-xl font-bold mb-2">홀짝 데이터 분석 대기 중</h3>
-          <p className="text-muted-foreground">
-            필터를 선택하고 분석 시작 버튼을 눌러주세요.
-          </p>
-        </Card>
+        <EmptyStateCard
+          icon={PieChart}
+          title="홀짝 데이터 분석 대기 중"
+          description="필터를 선택하고 분석 시작 버튼을 눌러주세요."
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in duration-700">
           <Card className="col-span-1 md:col-span-2">

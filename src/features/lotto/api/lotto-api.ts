@@ -292,4 +292,27 @@ export const lottoApi = {
 
     return data?.drw_no || 0;
   },
+
+  /**
+   * 데이터베이스에 저장된 가장 최신 회차의 전체 정보를 가져옵니다.
+   * @returns 최신 회차 정보 또는 null
+   */
+  async getLatestDraw(): Promise<LottoDraw | null> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("lotto_draws")
+      .select("*")
+      .order("drw_no", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error) {
+      if (error.code !== "PGRST116") {
+        console.error("Failed to fetch latest draw:", error);
+      }
+      return null;
+    }
+
+    return data;
+  },
 };

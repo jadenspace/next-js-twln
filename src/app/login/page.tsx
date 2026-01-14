@@ -12,16 +12,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callback");
   const {
     signIn,
     signUp,
@@ -48,11 +50,13 @@ export default function LoginPage() {
       alert(signUpMutation.error.message);
     }
     if (signInMutation.data) {
-      router.push("/");
+      const redirectUrl = callbackUrl || "/";
+      router.push(redirectUrl);
     }
     if (signUpMutation.data) {
       alert("회원가입이 완료되었습니다. 관리자 승인 후 로그인이 가능합니다.");
-      router.push("/");
+      const redirectUrl = callbackUrl || "/";
+      router.push(redirectUrl);
     }
   }, [
     signInMutation.error,
@@ -60,6 +64,7 @@ export default function LoginPage() {
     signInMutation.data,
     signUpMutation.data,
     router,
+    callbackUrl,
   ]);
 
   const isLoading = isSigningIn || isSigningUp;
@@ -89,6 +94,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
+                tabIndex={1}
               />
             </div>
             <div className="space-y-2">
@@ -98,6 +104,7 @@ export default function LoginPage() {
                   <Link
                     href="/forgot-password"
                     className="text-xs text-muted-foreground hover:underline"
+                    tabIndex={4}
                   >
                     비밀번호 찾기
                   </Link>
@@ -110,11 +117,17 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                tabIndex={2}
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4 pt-4">
-            <Button className="w-full" type="submit" disabled={isLoading}>
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={isLoading}
+              tabIndex={3}
+            >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSignUp ? "가입하기" : "로그인"}
             </Button>
@@ -125,6 +138,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setIsSignUp(!isSignUp)}
                 className="underline underline-offset-4 hover:text-primary"
+                tabIndex={5}
               >
                 {isSignUp ? "로그인" : "회원가입"}
               </button>
@@ -133,5 +147,25 @@ export default function LoginPage() {
         </form>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/30 p-4">
+          <Card className="w-full max-w-md shadow-lg">
+            <CardHeader className="space-y-1 text-center">
+              <CardTitle className="text-2xl font-bold tracking-tight">
+                로딩 중...
+              </CardTitle>
+            </CardHeader>
+          </Card>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
