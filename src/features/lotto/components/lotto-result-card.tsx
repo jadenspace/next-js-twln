@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { createClient } from "@/shared/lib/supabase/client";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
 import { TrendingUp, ExternalLink, MapPin } from "lucide-react";
+import { useLottoLatest } from "../hooks/use-lotto-query";
 
 interface LottoDraw {
   drw_no: number;
@@ -27,40 +28,20 @@ interface Countdown {
 }
 
 export function LottoResultCard() {
-  const [latestDraw, setLatestDraw] = useState<LottoDraw | null>(null);
+  const { data: latestDraw, isLoading } = useLottoLatest();
   const [countdown, setCountdown] = useState<Countdown>({
     days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0,
   });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchLatestDraw();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  const fetchLatestDraw = async () => {
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("lotto_draws")
-        .select("*")
-        .order("drw_no", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (!error && data) {
-        setLatestDraw(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch latest draw:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // fetchLatestDraw removed as it's replaced by useQuery logic
 
   const updateCountdown = () => {
     const now = new Date();
@@ -117,7 +98,7 @@ export function LottoResultCard() {
     );
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>

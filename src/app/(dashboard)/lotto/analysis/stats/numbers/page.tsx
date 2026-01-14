@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { BasicStats } from "@/features/lotto/types";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
 import {
@@ -21,34 +21,20 @@ import { LotteryBall } from "@/shared/ui/lottery-ball";
 import { PageHeader } from "@/shared/ui/page-header";
 import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
+import { useLottoNumberStats } from "@/features/lotto/hooks/use-lotto-query";
+
 export default function NumbersStatsPage() {
-  const [stats, setStats] = useState<BasicStats | null>(null);
+  const [filters, setFilters] = useState<FilterValues | null>(null);
 
   const { data: latestDrawNo } = useQuery({
     queryKey: ["lotto", "latest-draw-no"],
     queryFn: () => lottoApi.getLatestDrawNo(),
   });
 
-  const mutation = useMutation({
-    mutationFn: async (filters: FilterValues) => {
-      const res = await fetch("/api/lotto/analysis/stats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filters),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "분석에 실패했습니다.");
-      }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setStats(data.data);
-    },
-    onError: (err) => {
-      alert(err.message);
-    },
-  });
+  const { data: statsData, isLoading } = useLottoNumberStats(
+    filters || undefined,
+  );
+  const stats = statsData?.data || null;
 
   const maxFreq = stats ? Math.max(...Object.values(stats.frequency)) : 0;
   const minFreq = stats ? Math.min(...Object.values(stats.frequency)) : 0;
@@ -73,8 +59,8 @@ export default function NumbersStatsPage() {
       />
 
       <StatsFilter
-        onApply={(v) => mutation.mutate(v)}
-        isPending={mutation.isPending}
+        onApply={(v) => setFilters(v)}
+        isPending={isLoading && !!filters}
         latestDrawNo={latestDrawNo}
       />
 
