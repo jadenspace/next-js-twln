@@ -10,7 +10,6 @@ import {
   Check,
   Pin,
   TrendingUp,
-  Crown,
 } from "lucide-react";
 import type { PatternCategory } from "../../types/pattern-filter.types";
 
@@ -52,7 +51,6 @@ const CATEGORIES: Category[] = [
     title: "통계 기반 패턴",
     description: "핫/콜드 번호, 미출현 번호",
     icon: TrendingUp,
-    isPremium: true,
   },
 ];
 
@@ -105,15 +103,6 @@ export function PatternCategorySelector({
                   <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
                     <Check className="w-3 h-3 text-primary-foreground" />
                   </div>
-                )}
-                {category.isPremium && !isSelected && (
-                  <Badge
-                    variant="secondary"
-                    className="absolute top-2 right-2 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 gap-1 text-[10px] px-1.5"
-                  >
-                    <Crown className="w-2.5 h-2.5" />
-                    유료
-                  </Badge>
                 )}
                 <div
                   className={cn(

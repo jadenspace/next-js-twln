@@ -28,6 +28,9 @@ export async function middleware(request: NextRequest) {
     "/api",
     "/lotto/search",
     "/community",
+    "/lotto/generate/random",
+    "/lotto/generate/pattern",
+    "/lotto/analysis/simulation",
   ];
 
   const isPublicPath = publicPaths.some(

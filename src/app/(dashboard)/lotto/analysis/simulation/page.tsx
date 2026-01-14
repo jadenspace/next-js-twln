@@ -107,9 +107,6 @@ export default function SimulationPage() {
       <p className="text-muted-foreground mb-8">
         선택하신 번호로 과거 모든 회차에 응모했다면? 수익률(ROI)과 당첨 내역을
         시뮬레이션합니다.
-        <br />
-        분석 시 <span className="font-bold text-primary">300P</span>가
-        소모됩니다.
       </p>
 
       {/* Input Form */}
@@ -222,7 +219,7 @@ export default function SimulationPage() {
               ) : (
                 <Calculator className="mr-2" />
               )}
-              시뮬레이션 시작 (300P)
+              시뮬레이션 시작
             </Button>
           </div>
         </CardContent>

@@ -34,45 +34,45 @@ export default function Home() {
             </p>
           </div>
 
-          {isAuthenticated ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left Column: Lotto Result & Feature Cards */}
-              <div className="lg:col-span-2 space-y-8">
-                <LottoResultCard />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column: Feature Cards */}
+            <div className="lg:col-span-2 space-y-8">
+              <LottoResultCard />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FeatureLinkCard
-                    title="당첨번호 검색"
-                    description="역대 당첨번호를 회차별로 조회"
-                    href="/lotto/search"
-                    icon={<Search className="w-6 h-6" />}
-                  />
-                  <FeatureLinkCard
-                    title="기본 통계 분석"
-                    description="번호별 빈도 및 홀짝 비율 통계"
-                    href="/lotto/analysis/stats"
-                    icon={<BarChart3 className="w-6 h-6" />}
-                  />
-                  <FeatureLinkCard
-                    title="패턴 조합 생성"
-                    description="원하는 패턴을 선택하고 조건에 맞는 번호 조합을 생성"
-                    href="/lotto/generate/pattern"
-                    icon={<Sparkles className="w-6 h-6" />}
-                  />
-                  <FeatureLinkCard
-                    title="당첨 시뮬레이션"
-                    description="내 번호로 과거 모든 회차 분석"
-                    href="/lotto/analysis/simulation"
-                    icon={<Binary className="w-6 h-6" />}
-                  />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FeatureLinkCard
+                  title="당첨번호 검색"
+                  description="역대 당첨번호를 회차별로 조회"
+                  href="/lotto/search"
+                  icon={<Search className="w-6 h-6" />}
+                />
+                <FeatureLinkCard
+                  title="기본 통계 분석"
+                  description="번호별 빈도 및 홀짝 비율 통계"
+                  href="/lotto/analysis/stats"
+                  icon={<BarChart3 className="w-6 h-6" />}
+                />
+                <FeatureLinkCard
+                  title="패턴 조합 생성"
+                  description="원하는 패턴을 선택하고 조건에 맞는 번호 조합을 생성"
+                  href="/lotto/generate/pattern"
+                  icon={<Sparkles className="w-6 h-6" />}
+                />
+                <FeatureLinkCard
+                  title="당첨 시뮬레이션"
+                  description="내 번호로 과거 모든 회차 분석"
+                  href="/lotto/analysis/simulation"
+                  icon={<Binary className="w-6 h-6" />}
+                />
               </div>
+            </div>
 
-              {/* Right Column: User Info */}
-              <div className="space-y-8">
-                <AttendanceCard />
-                {user && <UserLevelInfo userId={user.id} />}
+            {/* Right Column: User Info */}
+            <div className="space-y-8">
+              <AttendanceCard />
+              {isAuthenticated && user && <UserLevelInfo userId={user.id} />}
 
+              {isAuthenticated ? (
                 <Card>
                   <CardHeader>
                     <CardTitle>내 정보</CardTitle>
@@ -94,50 +94,31 @@ export default function Home() {
                     </Link>
                   </CardContent>
                 </Card>
-              </div>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>내 정보</CardTitle>
+                    <CardDescription>로그인이 필요합니다</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center bg-secondary/30 p-3 rounded-lg">
+                      <span className="text-sm font-medium">
+                        관리 승인 상태
+                      </span>
+                      <span className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded">
+                        미로그인
+                      </span>
+                    </div>
+                    <Link href="/login" className="block">
+                      <Button id="btn-charge" className="w-full font-bold">
+                        로그인하기
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          ) : (
-            <div className="text-center space-y-8">
-              <div className="flex justify-center">
-                <div className="w-full max-w-md">
-                  <LottoResultCard />
-                </div>
-              </div>
-
-              <div className="flex justify-center gap-4">
-                <Link href="/login">
-                  <Button id="btn-get-started" size="lg" className="px-8">
-                    시작하기
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>AI 추천 서비스</CardTitle>
-                    <CardDescription>
-                      머신러닝 알고리즘 기반 추천
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>통계 데이터</CardTitle>
-                    <CardDescription>
-                      1,200회 이상의 누적 데이터
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>포인트 시스템</CardTitle>
-                    <CardDescription>합리적인 포인트 기반 과금</CardDescription>
-                  </CardHeader>
-                </Card>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
@@ -22,6 +22,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callback");
   const {
     signIn,
     signUp,
@@ -48,11 +50,13 @@ export default function LoginPage() {
       alert(signUpMutation.error.message);
     }
     if (signInMutation.data) {
-      router.push("/");
+      const redirectUrl = callbackUrl || "/";
+      router.push(redirectUrl);
     }
     if (signUpMutation.data) {
       alert("회원가입이 완료되었습니다. 관리자 승인 후 로그인이 가능합니다.");
-      router.push("/");
+      const redirectUrl = callbackUrl || "/";
+      router.push(redirectUrl);
     }
   }, [
     signInMutation.error,
@@ -60,6 +64,7 @@ export default function LoginPage() {
     signInMutation.data,
     signUpMutation.data,
     router,
+    callbackUrl,
   ]);
 
   const isLoading = isSigningIn || isSigningUp;

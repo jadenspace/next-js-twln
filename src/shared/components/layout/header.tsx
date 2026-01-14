@@ -51,8 +51,8 @@ const STATS_MENU = {
   ],
 };
 const GENERATE_MENU = [
-  { href: "/lotto/generate/random", label: "랜덤 추첨" },
-  { href: "/lotto/generate/pattern", label: "패턴 조합 생성" },
+  { href: "/lotto/generate/random", label: "랜덤 추첨", isPublic: true },
+  { href: "/lotto/generate/pattern", label: "패턴 조합 생성", isPublic: true },
 ];
 
 const SEARCH_ITEM = {
@@ -67,7 +67,7 @@ const NAV_ITEMS = [
     href: "/lotto/analysis/simulation",
     label: "시뮬레이션",
     icon: PlayCircle,
-    isPublic: false,
+    isPublic: true,
   },
   { href: "/community", label: "문의/답변", icon: Users, isPublic: true },
 ];
@@ -316,16 +316,18 @@ export function Header() {
                   <div className="space-y-1">
                     {GENERATE_MENU.map((item) => {
                       const ItemIcon = item.icon;
+                      const isPublic = item.isPublic ?? false;
+                      const isPrivate = !isPublic && !isAuthenticated;
                       return (
                         <Link
                           key={item.href}
-                          href={!isAuthenticated ? "#" : item.href}
+                          href={isPrivate ? "#" : item.href}
                           className={cn(
                             "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
                             pathname === item.href
                               ? "bg-primary/10 text-primary font-medium"
                               : "text-muted-foreground",
-                            !isAuthenticated
+                            isPrivate
                               ? "opacity-60 pointer-events-none"
                               : "hover:bg-muted hover:text-foreground",
                           )}
@@ -539,16 +541,18 @@ export function Header() {
               <div className="px-2 py-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
                 {GENERATE_MENU.map((item) => {
                   const ItemIcon = item.icon;
+                  const isPublic = item.isPublic ?? false;
+                  const isPrivate = !isPublic && !isAuthenticated;
                   return (
                     <Link
                       key={item.href}
-                      href={!isAuthenticated ? "#" : item.href}
+                      href={isPrivate ? "#" : item.href}
                       className={cn(
                         "flex items-center gap-2 px-3 py-2 text-sm rounded-md pl-9 transition-colors",
                         pathname === item.href
                           ? "bg-primary/10 text-primary font-medium"
                           : "text-muted-foreground",
-                        !isAuthenticated
+                        isPrivate
                           ? "opacity-60 pointer-events-none"
                           : "hover:bg-muted hover:text-foreground",
                       )}

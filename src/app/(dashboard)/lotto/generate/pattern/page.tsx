@@ -5,6 +5,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
 import { Sparkles, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useRouter } from "next/navigation";
 import {
   PatternCategorySelector,
   BasicFilterPanel,
@@ -29,6 +31,9 @@ import { PatternFilter } from "@/features/lotto/services/pattern-filter";
 import { generateRandomCombinationWithFixed } from "@/features/lotto/lib/lotto-math";
 
 export default function PatternGeneratePage() {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+
   // 선택된 카테고리
   const [selectedCategories, setSelectedCategories] = useState<
     PatternCategory[]
@@ -410,45 +415,60 @@ export default function PatternGeneratePage() {
         isCalculating={isCalculating}
       />
 
-      {/* 생성 버튼 */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <Button
-          size="lg"
-          className="h-14 px-8 text-lg font-bold"
-          onClick={() => handleGenerate(5)}
-          disabled={!canGenerate5}
-        >
-          {isGenerating && pendingCount === 5 ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              생성 중...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5 mr-2" />
-              5조합 생성 (50P)
-            </>
-          )}
-        </Button>
-        <Button
-          size="lg"
-          className="h-14 px-8 text-lg font-bold"
-          onClick={() => handleGenerate(10)}
-          disabled={!canGenerate10}
-        >
-          {isGenerating && pendingCount === 10 ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              생성 중...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5 mr-2" />
-              10조합 생성 (100P)
-            </>
-          )}
-        </Button>
-      </div>
+      {/* 생성 버튼 또는 로그인 버튼 */}
+      {!isAuthenticated ? (
+        <div className="flex justify-center">
+          <Button
+            size="lg"
+            className="h-14 px-8 text-lg font-bold"
+            onClick={() => {
+              const currentPath = window.location.pathname;
+              router.push(`/login?callback=${encodeURIComponent(currentPath)}`);
+            }}
+          >
+            로그인하여 조합 생성하기
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button
+            size="lg"
+            className="h-14 px-8 text-lg font-bold"
+            onClick={() => handleGenerate(5)}
+            disabled={!canGenerate5}
+          >
+            {isGenerating && pendingCount === 5 ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                생성 중...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5 mr-2" />
+                5조합 생성 (50P)
+              </>
+            )}
+          </Button>
+          <Button
+            size="lg"
+            className="h-14 px-8 text-lg font-bold"
+            onClick={() => handleGenerate(10)}
+            disabled={!canGenerate10}
+          >
+            {isGenerating && pendingCount === 10 ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                생성 중...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5 mr-2" />
+                10조합 생성 (100P)
+              </>
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* 생성 결과 */}
       <GeneratedResults results={results} />

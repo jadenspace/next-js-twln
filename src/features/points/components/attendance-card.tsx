@@ -54,6 +54,11 @@ export function AttendanceCard() {
     },
   });
 
+  // 미로그인 시 카드 숨김
+  if (!isAuthenticated) {
+    return null;
+  }
+
   if (isAuthLoading) {
     return (
       <Card className="w-full">
@@ -75,7 +80,7 @@ export function AttendanceCard() {
     );
   }
 
-  if (!isAuthenticated || status?.error) {
+  if (status?.error) {
     return null;
   }
 

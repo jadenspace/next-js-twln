@@ -103,15 +103,9 @@ export const useAuth = () => {
       logout();
       queryClient.clear();
 
-      // 로그아웃 후 강제 페이지 새로고침으로 미들웨어 동기화
+      // 로그아웃 후 홈페이지(대시보드)로 이동
       if (typeof window !== "undefined") {
-        // 현재 페이지가 로그인 페이지가 아니면 로그인 페이지로 이동
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
-        } else {
-          // 이미 로그인 페이지에 있으면 새로고침
-          window.location.reload();
-        }
+        window.location.href = "/";
       }
     },
     onError: (error) => {
