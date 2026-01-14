@@ -50,11 +50,11 @@ export default function CommunityPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("게시글 작성 실패");
+      if (!res.ok) throw new Error("문의 등록 실패");
       return res.json();
     },
     onSuccess: () => {
-      toast.success("게시글이 등록되었습니다.");
+      toast.success("문의가 등록되었습니다.");
       setIsCreateOpen(false);
       setTitle("");
       setContent("");
@@ -71,9 +71,9 @@ export default function CommunityPage() {
     <div className="max-w-5xl mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">자유 게시판</h1>
+          <h1 className="text-3xl font-bold">문의/답변</h1>
           <p className="text-muted-foreground mt-1">
-            로또 당첨 후기 및 분석 노하우를 공유해보세요.
+            서비스 이용 중 궁금한 내용을 문의해 주세요.
           </p>
         </div>
 
@@ -81,26 +81,26 @@ export default function CommunityPage() {
           <DialogTrigger asChild>
             <Button>
               <PenSquare className="w-4 h-4 mr-2" />
-              글쓰기
+              문의하기
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>새 게시글 작성</DialogTitle>
+              <DialogTitle>새 문의 등록</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">제목</label>
+                <label className="text-sm font-medium">문의 제목</label>
                 <Input
-                  placeholder="제목을 입력하세요"
+                  placeholder="문의 제목을 입력하세요"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">내용</label>
+                <label className="text-sm font-medium">문의 내용</label>
                 <Textarea
-                  placeholder="내용을 입력하세요"
+                  placeholder="문의 내용을 입력하세요"
                   className="min-h-[200px]"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
@@ -118,7 +118,7 @@ export default function CommunityPage() {
                 {createMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                등록하기
+                문의 등록
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -140,10 +140,10 @@ export default function CommunityPage() {
                   </TableHead>
                   <TableHead>제목</TableHead>
                   <TableHead className="hidden md:table-cell w-[150px]">
-                    작성자
+                    문의자
                   </TableHead>
                   <TableHead className="w-[120px] text-center">
-                    작성일
+                    문의일
                   </TableHead>
                   <TableHead className="w-[80px] text-center">조회수</TableHead>
                 </TableRow>
@@ -186,7 +186,7 @@ export default function CommunityPage() {
                       colSpan={5}
                       className="text-center py-20 text-muted-foreground"
                     >
-                      첫 게시글을 작성해보세요!
+                      첫 문의를 등록해보세요!
                     </TableCell>
                   </TableRow>
                 )}

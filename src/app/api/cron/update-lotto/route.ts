@@ -1,5 +1,35 @@
 import { lottoApi, transformLottoData } from "@/features/lotto/api/lotto-api";
+import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { NextResponse } from "next/server";
+
+const getLatestDrawNo = async (): Promise<number> => {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("lotto_draws")
+    .select("drw_no")
+    .order("drw_no", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    console.error("Failed to get latest draw number:", error);
+    return 0;
+  }
+
+  return data?.drw_no || 0;
+};
+
+const saveLottoDraw = async (
+  drawData: ReturnType<typeof transformLottoData>,
+) => {
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("lotto_draws").upsert(drawData);
+
+  if (error) {
+    console.error("Failed to save lotto draw:", error);
+    throw new Error(error.message);
+  }
+};
 
 /**
  * This is a cron job handler to update the latest lotto draw results.
@@ -9,7 +39,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   try {
     // 1. Get the latest draw number we have in our database
-    const latestSavedDrawNo = await lottoApi.getLatestDrawNo();
+    const latestSavedDrawNo = await getLatestDrawNo();
 
     if (latestSavedDrawNo === 0) {
       return NextResponse.json(
@@ -31,7 +61,7 @@ export async function GET() {
       // 3. If new data is available, save it
       if (rawData) {
         const drawData = transformLottoData(rawData);
-        await lottoApi.saveLottoDraw(drawData);
+        await saveLottoDraw(drawData);
         savedCount++;
         currentDrawToFetch++;
       } else {

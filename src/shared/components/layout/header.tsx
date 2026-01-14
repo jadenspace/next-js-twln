@@ -74,7 +74,7 @@ const NAV_ITEMS = [
     icon: PlayCircle,
     isPublic: false,
   },
-  { href: "/community", label: "게시판", icon: Users, isPublic: true },
+  { href: "/community", label: "문의/답변", icon: Users, isPublic: true },
 ];
 
 export function Header() {

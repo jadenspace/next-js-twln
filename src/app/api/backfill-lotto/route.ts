@@ -1,8 +1,38 @@
 import { lottoApi, transformLottoData } from "@/features/lotto/api/lotto-api";
+import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { type NextRequest } from "next/server";
 
 // Helper function to introduce a delay
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const getLatestDrawNo = async (): Promise<number> => {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("lotto_draws")
+    .select("drw_no")
+    .order("drw_no", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    console.error("Failed to get latest draw number:", error);
+    return 0;
+  }
+
+  return data?.drw_no || 0;
+};
+
+const saveLottoDraw = async (
+  drawData: ReturnType<typeof transformLottoData>,
+) => {
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("lotto_draws").upsert(drawData);
+
+  if (error) {
+    console.error("Failed to save lotto draw:", error);
+    throw new Error(error.message);
+  }
+};
 
 export async function GET(request: NextRequest) {
   const LATEST_DRAW_NO = 1205;
@@ -37,7 +67,7 @@ export async function GET(request: NextRequest) {
           return;
         }
       } else {
-        const latestSavedDrawNo = await lottoApi.getLatestDrawNo();
+        const latestSavedDrawNo = await getLatestDrawNo();
         startFrom = latestSavedDrawNo > 0 ? latestSavedDrawNo + 1 : 1;
         enqueue(
           `No 'start_from' parameter found. Starting from last saved draw + 1: #${startFrom}...
@@ -83,7 +113,7 @@ export async function GET(request: NextRequest) {
             const drawData = transformLottoData(rawData);
 
             // 3. Save to Supabase
-            await lottoApi.saveLottoDraw(drawData);
+            await saveLottoDraw(drawData);
             enqueue(`[SUCCESS] Draw #${i} saved successfully.
 `);
           } else {

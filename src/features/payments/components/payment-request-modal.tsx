@@ -11,10 +11,15 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { useState } from "react";
 import { PointPackage } from "@/features/points/types";
-import { BANK_INFO } from "@/features/payments/types";
 import { paymentsApi } from "../api/payments-api";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+
+const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME?.trim() || "은행명 미설정";
+const BANK_ACCOUNT_NUMBER =
+  process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER?.trim() || "계좌번호 미설정";
+const BANK_ACCOUNT_HOLDER =
+  process.env.NEXT_PUBLIC_BANK_ACCOUNT_HOLDER?.trim() || "로또탐정 서비스";
 
 interface PaymentRequestModalProps {
   isOpen: boolean;
@@ -70,20 +75,18 @@ export function PaymentRequestModal({
           <div className="p-4 bg-muted rounded-md space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">입금 은행</span>
-              <span className="font-medium">{BANK_INFO.bankName}</span>
+              <span className="font-medium">{BANK_NAME}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">계좌번호</span>
               <div>
-                <span className="font-medium mr-2">
-                  {BANK_INFO.accountNumber}
-                </span>
+                <span className="font-medium">{BANK_ACCOUNT_NUMBER}</span>
                 {/* Copy button logic could go here */}
               </div>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">예금주</span>
-              <span className="font-medium">{BANK_INFO.accountHolder}</span>
+              <span className="font-medium">{BANK_ACCOUNT_HOLDER}</span>
             </div>
             <div className="border-t my-2 pt-2 flex justify-between font-bold">
               <span>입금 금액</span>

@@ -46,3 +46,7 @@ next-env.d.ts
 #Ignore cursor AI rules
 .cursor/rules/codacy.mdc
 .cursor/mcp.json
+
+.idea
+.codacy
+.serena
