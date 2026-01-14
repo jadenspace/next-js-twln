@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AdvancedStats } from "@/features/lotto/types";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
+import { useLottoNumberStats } from "@/features/lotto/hooks/use-lotto-query";
 import {
   StatsFilter,
   FilterValues,
@@ -23,7 +24,7 @@ import { PageHeader } from "@/shared/ui/page-header";
 import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function MonteCarloStatsPage() {
-  const [stats, setStats] = useState<AdvancedStats | null>(null);
+  const [filters, setFilters] = useState<FilterValues | null>(null);
   const [simResults, setSimResults] = useState<Record<number, number> | null>(
     null,
   );
@@ -34,27 +35,29 @@ export default function MonteCarloStatsPage() {
     queryFn: () => lottoApi.getLatestDrawNo(),
   });
 
-  const mutation = useMutation({
-    mutationFn: async (filters: FilterValues) => {
-      const res = await fetch("/api/lotto/analysis/stats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...filters, style: "advanced" }),
+  useEffect(() => {
+    if (latestDrawNo && !filters) {
+      setFilters({
+        type: "all",
+        startDraw: 1,
+        endDraw: latestDrawNo,
+        includeBonus: false,
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "분석에 실패했습니다.");
-      }
-      return res.json();
-    },
-    onSuccess: (data) => {
-      setStats(data.data);
-      setSimResults(null);
-    },
-    onError: (err) => {
-      alert(err.message);
-    },
-  });
+    }
+  }, [latestDrawNo, filters]);
+
+  const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
+    filters || undefined,
+    { style: "advanced" },
+  );
+  // 시뮬레이션 결과 초기화 로직이 필요하다면 useEffect로 처리 가능하지만,
+  // 여기서는 데이터가 바뀌면 시뮬레이션 결과는 그대로 두고 재실행 유도
+  // 만약 필터 변경 시 결과 초기화하고 싶다면 useEffect([filters]) 사용
+  useEffect(() => {
+    setSimResults(null);
+  }, [filters]);
+
+  const stats = statsData?.data || null;
 
   const runSimulation = () => {
     if (!stats) return;
@@ -105,11 +108,21 @@ export default function MonteCarloStatsPage() {
         description="통계 데이터를 기반으로 10,000번의 가상 추첨을 시행하여 당첨 확률이 가장 높은 조합을 예측합니다."
       />
 
-      <StatsFilter
-        onApply={(v) => mutation.mutate(v)}
-        isPending={mutation.isPending}
-        latestDrawNo={latestDrawNo}
-      />
+      {latestDrawNo ? (
+        <StatsFilter
+          onApply={(v) => setFilters(v)}
+          isPending={isLoading && !!filters}
+          latestDrawNo={latestDrawNo}
+          defaultValues={{
+            type: "all",
+            startDraw: 1,
+            endDraw: latestDrawNo,
+            includeBonus: false,
+          }}
+        />
+      ) : (
+        <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
+      )}
 
       {!stats ? (
         <EmptyStateCard
