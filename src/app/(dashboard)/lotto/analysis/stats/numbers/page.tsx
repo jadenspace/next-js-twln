@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BasicStats } from "@/features/lotto/types";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
@@ -26,10 +26,22 @@ import { useLottoNumberStats } from "@/features/lotto/hooks/use-lotto-query";
 export default function NumbersStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
 
-  const { data: latestDrawNo } = useQuery({
+  const { data: latestDrawNo, isLoading: isLatestDrawLoading } = useQuery({
     queryKey: ["lotto", "latest-draw-no"],
     queryFn: () => lottoApi.getLatestDrawNo(),
   });
+
+  // 초기 로딩 시 전체 회차로 필터 설정
+  useEffect(() => {
+    if (latestDrawNo && !filters) {
+      setFilters({
+        type: "all",
+        startDraw: 1,
+        endDraw: latestDrawNo,
+        includeBonus: false,
+      });
+    }
+  }, [latestDrawNo, filters]);
 
   const { data: statsData, isLoading } = useLottoNumberStats(
     filters || undefined,
@@ -45,6 +57,7 @@ export default function NumbersStatsPage() {
         .filter(([, freq]) => freq === maxFreq)
         .map(([num]) => parseInt(num))
     : [];
+
   const minFreqNumbers = stats
     ? Object.entries(stats.frequency)
         .filter(([, freq]) => freq === minFreq)
@@ -58,11 +71,21 @@ export default function NumbersStatsPage() {
         description="각 번호(1~45)의 출현 빈도를 통해 행운의 패턴을 발견하세요."
       />
 
-      <StatsFilter
-        onApply={(v) => setFilters(v)}
-        isPending={isLoading && !!filters}
-        latestDrawNo={latestDrawNo}
-      />
+      {latestDrawNo ? (
+        <StatsFilter
+          onApply={(v) => setFilters(v)}
+          isPending={isLoading && !!filters}
+          latestDrawNo={latestDrawNo}
+          defaultValues={{
+            type: "all",
+            startDraw: 1,
+            endDraw: latestDrawNo,
+            includeBonus: false,
+          }}
+        />
+      ) : (
+        <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
+      )}
 
       {!stats ? (
         <EmptyStateCard

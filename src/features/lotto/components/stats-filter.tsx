@@ -28,6 +28,7 @@ interface StatsFilterProps {
   isPending?: boolean;
   latestDrawNo?: number;
   isAdvanced?: boolean;
+  defaultValues?: Partial<FilterValues>;
 }
 
 export function StatsFilter({
@@ -35,12 +36,21 @@ export function StatsFilter({
   isPending,
   latestDrawNo = 1100,
   isAdvanced = false,
+  defaultValues,
 }: StatsFilterProps) {
-  const [filterType, setFilterType] = useState<FilterValues["type"]>("recent");
-  const [startDraw, setStartDraw] = useState<number>(latestDrawNo - 100);
-  const [endDraw, setEndDraw] = useState<number>(latestDrawNo);
-  const [limit, setLimit] = useState<number>(100);
-  const [includeBonus, setIncludeBonus] = useState<boolean>(false);
+  const [filterType, setFilterType] = useState<FilterValues["type"]>(
+    defaultValues?.type || "recent",
+  );
+  const [startDraw, setStartDraw] = useState<number>(
+    defaultValues?.startDraw || latestDrawNo - 100,
+  );
+  const [endDraw, setEndDraw] = useState<number>(
+    defaultValues?.endDraw || latestDrawNo,
+  );
+  const [limit, setLimit] = useState<number>(defaultValues?.limit || 100);
+  const [includeBonus, setIncludeBonus] = useState<boolean>(
+    defaultValues?.includeBonus || false,
+  );
 
   const handleApply = () => {
     onApply({

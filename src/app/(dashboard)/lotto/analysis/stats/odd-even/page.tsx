@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BasicStats } from "@/features/lotto/types";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
@@ -30,6 +30,18 @@ export default function OddEvenStatsPage() {
     queryFn: () => lottoApi.getLatestDrawNo(),
   });
 
+  // 초기 로딩 시 전체 회차로 필터 설정
+  useEffect(() => {
+    if (latestDrawNo && !filters) {
+      setFilters({
+        type: "all",
+        startDraw: 1,
+        endDraw: latestDrawNo,
+        includeBonus: false,
+      });
+    }
+  }, [latestDrawNo, filters]);
+
   const { data: statsData, isLoading } = useLottoNumberStats(
     filters || undefined,
   );
@@ -48,11 +60,21 @@ export default function OddEvenStatsPage() {
         description="당첨 번호의 홀수와 짝수 비율을 통해 행운의 균형을 찾으세요."
       />
 
-      <StatsFilter
-        onApply={(v) => setFilters(v)}
-        isPending={isLoading && !!filters}
-        latestDrawNo={latestDrawNo}
-      />
+      {latestDrawNo ? (
+        <StatsFilter
+          onApply={(v) => setFilters(v)}
+          isPending={isLoading && !!filters}
+          latestDrawNo={latestDrawNo}
+          defaultValues={{
+            type: "all",
+            startDraw: 1,
+            endDraw: latestDrawNo,
+            includeBonus: false,
+          }}
+        />
+      ) : (
+        <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
+      )}
 
       {!stats ? (
         <EmptyStateCard
