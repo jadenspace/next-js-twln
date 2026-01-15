@@ -79,19 +79,19 @@ export default function IntervalStatsPage() {
         />
       ) : (
         <div className="space-y-8 animate-in slide-in-from-left-10 duration-700">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
             {avgGaps.map((gap, i) => (
               <Card key={i} className="bg-slate-50 border-slate-200">
-                <CardHeader className="py-4">
-                  <span className="text-[10px] font-black text-slate-400 uppercase">
+                <CardHeader className="py-2 md:py-4 px-3 md:px-6">
+                  <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase">
                     {i + 1}번째-{i + 2}번째
                   </span>
-                  <CardTitle className="text-2xl text-slate-700">
+                  <CardTitle className="text-lg md:text-2xl text-slate-700">
                     평균 {gap.toFixed(1)}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-1.5 h-1">
+                <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
+                  <div className="flex items-center gap-0.5 md:gap-1.5 h-1">
                     {Array.from({ length: 15 }, (_, j) => (
                       <div
                         key={j}
@@ -108,34 +108,34 @@ export default function IntervalStatsPage() {
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ArrowRightLeft className="w-5 h-5 text-slate-600" />
+            <CardHeader className="pb-2 md:pb-6">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <ArrowRightLeft className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
                 최근 15회차 간격 변화 추이
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2 overflow-x-auto">
+            <CardContent className="px-2 md:px-6">
+              <div className="space-y-1.5 md:space-y-2 overflow-x-auto">
                 {Object.entries(stats.interval.drawGaps)
                   .sort(([a], [b]) => parseInt(b) - parseInt(a))
                   .slice(0, 15)
                   .map(([draw, gaps]) => (
                     <div
                       key={draw}
-                      className="flex items-center gap-4 min-w-[600px] p-2 hover:bg-muted/50 rounded-lg"
+                      className="flex items-center gap-2 md:gap-4 min-w-[400px] md:min-w-[600px] p-1.5 md:p-2 hover:bg-muted/50 rounded-lg"
                     >
-                      <span className="text-xs font-bold w-12 text-slate-500">
+                      <span className="text-[10px] md:text-xs font-bold w-10 md:w-12 text-slate-500">
                         {draw}회
                       </span>
-                      <div className="flex-1 flex gap-1">
+                      <div className="flex-1 flex gap-0.5 md:gap-1">
                         {gaps.map((g, gi) => (
                           <div
                             key={gi}
-                            className="bg-slate-200 rounded-md flex items-center justify-center text-[10px] font-bold text-slate-600 transition-all border border-slate-300 shadow-sm"
+                            className="bg-slate-200 rounded flex items-center justify-center text-[9px] md:text-[10px] font-bold text-slate-600 transition-all border border-slate-300 shadow-sm"
                             style={{
                               width: `${(g / 45) * 100}%`,
-                              minWidth: "20px",
-                              height: "24px",
+                              minWidth: "16px",
+                              height: "20px",
                             }}
                           >
                             {g}
@@ -149,20 +149,20 @@ export default function IntervalStatsPage() {
           </Card>
 
           <Card className="bg-slate-900 text-white">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Info className="w-5 h-5 text-slate-400" />
+            <CardHeader className="pb-2 md:pb-6">
+              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                <Info className="w-4 h-4 md:w-5 md:h-5 text-slate-400" />
                 간격 통계 활용법
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-slate-300 space-y-4">
+            <CardContent className="text-xs md:text-sm text-slate-300 space-y-3 md:space-y-4">
               <p>
                 <b>간격(Gap)</b>은 번호가 얼마나 골고루 퍼져 있는지를 수치화한
                 것입니다. 모든 간격의 합은 `최댓값 - 최솟값`과 같습니다. 특정
                 위치의 간격이 평균보다 유난히 좁다면, 다음 회차에는 그 위치가
                 넓어지는(번호가 멀어지는) 경향이 있습니다.
               </p>
-              <div className="p-4 bg-slate-800 rounded-xl text-xs border border-slate-700">
+              <div className="p-3 md:p-4 bg-slate-800 rounded-lg md:rounded-xl text-[10px] md:text-xs border border-slate-700">
                 로또 6/45에서의 <b>황금 간격</b>은 각 번호 사이가 약 <b>7~8</b>{" "}
                 정도 차이가 나는 것입니다. 연속번호(간격 1)가 포함되더라도
                 전체적인 균형을 이 간격 통계로 체크하세요.

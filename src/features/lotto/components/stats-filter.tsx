@@ -74,7 +74,7 @@ export function StatsFilter({
 
   return (
     <Card className="mb-6 md:mb-8 border-border bg-muted/30 shadow-sm">
-      <CardContent className="pt-4 pb-3 md:pt-6 md:pb-4">
+      <CardContent>
         {/* 모바일: 2열 그리드, 데스크톱: 가로 플렉스 */}
         <div className="grid grid-cols-2 gap-3 md:flex md:flex-row md:items-end md:gap-4">
           {/* 분석 범위 - 모바일에서 전체 너비 또는 recent일 때 절반 */}

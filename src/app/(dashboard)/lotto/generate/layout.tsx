@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
 
 const TABS = [
-  { href: "/lotto/generate/random", label: "랜덤 추첨" },
-  { href: "/lotto/generate/pattern", label: "패턴 조합 생성" },
+  { href: "/lotto/generate/random", label: "3D 추첨기" },
+  { href: "/lotto/generate/pattern", label: "AI 패턴 분석" },
 ];
 
 export default function GenerateLayout({
@@ -19,9 +19,11 @@ export default function GenerateLayout({
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col gap-8">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">번호 생성</h1>
-          <p className="text-muted-foreground">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+            번호 생성
+          </h1>
+          <p className="text-sm text-muted-foreground">
             다양한 방식으로 행운의 번호를 생성해보세요.
           </p>
         </div>

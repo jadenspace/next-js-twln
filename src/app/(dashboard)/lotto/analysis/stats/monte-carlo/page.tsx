@@ -132,28 +132,28 @@ export default function MonteCarloStatsPage() {
         />
       ) : (
         <div className="space-y-8 animate-in fade-in duration-700">
-          <Card className="bg-amber-50/20 border-amber-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <Card className="bg-amber-50/20 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+            <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <CardTitle className="text-amber-700">
+                <CardTitle className="text-amber-700 dark:text-amber-400 text-base md:text-lg">
                   추첨 시뮬레이터 가동
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs md:text-sm">
                   학습된{" "}
                   {Object.values(stats.frequency).reduce((a, b) => a + b, 0)}
                   개의 당첨 데이터를 기반으로 연산을 수행합니다.
                 </CardDescription>
               </div>
               <Button
-                size="lg"
-                className="bg-amber-600 hover:bg-amber-700 gap-2 shadow-lg hover:shadow-amber-200 transition-all font-bold"
+                size="default"
+                className="w-full md:w-auto bg-amber-600 hover:bg-amber-700 gap-2 shadow-lg hover:shadow-amber-200 transition-all font-bold text-sm md:text-base"
                 onClick={runSimulation}
                 disabled={isSimulating}
               >
                 {isSimulating ? (
-                  <RotateCcw className="w-5 h-5 animate-spin" />
+                  <RotateCcw className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                 ) : (
-                  <Play className="w-5 h-5 fill-current" />
+                  <Play className="w-4 h-4 md:w-5 md:h-5 fill-current" />
                 )}
                 10,000회 시뮬레이션 시작
               </Button>

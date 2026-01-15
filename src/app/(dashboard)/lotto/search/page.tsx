@@ -168,9 +168,11 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">로또 당첨번호 검색</h1>
-      <p className="text-muted-foreground mb-8">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
+      <h1 className="text-xl md:text-2xl font-bold mb-1 md:mb-2">
+        로또 당첨번호 검색
+      </h1>
+      <p className="text-xs md:text-sm text-muted-foreground mb-6 md:mb-8">
         회차별로 과거 당첨번호를 조회해보세요.
       </p>
 
@@ -365,15 +367,15 @@ export default function SearchPage() {
                 </CardContent>
               </Card>
 
-              <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
+              <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0">
+                <DialogHeader className="sticky top-0 bg-background px-6 pt-6 pb-4 border-b z-10">
                   <DialogTitle>
                     <span className="text-primary">{draw.drw_no}회</span> 당첨
                     상세정보
                   </DialogTitle>
                   <DialogDescription>({draw.drw_no_date})</DialogDescription>
                 </DialogHeader>
-                <div className="py-4 space-y-6">
+                <div className="py-4 space-y-6 overflow-y-auto px-6 flex-1">
                   <div>
                     <h3 className="text-lg font-semibold mb-3 text-center">
                       당첨번호
@@ -481,7 +483,7 @@ export default function SearchPage() {
                     </div>
                   )}
 
-                  <div className="text-center pt-4">
+                  <div className="text-center pt-4 pb-2">
                     <p className="text-sm text-muted-foreground">총 판매금액</p>
                     <p className="font-semibold text-lg">
                       {Number(

@@ -10,12 +10,12 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, className }: PageHeaderProps) {
   return (
-    <div className={cn("mb-6 md:mb-10 text-center md:text-left", className)}>
-      <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight lg:text-5xl mb-1.5 md:mb-3">
+    <div className={cn("mb-6 md:mb-8 text-left", className)}>
+      <h1 className="text-xl md:text-2xl font-bold tracking-tight mb-1 md:mb-2">
         {title}
       </h1>
       {description && (
-        <p className="text-sm md:text-xl text-muted-foreground leading-relaxed">
+        <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
           {description}
         </p>
       )}
