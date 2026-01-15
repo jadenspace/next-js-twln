@@ -59,65 +59,64 @@ function LottoBall({
     const vel = rigidBody.current.linvel();
 
     if (isSpinning) {
-      // 1. 하단 에어 블로어 (Upward Force) - 타겟 공에 더 강한 상승력
+      // 1. 하단 에어 블로어 (Upward Force) - 약화된 바람으로 자연스러운 움직임
       const distFromCenter = Math.sqrt(pos.x ** 2 + pos.z ** 2);
       if (pos.y < 0.5 && distFromCenter < 1.5) {
-        const heightFactor = Math.pow(Math.max(0, 2.0 - pos.y), 2) * 9.6;
-        const targetBonus = isTargeted ? 2.0 : 1.0;
-        const lift =
-          (20.0 + heightFactor + Math.random() * 15.0) * mass * targetBonus;
+        // 위치에 따라 다른 상승력 (중앙이 더 강함)
+        const centerFactor = Math.max(0, 1.5 - distFromCenter) / 1.5;
+        const heightFactor = Math.pow(Math.max(0, 1.5 - pos.y), 2) * 3.0;
+        const randomFactor = Math.random() * 5.0;
+        const lift = (8.0 + heightFactor * centerFactor + randomFactor) * mass;
 
         rigidBody.current.applyImpulse(
           {
-            x: (Math.random() - 0.5) * 3.6 * mass,
+            x: (Math.random() - 0.5) * 2.0 * mass,
             y: lift,
-            z: (Math.random() - 0.5) * 3.6 * mass,
+            z: (Math.random() - 0.5) * 2.0 * mass,
           },
           true,
         );
       }
 
-      // 2. 난류 (Turbulence) - 타겟이 아닌 공에만 적용
+      // 2. 난류 (Turbulence) - 모든 공에 동일하게 적용
       const t = state.clock.getElapsedTime();
-      const noiseStrength = isTargeted ? 0.1 : pos.y < -1.5 ? 0.96 : 0.36;
+      const noiseStrength = pos.y < -1.5 ? 0.6 : 0.3;
       rigidBody.current.applyImpulse(
         {
           x: Math.sin(t * 15 + number) * noiseStrength * mass,
-          y: Math.random() * 0.72 * mass,
+          y: Math.random() * 0.5 * mass,
           z: Math.cos(t * 13 + number) * noiseStrength * mass,
         },
         true,
       );
 
-      // 3. 소용돌이 및 유도 기류 (Vortex & Homing) - 타겟 공 강화
-      if (isTargeted && pos.y > 0) {
-        // 강화된 호밍: 중앙으로 빠르게 이동 + 상승력 추가
-        const homingStrength = 1.8;
-        const liftBoost = pos.y < 1.5 ? 2.0 : 0.5;
-        rigidBody.current.applyImpulse(
-          {
-            x: -pos.x * homingStrength * mass,
-            y: liftBoost * mass,
-            z: -pos.z * homingStrength * mass,
-          },
-          true,
-        );
-      } else if (!isTargeted) {
-        const swirl = 0.84;
-        rigidBody.current.applyImpulse(
-          {
-            x: -pos.z * swirl * mass,
-            y: 0,
-            z: pos.x * swirl * mass,
-          },
-          true,
-        );
-      }
+      // 3. 소용돌이 기류 (Vortex) - 모든 공에 동일하게 적용
+      const swirl = 0.6;
+      rigidBody.current.applyImpulse(
+        {
+          x: -pos.z * swirl * mass,
+          y: 0,
+          z: pos.x * swirl * mass,
+        },
+        true,
+      );
 
-      // 4. 추출 로직 (Extraction Logic) - 더 넓은 영역, 더 빠른 추출
-      if (isTargeted && pos.y > 1.4 && distFromCenter < 1.2) {
-        rigidBody.current.applyImpulse({ x: 0, y: 8.0 * mass, z: 0 }, true);
-        onCapture(number);
+      // 4. 추출 로직 - 타겟 공만 위로 끌어올림 (부드러운 상승)
+      if (isTargeted) {
+        // 천천히 위로 상승
+        rigidBody.current.applyImpulse(
+          {
+            x: -pos.x * 0.5 * mass, // 중앙으로 약하게
+            y: 3.0 * mass, // 위로 상승
+            z: -pos.z * 0.5 * mass,
+          },
+          true,
+        );
+
+        // 충분히 올라갔으면 추출
+        if (pos.y > 2.0) {
+          onCapture(number);
+        }
       }
     } else {
       // 대기/종료 시 댐핑 강화
@@ -383,12 +382,13 @@ export function LottoMachine3D({
   isSpinning,
   drawnNumbers,
   onBallDrawn,
+  onReady,
 }: {
   isSpinning: boolean;
   drawnNumbers: number[];
   onBallDrawn?: (num: number) => void;
+  onReady?: () => void;
 }) {
-  // 실제 3D 상에서 "추출 완료"된 것으로 간주되는 번호들 관리 (애니메이션 동기화용)
   const [visualExtracted, setVisualExtracted] = useState<number[]>([]);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
@@ -404,6 +404,28 @@ export function LottoMachine3D({
   // 추첨 시작 시간 기록 (초반 무효 처리용)
   const spinningStartTime = useRef<number>(0);
 
+  // 자동 추출 타이머 (1초마다 공 추출)
+  useEffect(() => {
+    if (!isSpinning || drawnNumbers.length === 0) return;
+
+    // 이미 모든 공이 추출되었으면 종료
+    if (visualExtracted.length >= drawnNumbers.length) return;
+
+    const timer = setTimeout(() => {
+      // 다음 추출할 공 찾기
+      const nextBall = drawnNumbers.find(
+        (num) => !visualExtracted.includes(num),
+      );
+
+      if (nextBall) {
+        setVisualExtracted((prev) => [...prev, nextBall]);
+        onBallDrawn?.(nextBall);
+      }
+    }, 1000); // 1초 간격
+
+    return () => clearTimeout(timer);
+  }, [isSpinning, drawnNumbers, visualExtracted, onBallDrawn]);
+
   // 외부(Props)에서 DrawnNumbers가 변할 때 시각적 동기화 초기화
   useEffect(() => {
     if (drawnNumbers.length === 0) {
@@ -415,23 +437,25 @@ export function LottoMachine3D({
   useEffect(() => {
     if (isSpinning) {
       spinningStartTime.current = Date.now();
+      setVisualExtracted([]); // 새로운 추첨 시작 시 초기화
     }
   }, [isSpinning]);
 
   // 공이 상단 트랩 근처에 도달했을 때의 포획 이벤트 핸들러
   const handleBallCapture = (id: number) => {
-    // 1. 최소 0.5초 동안은 믹싱 시간으로 간주하여 추출 무효화
-    if (Date.now() - spinningStartTime.current < 500) return;
-
-    // 2. 이미 추출된 번호가 아니고, 현재 뽑아야 할 번호 후보군에 있다면
-    if (!visualExtracted.includes(id) && drawnNumbers.includes(id)) {
-      setVisualExtracted((prev) => [...prev, id]);
-      // 부모에게 실제 추출 성공을 알림
-      onBallDrawn?.(id);
-    }
+    // 타이머 기반 추출로 변경되어서 이 함수는 단순히 시각적 확인만 함
+    // 실제 추출은 useEffect의 타이머가 담당
   };
 
   const [isIntroDone, setIsIntroDone] = useState(false);
+
+  // 인트로 완료 즉시 준비 완료 알림
+  useEffect(() => {
+    if (isIntroDone) {
+      onReady?.();
+    }
+  }, [isIntroDone, onReady]);
+
   const resetCameraToFront = () => {
     const camera = cameraRef.current;
     if (!camera) return;
