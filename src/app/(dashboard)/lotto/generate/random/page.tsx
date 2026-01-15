@@ -21,6 +21,7 @@ export default function RandomGeneratePage() {
   const [drawnNumbers, setDrawnNumbers] = useState<number[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
   const [targetNumbers, setTargetNumbers] = useState<number[]>([]);
+  const [isReady, setIsReady] = useState(false); // 초기 로딩 완료 여부
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -71,7 +72,7 @@ export default function RandomGeneratePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-4 md:space-y-8">
       <div className="flex flex-col gap-3 md:gap-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
@@ -91,6 +92,7 @@ export default function RandomGeneratePage() {
                 setTargetNumbers([]);
                 setIsCompleted(false);
                 setIsModalOpen(false);
+                setIsSpinning(false); // 초기화 시 추첨 상태도 리셋
               }}
               disabled={isSpinning || drawnNumbers.length === 0}
             >
@@ -109,31 +111,28 @@ export default function RandomGeneratePage() {
           </div>
         </div>
 
-        <LottoMachine3D
-          isSpinning={isSpinning}
-          drawnNumbers={targetNumbers}
-          onBallDrawn={handleBallDrawn}
-        />
+        <div className="relative">
+          <LottoMachine3D
+            isSpinning={isSpinning}
+            drawnNumbers={targetNumbers}
+            onBallDrawn={handleBallDrawn}
+            onReady={() => setIsReady(true)}
+          />
 
-        <div className="flex justify-center">
-          <Button
-            size="default"
-            className="h-10 px-6 font-semibold"
-            onClick={startDraw}
-            disabled={isSpinning || isCompleted}
-          >
-            {isSpinning ? (
-              <>
-                <RotateCcw className="w-4 h-4 animate-spin" />
-                추첨 중...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 text-yellow-400" />
+          {/* Canvas 중앙의 시작 버튼 (오버레이) - 준비 완료 후 & 초기화 상태에서만 표시 */}
+          {!isSpinning && isReady && drawnNumbers.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <Button
+                size="default"
+                className="md:scale-110 pointer-events-auto backdrop-blur-sm bg-primary/90 hover:bg-primary shadow-2xl border border-white/20 transition-transform duration-300 animate-in fade-in"
+                style={{ animationDuration: "300ms" }}
+                onClick={startDraw}
+              >
+                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-yellow-400" />
                 행운의 번호 뽑기
-              </>
-            )}
-          </Button>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
