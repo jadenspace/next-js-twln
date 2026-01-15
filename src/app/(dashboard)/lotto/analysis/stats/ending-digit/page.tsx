@@ -90,27 +90,27 @@ export default function EndingDigitStatsPage() {
                 어떤 끝수가 로또 당첨의 중심에 있는지 확인하세요.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="h-[300px] w-full flex items-end gap-2 md:gap-4 pt-10">
+            <CardContent className="px-3 md:px-6">
+              <div className="h-[250px] md:h-[300px] w-full flex items-end gap-1 md:gap-3 pt-6 md:pt-10">
                 {Array.from({ length: 10 }, (_, i) => i).map((digit) => {
                   const freq = endingDigits[digit] || 0;
                   const height = maxFreq > 0 ? (freq / maxFreq) * 100 : 0;
                   return (
                     <div
                       key={digit}
-                      className="flex-1 flex flex-col items-center group relative h-full justify-end"
+                      className="flex-1 min-w-0 flex flex-col items-center group relative h-full justify-end"
                     >
-                      <span className="text-xs font-bold mb-1 text-emerald-600">
+                      <span className="text-[10px] md:text-xs font-bold mb-1 text-emerald-600">
                         {freq}
                       </span>
                       <div
                         className={cn(
-                          "w-full rounded-t-lg transition-all duration-700 bg-emerald-400 group-hover:bg-emerald-500 shadow-sm",
+                          "w-full rounded-t-md md:rounded-t-lg transition-all duration-700 bg-emerald-400 group-hover:bg-emerald-500 shadow-sm",
                           freq === maxFreq && "bg-emerald-600 shadow-lg",
                         )}
                         style={{ height: `${height}%` }}
                       />
-                      <div className="w-full text-center py-2 bg-muted/30 rounded-b-lg mt-1 font-black text-sm">
+                      <div className="w-full text-center py-1.5 md:py-2 bg-muted/30 rounded-b-md md:rounded-b-lg mt-0.5 md:mt-1 font-black text-xs md:text-sm">
                         {digit}
                       </div>
                     </div>

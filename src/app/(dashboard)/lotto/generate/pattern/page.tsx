@@ -360,8 +360,8 @@ export default function PatternGeneratePage() {
       {/* 헤더 */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <PageHeader
-          title="패턴 조합 생성"
-          description="원하는 패턴을 선택하고 조건에 맞는 번호 조합을 생성하세요."
+          title="AI 패턴 분석 생성"
+          description="통계 기반 패턴을 분석하여 최적의 번호 조합을 생성합니다."
           className="mb-0"
         />
         <Button variant="outline" onClick={handleReset} disabled={isGenerating}>
@@ -419,8 +419,8 @@ export default function PatternGeneratePage() {
       {!isAuthenticated ? (
         <div className="flex justify-center">
           <Button
-            size="lg"
-            className="h-14 px-8 text-lg font-bold"
+            size="default"
+            className="h-10 px-6 font-semibold"
             onClick={() => {
               const currentPath = window.location.pathname;
               router.push(`/login?callback=${encodeURIComponent(currentPath)}`);
@@ -430,39 +430,39 @@ export default function PatternGeneratePage() {
           </Button>
         </div>
       ) : (
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="flex flex-col sm:flex-row gap-2 justify-center">
           <Button
-            size="lg"
-            className="h-14 px-8 text-lg font-bold"
+            size="default"
+            className="h-10 px-6 font-semibold"
             onClick={() => handleGenerate(5)}
             disabled={!canGenerate5}
           >
             {isGenerating && pendingCount === 5 ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 생성 중...
               </>
             ) : (
               <>
-                <Sparkles className="w-5 h-5 mr-2" />
+                <Sparkles className="w-4 h-4 mr-2" />
                 5조합 생성 (50P)
               </>
             )}
           </Button>
           <Button
-            size="lg"
-            className="h-14 px-8 text-lg font-bold"
+            size="default"
+            className="h-10 px-6 font-semibold"
             onClick={() => handleGenerate(10)}
             disabled={!canGenerate10}
           >
             {isGenerating && pendingCount === 10 ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 생성 중...
               </>
             ) : (
               <>
-                <Sparkles className="w-5 h-5 mr-2" />
+                <Sparkles className="w-4 h-4 mr-2" />
                 10조합 생성 (100P)
               </>
             )}

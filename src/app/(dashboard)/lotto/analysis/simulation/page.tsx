@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/shared/ui/button";
 import {
   Card,
@@ -9,17 +9,19 @@ import {
   CardTitle,
   CardDescription,
 } from "@/shared/ui/card";
-import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { Input } from "@/shared/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Loader2, Calculator } from "lucide-react";
+import { Loader2, Calculator, X } from "lucide-react";
 import { toast } from "sonner";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
 import { PageHeader } from "@/shared/ui/page-header";
+import { cn } from "@/shared/lib/utils";
+import { getLottoBallColor } from "@/features/lotto/lib/lotto-colors";
 
 export default function SimulationPage() {
-  const [numbers, setNumbers] = useState<string[]>(Array(6).fill(""));
+  const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [result, setResult] = useState<any | null>(null);
   const [rangeType, setRangeType] = useState<"all" | "custom">("all");
   const [startDraw, setStartDraw] = useState<string>("");
@@ -41,26 +43,28 @@ export default function SimulationPage() {
     }
   }, [rangeType, latestDrawNo]);
 
-  const handleNumberChange = (index: number, value: string) => {
-    const newNumbers = [...numbers];
-    // Allow only number input
-    if (value && !/^\d*$/.test(value)) return;
+  const handleNumberToggle = useCallback((num: number) => {
+    setSelectedNumbers((prev) => {
+      if (prev.includes(num)) {
+        return prev.filter((n) => n !== num);
+      }
+      if (prev.length >= 6) {
+        toast.error("6개 번호만 선택할 수 있습니다.");
+        return prev;
+      }
+      return [...prev, num].sort((a, b) => a - b);
+    });
+  }, []);
 
-    // Limit 1-45
-    if (parseInt(value) > 45) return;
-
-    newNumbers[index] = value;
-    setNumbers(newNumbers);
-  };
+  const handleClearAll = useCallback(() => {
+    setSelectedNumbers([]);
+  }, []);
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const numParams = numbers.map((n) => parseInt(n));
       // Validation
-      if (numParams.some((n) => isNaN(n) || n < 1 || n > 45))
-        throw new Error("1~45 사이의 숫자를 입력해주세요.");
-      if (new Set(numParams).size !== 6)
-        throw new Error("중복된 숫자가 있습니다.");
+      if (selectedNumbers.length !== 6)
+        throw new Error("6개 번호를 선택해주세요.");
 
       // 회차 범위 검증
       let drawRange: { startDraw?: number; endDraw?: number } | undefined;
@@ -83,7 +87,7 @@ export default function SimulationPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          numbers: numParams,
+          numbers: selectedNumbers,
           drawRange: drawRange,
         }),
       });
@@ -112,24 +116,74 @@ export default function SimulationPage() {
       {/* Input Form */}
       <Card className="mb-6 md:mb-8">
         <CardHeader className="pb-4 md:pb-6">
-          <CardTitle className="text-base md:text-lg">번호 입력</CardTitle>
+          <CardTitle className="text-base md:text-lg">번호 선택</CardTitle>
           <CardDescription className="text-xs md:text-sm">
-            시뮬레이션 할 6개 번호를 입력해주세요.
+            시뮬레이션 할 6개 번호를 클릭해서 선택해주세요.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* 번호 입력 - 모바일에서 3x2 그리드 */}
-          <div className="grid grid-cols-3 md:flex md:flex-wrap gap-2 md:gap-4 justify-center max-w-xs md:max-w-none mx-auto">
-            {numbers.map((num, idx) => (
-              <Input
-                key={idx}
-                value={num}
-                onChange={(e) => handleNumberChange(idx, e.target.value)}
-                className="w-full md:w-16 h-12 md:h-16 text-center text-xl md:text-2xl font-bold rounded-full"
-                maxLength={2}
-                placeholder={(idx + 1).toString()}
-              />
-            ))}
+          {/* 선택된 번호 표시 */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-muted-foreground">
+                선택된 번호 ({selectedNumbers.length}/6)
+              </span>
+              {selectedNumbers.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearAll}
+                  className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  전체 해제
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2 min-h-[48px] p-3 bg-muted/30 rounded-lg">
+              {selectedNumbers.length === 0 ? (
+                <span className="text-sm text-muted-foreground">
+                  아래에서 번호를 선택해주세요
+                </span>
+              ) : (
+                selectedNumbers.map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => handleNumberToggle(num)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md hover:opacity-80 transition-opacity"
+                    style={{ backgroundColor: getLottoBallColor(num) }}
+                  >
+                    {num}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* 1~45 번호 그리드 */}
+          <div className="grid grid-cols-9 gap-1.5 md:gap-2">
+            {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => {
+              const isSelected = selectedNumbers.includes(num);
+              return (
+                <button
+                  key={num}
+                  onClick={() => handleNumberToggle(num)}
+                  className={cn(
+                    "aspect-square rounded-full flex items-center justify-center text-xs md:text-sm font-semibold transition-all",
+                    isSelected
+                      ? "text-white shadow-md ring-2 ring-offset-1 ring-primary"
+                      : "bg-muted/50 text-foreground hover:bg-muted",
+                  )}
+                  style={
+                    isSelected
+                      ? { backgroundColor: getLottoBallColor(num) }
+                      : undefined
+                  }
+                >
+                  {num}
+                </button>
+              );
+            })}
           </div>
 
           {/* 회차 범위 선택 */}
@@ -223,7 +277,7 @@ export default function SimulationPage() {
               onClick={() => mutation.mutate()}
               disabled={
                 mutation.isPending ||
-                numbers.some((n) => !n) ||
+                selectedNumbers.length !== 6 ||
                 (rangeType === "custom" && (!startDraw || !endDraw))
               }
             >

@@ -65,14 +65,14 @@ export function PointHistoryModal({
           <DialogTitle>포인트 내역</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6">
+        <div className="flex-1 min-h-[400px] overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6">
           {isLoading ? (
-            <div className="flex justify-center p-8">
+            <div className="flex justify-center items-center min-h-[350px]">
               <Loader2 className="h-8 w-8 animate-spin" />
             </div>
           ) : transactions.length > 0 ? (
             <>
-              <div className="space-y-3">
+              <div className="space-y-3 min-h-[350px]">
                 {transactions.map((tx) => (
                   <div
                     key={tx.id}

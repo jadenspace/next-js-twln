@@ -365,15 +365,15 @@ export default function SearchPage() {
                 </CardContent>
               </Card>
 
-              <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
+              <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0">
+                <DialogHeader className="sticky top-0 bg-background px-6 pt-6 pb-4 border-b z-10">
                   <DialogTitle>
                     <span className="text-primary">{draw.drw_no}회</span> 당첨
                     상세정보
                   </DialogTitle>
                   <DialogDescription>({draw.drw_no_date})</DialogDescription>
                 </DialogHeader>
-                <div className="py-4 space-y-6">
+                <div className="py-4 space-y-6 overflow-y-auto px-6 flex-1">
                   <div>
                     <h3 className="text-lg font-semibold mb-3 text-center">
                       당첨번호
@@ -481,7 +481,7 @@ export default function SearchPage() {
                     </div>
                   )}
 
-                  <div className="text-center pt-4">
+                  <div className="text-center pt-4 pb-2">
                     <p className="text-sm text-muted-foreground">총 판매금액</p>
                     <p className="font-semibold text-lg">
                       {Number(

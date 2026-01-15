@@ -16,28 +16,30 @@ interface CombinationCounterProps {
 const STATUS_CONFIG = {
   comfortable: {
     bgColor:
-      "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800",
-    textColor: "text-green-700 dark:text-green-300",
-    iconBgColor: "bg-green-100 dark:bg-green-900",
+      "bg-emerald-50/50 border-emerald-200/60 dark:bg-emerald-950/30 dark:border-emerald-800/40",
+    textColor: "text-emerald-600 dark:text-emerald-400",
+    iconBgColor: "bg-emerald-100/80 dark:bg-emerald-900/50",
     icon: CheckCircle,
   },
   recommended: {
-    bgColor: "bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800",
-    textColor: "text-blue-700 dark:text-blue-300",
-    iconBgColor: "bg-blue-100 dark:bg-blue-900",
+    bgColor:
+      "bg-sky-50/50 border-sky-200/60 dark:bg-sky-950/30 dark:border-sky-800/40",
+    textColor: "text-sky-600 dark:text-sky-400",
+    iconBgColor: "bg-sky-100/80 dark:bg-sky-900/50",
     icon: ThumbsUp,
   },
   warning: {
     bgColor:
-      "bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800",
-    textColor: "text-amber-700 dark:text-amber-300",
-    iconBgColor: "bg-amber-100 dark:bg-amber-900",
+      "bg-orange-50/50 border-orange-200/60 dark:bg-orange-950/30 dark:border-orange-800/40",
+    textColor: "text-orange-600 dark:text-orange-400",
+    iconBgColor: "bg-orange-100/80 dark:bg-orange-900/50",
     icon: AlertTriangle,
   },
   excessive: {
-    bgColor: "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800",
-    textColor: "text-red-700 dark:text-red-300",
-    iconBgColor: "bg-red-100 dark:bg-red-900",
+    bgColor:
+      "bg-rose-50/50 border-rose-200/60 dark:bg-rose-950/30 dark:border-rose-800/40",
+    textColor: "text-rose-600 dark:text-rose-400",
+    iconBgColor: "bg-rose-100/80 dark:bg-rose-900/50",
     icon: AlertTriangle,
   },
 };

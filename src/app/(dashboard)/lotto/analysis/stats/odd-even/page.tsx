@@ -92,35 +92,35 @@ export default function OddEvenStatsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center">
-              <div className="flex h-16 w-full rounded-2xl overflow-hidden shadow-lg mb-8">
+              <div className="flex h-12 md:h-16 w-full rounded-xl md:rounded-2xl overflow-hidden shadow-lg mb-6 md:mb-8">
                 <div
-                  className="bg-blue-500 flex items-center justify-center text-white font-black text-xl transition-all duration-1000"
+                  className="bg-blue-500 flex items-center justify-center text-white font-black text-base md:text-xl transition-all duration-1000 min-w-[60px]"
                   style={{ width: `${oddPercent}%` }}
                 >
                   {oddPercent.toFixed(0)}%
                 </div>
                 <div
-                  className="bg-red-500 flex items-center justify-center text-white font-black text-xl transition-all duration-1000"
+                  className="bg-red-500 flex items-center justify-center text-white font-black text-base md:text-xl transition-all duration-1000 min-w-[60px]"
                   style={{ width: `${evenPercent}%` }}
                 >
                   {evenPercent.toFixed(0)}%
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-20">
+              <div className="grid grid-cols-2 gap-8 md:gap-20 w-full max-w-xs md:max-w-none">
                 <div className="text-center">
-                  <p className="text-blue-500 text-5xl font-black mb-2">
+                  <p className="text-blue-500 text-3xl md:text-5xl font-black mb-1 md:mb-2">
                     {stats.oddEvenRatio.odd}
                   </p>
-                  <p className="text-sm font-bold text-muted-foreground">
+                  <p className="text-xs md:text-sm font-bold text-muted-foreground">
                     홀수 (Odd)
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-red-500 text-5xl font-black mb-2">
+                  <p className="text-red-500 text-3xl md:text-5xl font-black mb-1 md:mb-2">
                     {stats.oddEvenRatio.even}
                   </p>
-                  <p className="text-sm font-bold text-muted-foreground">
+                  <p className="text-xs md:text-sm font-bold text-muted-foreground">
                     짝수 (Even)
                   </p>
                 </div>
@@ -129,13 +129,15 @@ export default function OddEvenStatsPage() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>최근 트렌드 인사이트</CardTitle>
+            <CardHeader className="pb-3 md:pb-6">
+              <CardTitle className="text-base md:text-lg">
+                최근 트렌드 인사이트
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/30">
-                <Info className="w-5 h-5 text-primary mt-1" />
-                <p className="text-sm leading-relaxed">
+              <div className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-lg md:rounded-xl bg-muted/30">
+                <Info className="w-4 h-4 md:w-5 md:h-5 text-primary mt-0.5 shrink-0" />
+                <p className="text-xs md:text-sm leading-relaxed">
                   일반적으로 로또는 <b>홀3:짝3</b> 또는 <b>홀4:짝2 / 홀2:짝4</b>{" "}
                   비율이 가장 많이 등장합니다. 비중이 크게 차이나는 구간을
                   노려보세요.

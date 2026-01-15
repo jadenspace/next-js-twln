@@ -59,13 +59,13 @@ function LottoBall({
     const vel = rigidBody.current.linvel();
 
     if (isSpinning) {
-      // 1. 하단 에어 블로어 (Upward Force) - 1.2배 상향
+      // 1. 하단 에어 블로어 (Upward Force) - 타겟 공에 더 강한 상승력
       const distFromCenter = Math.sqrt(pos.x ** 2 + pos.z ** 2);
-      if (pos.y < -0.2 && distFromCenter < 1.2) {
+      if (pos.y < 0.5 && distFromCenter < 1.5) {
         const heightFactor = Math.pow(Math.max(0, 2.0 - pos.y), 2) * 9.6;
-        const targetBonus = isTargeted ? 1.2 : 1.0;
+        const targetBonus = isTargeted ? 2.0 : 1.0;
         const lift =
-          (18.0 + heightFactor + Math.random() * 12.0) * mass * targetBonus;
+          (20.0 + heightFactor + Math.random() * 15.0) * mass * targetBonus;
 
         rigidBody.current.applyImpulse(
           {
@@ -77,9 +77,9 @@ function LottoBall({
         );
       }
 
-      // 2. 난류 (Turbulence) - 1.2배 상향
+      // 2. 난류 (Turbulence) - 타겟이 아닌 공에만 적용
       const t = state.clock.getElapsedTime();
-      const noiseStrength = pos.y < -1.5 ? 0.96 : 0.36;
+      const noiseStrength = isTargeted ? 0.1 : pos.y < -1.5 ? 0.96 : 0.36;
       rigidBody.current.applyImpulse(
         {
           x: Math.sin(t * 15 + number) * noiseStrength * mass,
@@ -89,18 +89,20 @@ function LottoBall({
         true,
       );
 
-      // 3. 소용돌이 및 유도 기류 (Vortex & Homing) - 1.2배 상향
-      if (isTargeted && pos.y > 0.5) {
-        const homingStrength = 0.96;
+      // 3. 소용돌이 및 유도 기류 (Vortex & Homing) - 타겟 공 강화
+      if (isTargeted && pos.y > 0) {
+        // 강화된 호밍: 중앙으로 빠르게 이동 + 상승력 추가
+        const homingStrength = 1.8;
+        const liftBoost = pos.y < 1.5 ? 2.0 : 0.5;
         rigidBody.current.applyImpulse(
           {
             x: -pos.x * homingStrength * mass,
-            y: 0.12 * mass,
+            y: liftBoost * mass,
             z: -pos.z * homingStrength * mass,
           },
           true,
         );
-      } else {
+      } else if (!isTargeted) {
         const swirl = 0.84;
         rigidBody.current.applyImpulse(
           {
@@ -112,9 +114,9 @@ function LottoBall({
         );
       }
 
-      // 4. 추출 로직 (Extraction Logic) - 확률 상향
-      if (isTargeted && pos.y > 1.8 && distFromCenter < 1.0) {
-        rigidBody.current.applyImpulse({ x: 0, y: 6.0 * mass, z: 0 }, true);
+      // 4. 추출 로직 (Extraction Logic) - 더 넓은 영역, 더 빠른 추출
+      if (isTargeted && pos.y > 1.4 && distFromCenter < 1.2) {
+        rigidBody.current.applyImpulse({ x: 0, y: 8.0 * mass, z: 0 }, true);
         onCapture(number);
       }
     } else {
@@ -418,8 +420,8 @@ export function LottoMachine3D({
 
   // 공이 상단 트랩 근처에 도달했을 때의 포획 이벤트 핸들러
   const handleBallCapture = (id: number) => {
-    // 1. 최소 1초 동안은 믹싱 시간으로 간주하여 추출 무효화
-    if (Date.now() - spinningStartTime.current < 1000) return;
+    // 1. 최소 0.5초 동안은 믹싱 시간으로 간주하여 추출 무효화
+    if (Date.now() - spinningStartTime.current < 500) return;
 
     // 2. 이미 추출된 번호가 아니고, 현재 뽑아야 할 번호 후보군에 있다면
     if (!visualExtracted.includes(id) && drawnNumbers.includes(id)) {

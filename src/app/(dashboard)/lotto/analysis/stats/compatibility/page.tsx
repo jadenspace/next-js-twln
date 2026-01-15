@@ -108,15 +108,15 @@ export default function CompatibilityStatsPage() {
                   특정 번호와 가장 자주 함께 당첨된 번호 리스트입니다.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="flex flex-wrap gap-2">
+              <CardContent className="px-3 md:px-6">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="flex flex-wrap gap-1.5 md:gap-2">
                     {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => (
                       <button
                         key={num}
                         onClick={() => setTargetNum(num)}
                         className={cn(
-                          "w-10 h-10 rounded-lg border flex items-center justify-center text-xs font-bold transition-all",
+                          "w-8 h-8 md:w-10 md:h-10 rounded-md md:rounded-lg border flex items-center justify-center text-[10px] md:text-xs font-bold transition-all",
                           targetNum === num
                             ? "bg-red-500 border-red-500 text-white shadow-md active:scale-95"
                             : "bg-white border-red-100 text-red-700 hover:bg-red-50",
@@ -128,23 +128,23 @@ export default function CompatibilityStatsPage() {
                   </div>
 
                   {targetNum && (
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 md:gap-3 animate-in fade-in slide-in-from-top-2">
                       {getBestPartners(targetNum).map((partner, idx) => (
                         <div
                           key={partner.num}
-                          className="p-3 bg-white rounded-xl border border-red-100 flex flex-col items-center shadow-sm"
+                          className="p-2 md:p-3 bg-white rounded-lg md:rounded-xl border border-red-100 flex flex-col items-center shadow-sm"
                         >
-                          <span className="text-[10px] font-bold text-red-300 mb-1">
+                          <span className="text-[9px] md:text-[10px] font-bold text-red-300 mb-0.5 md:mb-1">
                             BEST {idx + 1}
                           </span>
                           <LotteryBall
                             number={parseInt(partner.num!)}
-                            className="mb-2"
+                            className="w-7 h-7 md:w-8 md:h-8 text-xs mb-1 md:mb-2"
                           />
-                          <span className="font-black text-red-600">
+                          <span className="font-black text-red-600 text-sm md:text-base">
                             {partner.count}회
                           </span>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[9px] md:text-[10px] text-muted-foreground">
                             동반 출현
                           </span>
                         </div>
@@ -162,23 +162,23 @@ export default function CompatibilityStatsPage() {
             </Card>
 
             <Card className="lg:col-span-1">
-              <CardHeader>
-                <CardTitle className="text-lg">
+              <CardHeader className="pb-3 md:pb-6">
+                <CardTitle className="text-base md:text-lg">
                   역대 최강 콤비 (Top 10)
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs md:text-sm">
                   전체 데이터 중 가장 많이 출현한 쌍
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="px-3 md:px-6">
+                <div className="space-y-2 md:space-y-3">
                   {topOverallPairs.map(([pair, count], idx) => (
                     <div
                       key={pair}
-                      className="flex items-center justify-between p-3 bg-muted/20 rounded-xl border border-transparent hover:border-red-200 transition-all"
+                      className="flex items-center justify-between p-2 md:p-3 bg-muted/20 rounded-lg md:rounded-xl border border-transparent hover:border-red-200 transition-all"
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-black text-muted-foreground/30 w-4">
+                      <div className="flex items-center gap-1.5 md:gap-2">
+                        <span className="text-[10px] md:text-xs font-black text-muted-foreground/30 w-4">
                           #{idx + 1}
                         </span>
                         <div className="flex gap-1">
@@ -186,16 +186,16 @@ export default function CompatibilityStatsPage() {
                             <LotteryBall
                               key={n}
                               number={parseInt(n)}
-                              className="w-7 h-7 text-[10px]"
+                              className="w-6 h-6 md:w-7 md:h-7 text-[9px] md:text-[10px]"
                             />
                           ))}
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-sm font-black text-red-500">
+                        <span className="text-xs md:text-sm font-black text-red-500">
                           {count}회
                         </span>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-[9px] md:text-[10px] text-muted-foreground">
                           동반
                         </p>
                       </div>

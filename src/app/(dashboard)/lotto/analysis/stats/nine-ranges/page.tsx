@@ -87,15 +87,15 @@ export default function NineRangesStatsPage() {
                 9구간별 출현 비중
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-9 gap-4">
+            <CardContent className="px-3 md:px-6">
+              <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 md:gap-4">
                 {Array.from({ length: 9 }, (_, i) => i).map((idx) => {
                   const key = `${idx * 5 + 1}-${(idx + 1) * 5}`;
                   const freq = nineRanges[key] || 0;
                   const ratio = maxFreq > 0 ? (freq / maxFreq) * 100 : 0;
                   return (
                     <div key={key} className="flex flex-col items-center">
-                      <div className="w-full aspect-[1/2] bg-muted rounded-xl relative overflow-hidden mb-3">
+                      <div className="w-full aspect-[2/3] md:aspect-[1/2] bg-muted rounded-lg md:rounded-xl relative overflow-hidden mb-1.5 md:mb-3">
                         <div
                           className={cn(
                             "absolute bottom-0 w-full transition-all duration-1000",
@@ -105,11 +105,11 @@ export default function NineRangesStatsPage() {
                           )}
                           style={{ height: `${ratio}%` }}
                         />
-                        <div className="absolute inset-0 flex items-center justify-center font-black text-xs text-background mix-blend-difference">
+                        <div className="absolute inset-0 flex items-center justify-center font-black text-[10px] md:text-xs text-background mix-blend-difference">
                           {freq}회
                         </div>
                       </div>
-                      <span className="text-xs font-bold text-muted-foreground">
+                      <span className="text-[10px] md:text-xs font-bold text-muted-foreground">
                         {key}
                       </span>
                     </div>
@@ -120,13 +120,13 @@ export default function NineRangesStatsPage() {
           </Card>
 
           <Card className="bg-emerald-50/20 border-emerald-100">
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <div className="space-y-4">
-                  <h4 className="text-xl font-bold text-emerald-800">
+            <CardContent className="pt-4 md:pt-6 px-4 md:px-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-center">
+                <div className="space-y-2 md:space-y-4">
+                  <h4 className="text-base md:text-xl font-bold text-emerald-800">
                     분석 인사이트
                   </h4>
-                  <p className="text-sm text-emerald-700/80 leading-relaxed">
+                  <p className="text-xs md:text-sm text-emerald-700/80 leading-relaxed">
                     일반적인 5구간(10단위) 분석보다 더 세밀한 9구간 분석은 특정
                     번호대가 '몰림' 현상을 보이는지 확인하는 데 매우 유용합니다.
                     현재 막대가 가장 높게 솟은 구간은 에너지가 과포화 상태이며,
@@ -134,12 +134,12 @@ export default function NineRangesStatsPage() {
                   </p>
                 </div>
                 <div className="flex justify-center">
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5 md:gap-2">
                     {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
                       <div
                         key={n}
                         className={cn(
-                          "w-12 h-12 rounded-lg border-2 flex items-center justify-center font-bold text-sm",
+                          "w-10 h-10 md:w-12 md:h-12 rounded-lg border-2 flex items-center justify-center font-bold text-xs md:text-sm",
                           n === Object.values(nineRanges).indexOf(maxFreq) + 1
                             ? "bg-emerald-600 border-emerald-600 text-white"
                             : "border-emerald-200 text-emerald-700",

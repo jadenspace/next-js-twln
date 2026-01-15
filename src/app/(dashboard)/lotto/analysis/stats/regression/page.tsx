@@ -83,19 +83,19 @@ export default function RegressionStatsPage() {
       ) : (
         <div className="space-y-8 animate-in fade-in duration-700">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="col-span-1 md:col-span-2 bg-orange-50/30 border-orange-200">
-              <CardHeader>
-                <CardTitle className="text-orange-700 flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5" />
+            <Card className="col-span-1 md:col-span-2 bg-orange-50/30 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
+              <CardHeader className="pb-2 md:pb-4">
+                <CardTitle className="text-orange-700 dark:text-orange-400 flex items-center gap-2 text-base md:text-lg">
+                  <AlertTriangle className="w-4 h-4 md:w-5 md:h-5" />
                   출현 임계점 도달 번호 (평균 주기 초과)
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs md:text-sm">
                   평균적인 출현 주기보다 더 오랫동안 나오지 않아 출현 가능성이
                   높아진 번호입니다.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-4">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:flex md:flex-wrap gap-2 md:gap-4">
                   {sortedByLag
                     .filter(
                       ([num, lag]) =>
@@ -108,16 +108,16 @@ export default function RegressionStatsPage() {
                       return (
                         <div
                           key={num}
-                          className="flex flex-col items-center p-3 bg-white rounded-xl border border-orange-200 shadow-sm min-w-[100px]"
+                          className="flex flex-col items-center p-2 md:p-3 bg-white dark:bg-card rounded-lg md:rounded-xl border border-orange-200 dark:border-orange-800 shadow-sm md:min-w-[100px]"
                         >
                           <LotteryBall
                             number={parseInt(num)}
-                            className="mb-2"
+                            className="mb-1 md:mb-2 w-8 h-8 md:w-10 md:h-10"
                           />
-                          <span className="text-xs font-bold text-orange-600">
+                          <span className="text-[10px] md:text-xs font-bold text-orange-600 dark:text-orange-400">
                             현재 {lag}회 지연
                           </span>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[9px] md:text-[10px] text-muted-foreground">
                             평균 {avg.toFixed(1)}회
                           </span>
                         </div>

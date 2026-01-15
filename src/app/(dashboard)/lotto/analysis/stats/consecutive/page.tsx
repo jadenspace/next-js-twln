@@ -82,47 +82,55 @@ export default function ConsecutiveStatsPage() {
           description="분석 범위를 설정하고 버튼을 눌러주세요."
         />
       ) : (
-        <div className="space-y-8 animate-in zoom-in duration-500">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="space-y-6 md:space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <Card className="md:col-span-1 bg-primary/5 border-primary/10">
-              <CardHeader>
-                <CardTitle>전체 연번 발생</CardTitle>
-                <CardDescription>검색된 회차 내 총 발생 횟수</CardDescription>
+              <CardHeader className="pb-2 md:pb-4">
+                <CardTitle className="text-base md:text-lg">
+                  전체 연번 발생
+                </CardTitle>
+                <CardDescription className="text-xs md:text-sm">
+                  검색된 회차 내 총 발생 횟수
+                </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center">
-                <div className="text-6xl font-black text-primary mb-2">
+                <div className="text-4xl md:text-6xl font-black text-primary mb-2">
                   {stats.consecutiveOccurrences.total}
                 </div>
-                <p className="text-sm font-bold text-muted-foreground/60">
+                <p className="text-xs md:text-sm font-bold text-muted-foreground/60">
                   Total Pairs
                 </p>
               </CardContent>
             </Card>
 
             <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>자주 등장하는 연번 쌍 (Top 10)</CardTitle>
-                <CardDescription>
+              <CardHeader className="pb-2 md:pb-4">
+                <CardTitle className="text-base md:text-lg">
+                  자주 등장하는 연번 쌍 (Top 10)
+                </CardTitle>
+                <CardDescription className="text-xs md:text-sm">
                   어떤 인접한 두 숫자가 가장 많이 같이 나왔을까요?
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-4">
+                <div className="grid grid-cols-5 md:flex md:flex-wrap gap-2 md:gap-4">
                   {topPairs.map(([pair, count]) => (
                     <div
                       key={pair}
-                      className="flex flex-col items-center p-3 bg-card rounded-xl border min-w-[80px]"
+                      className="flex flex-col items-center p-2 md:p-3 bg-card rounded-lg md:rounded-xl border md:min-w-[80px]"
                     >
-                      <div className="flex gap-1 mb-2">
+                      <div className="flex gap-0.5 md:gap-1 mb-1 md:mb-2">
                         {pair.split(",").map((n) => (
                           <LotteryBall
                             key={n}
                             number={parseInt(n)}
-                            className="w-8 h-8 text-xs"
+                            className="w-6 h-6 md:w-8 md:h-8 text-[10px] md:text-xs"
                           />
                         ))}
                       </div>
-                      <span className="text-xs font-black">{count}회</span>
+                      <span className="text-[10px] md:text-xs font-black">
+                        {count}회
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -130,21 +138,21 @@ export default function ConsecutiveStatsPage() {
             </Card>
 
             <Card className="md:col-span-3">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Layers className="w-5 h-5" />
+              <CardHeader className="pb-2 md:pb-4">
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                  <Layers className="w-4 h-4 md:w-5 md:h-5" />
                   최근 회차별 연번 포함 개수
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-4 md:flex md:flex-wrap gap-1.5 md:gap-2">
                   {Object.entries(stats.consecutiveOccurrences.byDraw)
                     .sort(([a], [b]) => parseInt(b) - parseInt(a))
                     .slice(0, 20)
                     .map(([draw, count]) => (
                       <div
                         key={draw}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 border text-xs"
+                        className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-primary/5 border text-[10px] md:text-xs"
                       >
                         <span className="font-bold text-muted-foreground">
                           {draw}회:

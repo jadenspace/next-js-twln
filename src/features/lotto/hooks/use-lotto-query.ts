@@ -32,7 +32,7 @@ export const useLottoDraw = (drawNo: number) => {
   });
 };
 
-// 3. 번호별 통계 조회 (24시간 캐시)
+// 3. 번호별 통계 조회 (무한 캐시 - 과거 회차 데이터는 변하지 않음)
 export const useLottoNumberStats = <T = BasicStats>(
   filters?: FilterValues,
   extraParams?: Record<string, any>,
@@ -51,6 +51,10 @@ export const useLottoNumberStats = <T = BasicStats>(
       }
       return res.json() as Promise<{ data: T }>;
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24시간
+    staleTime: (query) => {
+      // 데이터가 성공적으로 있으면 무한 캐시, 없으면 0
+      // 필터에 startDraw/endDraw가 포함되어 새 회차 추가시 자동으로 새 쿼리키 생성
+      return query.state.data ? Infinity : 0;
+    },
   });
 };
