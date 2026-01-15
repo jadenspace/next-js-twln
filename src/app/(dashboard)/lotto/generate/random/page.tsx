@@ -72,7 +72,7 @@ export default function RandomGeneratePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-4 md:space-y-8">
       <div className="flex flex-col gap-3 md:gap-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
@@ -119,16 +119,16 @@ export default function RandomGeneratePage() {
             onReady={() => setIsReady(true)}
           />
 
-          {/* Canvas 중앙의 시작 버튼 (오버레이) - 준비 완료 후에만 표시 */}
-          {!isSpinning && isReady && (
+          {/* Canvas 중앙의 시작 버튼 (오버레이) - 준비 완료 후 & 초기화 상태에서만 표시 */}
+          {!isSpinning && isReady && drawnNumbers.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <Button
-                size="lg"
-                className="pointer-events-auto backdrop-blur-sm bg-primary/90 hover:bg-primary shadow-2xl border border-white/20 transition-opacity duration-300 animate-in fade-in"
+                size="default"
+                className="md:scale-110 pointer-events-auto backdrop-blur-sm bg-primary/90 hover:bg-primary shadow-2xl border border-white/20 transition-transform duration-300 animate-in fade-in"
                 style={{ animationDuration: "300ms" }}
                 onClick={startDraw}
               >
-                <Sparkles className="w-4 h-4 text-yellow-400" />
+                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-yellow-400" />
                 행운의 번호 뽑기
               </Button>
             </div>
