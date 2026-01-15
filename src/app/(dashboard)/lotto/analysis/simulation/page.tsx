@@ -161,29 +161,31 @@ export default function SimulationPage() {
           </div>
 
           {/* 1~45 번호 그리드 */}
-          <div className="grid grid-cols-9 gap-1.5 md:gap-2">
-            {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => {
-              const isSelected = selectedNumbers.includes(num);
-              return (
-                <button
-                  key={num}
-                  onClick={() => handleNumberToggle(num)}
-                  className={cn(
-                    "aspect-square rounded-full flex items-center justify-center text-xs md:text-sm font-semibold transition-all",
-                    isSelected
-                      ? "text-white shadow-md ring-2 ring-offset-1 ring-primary"
-                      : "bg-muted/50 text-foreground hover:bg-muted",
-                  )}
-                  style={
-                    isSelected
-                      ? { backgroundColor: getLottoBallColor(num) }
-                      : undefined
-                  }
-                >
-                  {num}
-                </button>
-              );
-            })}
+          <div className="md:max-w-[70%] md:mx-auto">
+            <div className="grid grid-cols-9 md:grid-cols-10 gap-1.5 md:gap-2">
+              {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => {
+                const isSelected = selectedNumbers.includes(num);
+                return (
+                  <button
+                    key={num}
+                    onClick={() => handleNumberToggle(num)}
+                    className={cn(
+                      "aspect-square rounded-full flex items-center justify-center text-xs md:text-sm font-semibold transition-all",
+                      isSelected
+                        ? "text-white shadow-md ring-2 ring-offset-1 ring-primary"
+                        : "bg-muted/50 text-foreground hover:bg-muted",
+                    )}
+                    style={
+                      isSelected
+                        ? { backgroundColor: getLottoBallColor(num) }
+                        : undefined
+                    }
+                  >
+                    {num}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* 회차 범위 선택 */}

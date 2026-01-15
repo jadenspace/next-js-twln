@@ -113,22 +113,22 @@ export default function ConsecutiveStatsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-5 md:flex md:flex-wrap gap-2 md:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-5 md:flex md:flex-wrap gap-2 md:gap-4">
                   {topPairs.map(([pair, count]) => (
                     <div
                       key={pair}
-                      className="flex flex-col items-center p-2 md:p-3 bg-card rounded-lg md:rounded-xl border md:min-w-[80px]"
+                      className="flex items-center justify-between sm:flex-col sm:justify-start p-2.5 md:p-3 bg-card rounded-lg md:rounded-xl border md:min-w-[80px]"
                     >
-                      <div className="flex gap-0.5 md:gap-1 mb-1 md:mb-2">
+                      <div className="flex gap-1 md:gap-1 sm:mb-2">
                         {pair.split(",").map((n) => (
                           <LotteryBall
                             key={n}
                             number={parseInt(n)}
-                            className="w-6 h-6 md:w-8 md:h-8 text-[10px] md:text-xs"
+                            className="w-7 h-7 md:w-8 md:h-8 text-xs md:text-xs"
                           />
                         ))}
                       </div>
-                      <span className="text-[10px] md:text-xs font-black">
+                      <span className="text-xs md:text-xs font-black">
                         {count}회
                       </span>
                     </div>
@@ -145,17 +145,17 @@ export default function ConsecutiveStatsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-4 md:flex md:flex-wrap gap-1.5 md:gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:flex md:flex-wrap gap-2 md:gap-2">
                   {Object.entries(stats.consecutiveOccurrences.byDraw)
                     .sort(([a], [b]) => parseInt(b) - parseInt(a))
                     .slice(0, 20)
                     .map(([draw, count]) => (
                       <div
                         key={draw}
-                        className="flex items-center justify-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-primary/5 border text-[10px] md:text-xs"
+                        className="flex items-center justify-between px-3 py-2 md:px-3 md:py-1.5 rounded-lg md:rounded-full bg-primary/5 border text-xs md:text-xs"
                       >
                         <span className="font-bold text-muted-foreground">
-                          {draw}회:
+                          {draw}회
                         </span>
                         <span className="font-black text-primary">
                           {count}개

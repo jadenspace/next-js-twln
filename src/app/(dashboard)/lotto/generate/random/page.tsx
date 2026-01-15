@@ -117,19 +117,19 @@ export default function RandomGeneratePage() {
 
         <div className="flex justify-center">
           <Button
-            size="lg"
-            className="h-12 md:h-16 px-6 md:px-12 text-sm md:text-lg font-bold shadow-xl transition-colors"
+            size="default"
+            className="h-10 px-6 font-semibold"
             onClick={startDraw}
             disabled={isSpinning || isCompleted}
           >
             {isSpinning ? (
               <>
-                <RotateCcw className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3 animate-spin" />
+                <RotateCcw className="w-4 h-4 animate-spin" />
                 추첨 중...
               </>
             ) : (
               <>
-                <Sparkles className="w-5 h-5 md:w-6 md:h-6 mr-2 md:mr-3 text-yellow-400" />
+                <Sparkles className="w-4 h-4 text-yellow-400" />
                 행운의 번호 뽑기
               </>
             )}

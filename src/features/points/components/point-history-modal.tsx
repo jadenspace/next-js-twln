@@ -65,14 +65,14 @@ export function PointHistoryModal({
           <DialogTitle>포인트 내역</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 min-h-[400px] overflow-y-auto px-4 pb-4 sm:px-6 sm:pb-6">
-          {isLoading ? (
-            <div className="flex justify-center items-center min-h-[350px]">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : transactions.length > 0 ? (
-            <>
-              <div className="space-y-3 min-h-[350px]">
+        <div className="h-[480px] flex flex-col px-4 pb-4 sm:px-6 sm:pb-6">
+          <div className="flex-1 overflow-y-auto">
+            {isLoading ? (
+              <div className="h-full flex justify-center items-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : transactions.length > 0 ? (
+              <div className="space-y-3">
                 {transactions.map((tx) => (
                   <div
                     key={tx.id}
@@ -106,36 +106,34 @@ export function PointHistoryModal({
                   </div>
                 ))}
               </div>
-
-              <div className="flex justify-between items-center mt-6 pt-4 border-t shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  disabled={page === 0}
-                >
-                  이전
-                </Button>
-                <span className="text-sm text-gray-500">
-                  {page + 1} / {totalPages || 1}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setPage((p) => Math.min(totalPages - 1, p + 1))
-                  }
-                  disabled={page >= totalPages - 1}
-                >
-                  다음
-                </Button>
+            ) : (
+              <div className="h-full flex justify-center items-center text-gray-500">
+                거래 내역이 없습니다.
               </div>
-            </>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              거래 내역이 없습니다.
-            </div>
-          )}
+            )}
+          </div>
+
+          <div className="flex justify-between items-center mt-4 pt-4 border-t shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0 || isLoading}
+            >
+              이전
+            </Button>
+            <span className="text-sm text-gray-500">
+              {page + 1} / {totalPages || 1}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1 || isLoading}
+            >
+              다음
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

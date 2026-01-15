@@ -439,12 +439,12 @@ export default function PatternGeneratePage() {
           >
             {isGenerating && pendingCount === 5 ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
                 생성 중...
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-4 h-4 text-yellow-400" />
                 5조합 생성 (50P)
               </>
             )}
@@ -457,12 +457,12 @@ export default function PatternGeneratePage() {
           >
             {isGenerating && pendingCount === 10 ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
                 생성 중...
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-4 h-4 text-yellow-400" />
                 10조합 생성 (100P)
               </>
             )}

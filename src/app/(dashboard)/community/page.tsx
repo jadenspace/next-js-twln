@@ -68,11 +68,11 @@ export default function CommunityPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-10">
-      <div className="flex justify-between items-center mb-8">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
+      <div className="flex justify-between items-center mb-6 md:mb-8">
         <div>
-          <h1 className="text-3xl font-bold">문의/답변</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl md:text-2xl font-bold">문의/답변</h1>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">
             서비스 이용 중 궁금한 내용을 문의해 주세요.
           </p>
         </div>

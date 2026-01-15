@@ -168,9 +168,11 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">로또 당첨번호 검색</h1>
-      <p className="text-muted-foreground mb-8">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
+      <h1 className="text-xl md:text-2xl font-bold mb-1 md:mb-2">
+        로또 당첨번호 검색
+      </h1>
+      <p className="text-xs md:text-sm text-muted-foreground mb-6 md:mb-8">
         회차별로 과거 당첨번호를 조회해보세요.
       </p>
 

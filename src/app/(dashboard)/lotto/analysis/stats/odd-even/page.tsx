@@ -137,7 +137,7 @@ export default function OddEvenStatsPage() {
             <CardContent>
               <div className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-lg md:rounded-xl bg-muted/30">
                 <Info className="w-4 h-4 md:w-5 md:h-5 text-primary mt-0.5 shrink-0" />
-                <p className="text-xs md:text-sm leading-relaxed">
+                <p className="text-xs md:text-sm leading-relaxed break-keep">
                   일반적으로 로또는 <b>홀3:짝3</b> 또는 <b>홀4:짝2 / 홀2:짝4</b>{" "}
                   비율이 가장 많이 등장합니다. 비중이 크게 차이나는 구간을
                   노려보세요.

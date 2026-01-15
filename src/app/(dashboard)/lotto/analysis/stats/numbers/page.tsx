@@ -95,7 +95,7 @@ export default function NumbersStatsPage() {
         />
       ) : (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <Card className="w-full overflow-hidden">
+          <Card className="w-full">
             <CardHeader>
               <CardTitle>번호별 출현 빈도 현황</CardTitle>
               <CardDescription>
@@ -105,7 +105,7 @@ export default function NumbersStatsPage() {
             </CardHeader>
             <CardContent>
               {/* Desktop Chart */}
-              <div className="hidden md:flex h-[350px] w-full items-end gap-[2px] pt-10 pb-6 border-b">
+              <div className="hidden md:flex h-[350px] w-full items-end gap-[2px] pt-10 pb-6 border-b overflow-x-auto min-w-0">
                 {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => {
                   const freq = stats.frequency[num] || 0;
                   const height = maxFreq > 0 ? (freq / maxFreq) * 100 : 0;
