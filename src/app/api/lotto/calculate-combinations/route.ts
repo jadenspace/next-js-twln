@@ -15,6 +15,10 @@ interface CalculateRequest {
     oddEvenRatios: string[];
     highLowRatios: string[];
     acRange: [number, number];
+    // Step 3 반복/패턴 필터 (선택적)
+    consecutivePattern?: "any" | "none";
+    sameEndDigit?: number;
+    sameSection?: number;
   };
 }
 
@@ -68,15 +72,17 @@ function passesFilters(
   numbers: number[],
   filters: NonNullable<CalculateRequest["filters"]>,
 ): boolean {
+  const sorted = [...numbers].sort((a, b) => a - b);
+
   // 1. 총합 범위 체크
-  const sum = numbers.reduce((a, b) => a + b, 0);
+  const sum = sorted.reduce((a, b) => a + b, 0);
   if (sum < filters.sumRange[0] || sum > filters.sumRange[1]) {
     return false;
   }
 
   // 2. 홀짝 비율 체크
   if (filters.oddEvenRatios.length > 0) {
-    const oddCount = numbers.filter((n) => n % 2 === 1).length;
+    const oddCount = sorted.filter((n) => n % 2 === 1).length;
     const evenCount = 6 - oddCount;
     const ratio = `${oddCount}:${evenCount}`;
     if (!filters.oddEvenRatios.includes(ratio)) {
@@ -86,7 +92,7 @@ function passesFilters(
 
   // 3. 고저 비율 체크
   if (filters.highLowRatios.length > 0) {
-    const highCount = numbers.filter((n) => n > 22).length;
+    const highCount = sorted.filter((n) => n > 22).length;
     const lowCount = 6 - highCount;
     const ratio = `${highCount}:${lowCount}`;
     if (!filters.highLowRatios.includes(ratio)) {
@@ -95,9 +101,45 @@ function passesFilters(
   }
 
   // 4. AC값 체크
-  const ac = calculateAC(numbers);
+  const ac = calculateAC(sorted);
   if (ac < filters.acRange[0] || ac > filters.acRange[1]) {
     return false;
+  }
+
+  // 5. 연속번호 패턴 체크
+  if (filters.consecutivePattern === "none") {
+    // 연속번호가 없어야 함
+    for (let i = 0; i < sorted.length - 1; i++) {
+      if (sorted[i + 1] - sorted[i] === 1) {
+        return false;
+      }
+    }
+  }
+
+  // 6. 동일 끝수 체크
+  if (filters.sameEndDigit !== undefined && filters.sameEndDigit > 0) {
+    const endDigits: Record<number, number> = {};
+    sorted.forEach((n) => {
+      const digit = n % 10;
+      endDigits[digit] = (endDigits[digit] || 0) + 1;
+    });
+    const maxSameEndDigit = Math.max(...Object.values(endDigits));
+    if (maxSameEndDigit > filters.sameEndDigit) {
+      return false;
+    }
+  }
+
+  // 7. 동일 구간 체크
+  if (filters.sameSection !== undefined && filters.sameSection > 0) {
+    const sections: Record<number, number> = {};
+    sorted.forEach((n) => {
+      const section = Math.floor((n - 1) / 10);
+      sections[section] = (sections[section] || 0) + 1;
+    });
+    const maxSameSection = Math.max(...Object.values(sections));
+    if (maxSameSection > filters.sameSection) {
+      return false;
+    }
   }
 
   return true;

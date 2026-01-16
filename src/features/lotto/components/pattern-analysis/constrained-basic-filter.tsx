@@ -151,9 +151,6 @@ export function ConstrainedBasicFilter({
               );
             })}
           </div>
-          <p className="text-xs text-muted-foreground">
-            회색 버튼: 고정수/제외수로 인해 불가능한 비율
-          </p>
         </div>
 
         {/* 고저 비율 */}
