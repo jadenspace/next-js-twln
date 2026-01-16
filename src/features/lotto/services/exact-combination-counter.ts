@@ -4,6 +4,7 @@
  */
 
 import { PatternFilterState } from "../types/pattern-filter.types";
+import { DPCombinationCounter } from "./dp-combination-counter";
 
 /**
  * 조합 공식 C(n, k) = n! / (k! * (n-k)!)
@@ -53,6 +54,11 @@ console.assert(LOTTO_CATEGORIES.highNumbers.length === 23, "고번호 개수 오
  * 정확한 조합 수 계산 클래스
  */
 export class ExactCombinationCounter {
+  private dpCounter: DPCombinationCounter;
+
+  constructor() {
+    this.dpCounter = new DPCombinationCounter();
+  }
   /**
    * 홀짝 비율에 따른 정확한 조합 수 계산
    * @param oddCount 홀수 개수 (0-6)
@@ -234,6 +240,64 @@ export class ExactCombinationCounter {
     }
 
     return totalCount;
+  }
+
+  /**
+   * 수학 필터 조합 수 계산
+   * @param filters 필터 상태
+   * @returns 정확한 조합 수, 계산 불가능하면 null
+   */
+  countMathFilters(filters: PatternFilterState): number | null {
+    const { primeCount, multiplesOf3, multiplesOf5, fixedNumbers } = filters;
+
+    // 모든 수학 필터가 비활성화된 경우
+    const isPrimeDisabled = primeCount[0] <= 0 && primeCount[1] >= 6;
+    const isMult3Disabled = multiplesOf3[0] <= 0 && multiplesOf3[1] >= 6;
+    const isMult5Disabled = multiplesOf5[0] <= 0 && multiplesOf5[1] >= 6;
+
+    if (isPrimeDisabled && isMult3Disabled && isMult5Disabled) {
+      return null; // 모두 비활성화, 계산 불필요
+    }
+
+    // 단일 필터만 활성화된 경우
+    if (!isPrimeDisabled && isMult3Disabled && isMult5Disabled) {
+      // 소수만
+      return this.dpCounter.countPrimeCombinations(
+        primeCount[0],
+        primeCount[1],
+        fixedNumbers,
+      );
+    }
+
+    if (isPrimeDisabled && !isMult3Disabled && isMult5Disabled) {
+      // 3의 배수만
+      return this.dpCounter.countMultiplesOf3Combinations(
+        multiplesOf3[0],
+        multiplesOf3[1],
+        fixedNumbers,
+      );
+    }
+
+    if (isPrimeDisabled && isMult3Disabled && !isMult5Disabled) {
+      // 5의 배수만
+      return this.dpCounter.countMultiplesOf5Combinations(
+        multiplesOf5[0],
+        multiplesOf5[1],
+        fixedNumbers,
+      );
+    }
+
+    // 소수 + 3의 배수 (상관관계 있음 - 3이 소수이자 3의 배수)
+    if (!isPrimeDisabled && !isMult3Disabled && isMult5Disabled) {
+      return this.dpCounter.countPrimeAndMult3Combinations(
+        primeCount,
+        multiplesOf3,
+        fixedNumbers,
+      );
+    }
+
+    // 그 외 복잡한 조합은 계산 불가 (샘플링 사용)
+    return null;
   }
 
   /**
