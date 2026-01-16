@@ -1,3 +1,4 @@
+import { getKstDateString } from "@/shared/lib/date-utils";
 import { createClient } from "@/shared/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = getKstDateString();
 
   try {
     // 1. Insert attendance log (Unique constraint will prevent double dipping)
