@@ -4,6 +4,14 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
+import {
   RotateCcw,
   Sparkles,
   ChevronRight,
@@ -517,6 +525,30 @@ export default function ManualPatternAnalysisPage() {
   // 생성 중인 게임 수 상태 (5 또는 10, 없으면 0/null)
   const [generatingCount, setGeneratingCount] = useState<number | null>(null);
 
+  // 포인트 사용 확인 다이얼로그 상태
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    gameCount: number;
+  }>({
+    isOpen: false,
+    gameCount: 0,
+  });
+
+  const openConfirmDialog = (gameCount: number) => {
+    if (!userPoints) {
+      toast.error(
+        "포인트 정보를 불러올 수 없습니다. 로그인 상태를 확인해주세요.",
+      );
+      return;
+    }
+    setConfirmDialog({ isOpen: true, gameCount });
+  };
+
+  const handleConfirmGenerate = () => {
+    handleGenerate(confirmDialog.gameCount);
+    setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+  };
+
   // Step 3 완료 및 번호 생성
   const handleGenerate = useCallback(
     async (gameCount: number = 5) => {
@@ -949,7 +981,7 @@ export default function ManualPatternAnalysisPage() {
               <div className="flex flex-col sm:flex-row justify-center gap-3 w-full sm:w-auto">
                 <Button
                   size="lg"
-                  onClick={() => handleGenerate(5)}
+                  onClick={() => openConfirmDialog(5)}
                   disabled={isGenerating || !canGenerate}
                   className="min-w-[140px] w-full sm:w-auto h-auto py-2 relative"
                 >
@@ -977,8 +1009,7 @@ export default function ManualPatternAnalysisPage() {
                 </Button>
                 <Button
                   size="lg"
-                  variant="outline"
-                  onClick={() => handleGenerate(10)}
+                  onClick={() => openConfirmDialog(10)}
                   disabled={isGenerating || !canGenerate10Games}
                   className="min-w-[140px] w-full sm:w-auto h-auto py-2 relative"
                 >
@@ -991,7 +1022,7 @@ export default function ManualPatternAnalysisPage() {
                     )}
                   >
                     <div className="flex items-center">
-                      <Sparkles className="w-4 h-4 mr-2" />
+                      <Sparkles className="w-4 h-4 mr-2 text-yellow-400" />
                       <span>10게임 생성</span>
                     </div>
                     <span className="text-[10px] opacity-80 font-medium">
@@ -1031,8 +1062,9 @@ export default function ManualPatternAnalysisPage() {
                   key={idx}
                   className="rounded-lg bg-muted/50 overflow-hidden"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 gap-2 sm:gap-0">
-                    <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide w-full sm:w-auto">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 gap-3 sm:gap-0">
+                    {/* 공 표시 영역 */}
+                    <div className="flex justify-center sm:justify-start gap-1.5 sm:gap-2 flex-wrap w-full sm:w-auto">
                       {result.numbers.map((num) => (
                         <div
                           key={num}
@@ -1043,13 +1075,16 @@ export default function ManualPatternAnalysisPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="flex items-center justify-end gap-1 w-full sm:w-auto">
+
+                    {/* 버튼 영역 */}
+                    <div className="flex items-center justify-between gap-1 w-full sm:w-auto mt-1 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-0 border-border/40">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleResultExpanded(idx)}
-                        className="text-muted-foreground h-8 w-8 p-0"
+                        className="text-muted-foreground hover:text-foreground h-8 px-2 flex items-center gap-1"
                       >
+                        <span className="text-xs sm:hidden">상세분석</span>
                         <ChevronDown
                           className={cn(
                             "w-4 h-4 transition-transform",
@@ -1061,8 +1096,9 @@ export default function ManualPatternAnalysisPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleCopy(result.numbers)}
-                        className="h-8 w-8 p-0"
+                        className="text-muted-foreground hover:text-foreground h-8 px-2 flex items-center gap-1"
                       >
+                        <span className="text-xs sm:hidden">복사</span>
                         <Copy className="w-4 h-4" />
                       </Button>
                     </div>
@@ -1142,7 +1178,7 @@ export default function ManualPatternAnalysisPage() {
                 </div>
               </Button>
               <Button
-                onClick={() => handleGenerate(5)}
+                onClick={() => openConfirmDialog(5)}
                 disabled={isGenerating}
                 className="w-full sm:w-auto h-auto py-2 relative"
               >
@@ -1155,8 +1191,8 @@ export default function ManualPatternAnalysisPage() {
                   )}
                 >
                   <div className="flex items-center">
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    <span>5게임 생성</span>
+                    <Sparkles className="w-4 h-4 mr-2 text-yellow-400" />
+                    <span>5게임 추가 생성</span>
                   </div>
                   <span className="text-[10px] opacity-80 font-medium">
                     -500P
@@ -1169,8 +1205,7 @@ export default function ManualPatternAnalysisPage() {
                 )}
               </Button>
               <Button
-                variant="outline"
-                onClick={() => handleGenerate(10)}
+                onClick={() => openConfirmDialog(10)}
                 disabled={isGenerating || !canGenerate10Games}
                 className="w-full sm:w-auto h-auto py-2 relative"
               >
@@ -1183,8 +1218,8 @@ export default function ManualPatternAnalysisPage() {
                   )}
                 >
                   <div className="flex items-center">
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    <span>10게임 생성</span>
+                    <Sparkles className="w-4 h-4 mr-2 text-yellow-400" />
+                    <span>10게임 추가 생성</span>
                   </div>
                   <span className="text-[10px] opacity-80 font-medium">
                     -1,000P
@@ -1200,6 +1235,66 @@ export default function ManualPatternAnalysisPage() {
           </CardContent>
         </Card>
       )}
+      {/* 포인트 사용 확인 다이얼로그 */}
+      <Dialog
+        open={confirmDialog.isOpen}
+        onOpenChange={(open) =>
+          setConfirmDialog((prev) => ({ ...prev, isOpen: open }))
+        }
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>포인트 사용 확인</DialogTitle>
+            <DialogDescription>
+              패턴 조합 생성을 위해 포인트를 사용하시겠습니까?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">보유 포인트</span>
+              <span className="font-semibold">
+                {userPoints?.balance.toLocaleString()} P
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">차감 포인트</span>
+              <span className="font-semibold text-destructive">
+                -{(confirmDialog.gameCount * 100).toLocaleString()} P
+              </span>
+            </div>
+            <div className="border-t pt-4 flex justify-between items-center text-base font-bold">
+              <span>차감 후 잔액</span>
+              <span className="text-primary">
+                {(
+                  (userPoints?.balance || 0) -
+                  confirmDialog.gameCount * 100
+                ).toLocaleString()}{" "}
+                P
+              </span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() =>
+                setConfirmDialog((prev) => ({ ...prev, isOpen: false }))
+              }
+            >
+              취소
+            </Button>
+            <Button onClick={handleConfirmGenerate} disabled={isGenerating}>
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  생성 중...
+                </>
+              ) : (
+                "확인"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
