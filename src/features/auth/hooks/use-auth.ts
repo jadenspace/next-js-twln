@@ -146,6 +146,20 @@ export const useAuth = () => {
     },
   });
 
+  // 이메일 인증 재발송 뮤테이션
+  const resendVerificationMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const result = await authApi.resendVerificationEmail(email);
+      if ("error" in result) {
+        return Promise.reject({ message: result.error });
+      }
+      return result;
+    },
+    onError: (error) => {
+      console.error("이메일 인증 재발송 실패:", error);
+    },
+  });
+
   // 현재 사용자 정보가 변경되면 스토어 업데이트
   useEffect(() => {
     if (currentUser) {
@@ -163,16 +177,19 @@ export const useAuth = () => {
     resetPassword: resetPasswordMutation.mutate,
     checkEmail: checkEmailMutation.mutate,
     updatePassword: updatePasswordMutation.mutate,
+    resendVerification: resendVerificationMutation.mutate,
     isSigningIn: signInMutation.isPending,
     isSigningUp: signUpMutation.isPending,
     isSigningOut: signOutMutation.isPending,
     isResettingPassword: resetPasswordMutation.isPending,
     isCheckingEmail: checkEmailMutation.isPending,
     isUpdatingPassword: updatePasswordMutation.isPending,
+    isResendingVerification: resendVerificationMutation.isPending,
     signInMutation,
     signUpMutation,
     resetPasswordMutation,
     checkEmailMutation,
     updatePasswordMutation,
+    resendVerificationMutation,
   };
 };

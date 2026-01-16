@@ -162,9 +162,13 @@ export function Header() {
               href="/"
               className="font-bold text-xl flex items-center gap-2 absolute left-1/2 -translate-x-1/2 xl:static xl:left-auto xl:translate-x-0"
             >
-              <div className="hidden xl:flex w-8 h-8 bg-primary rounded-lg items-center justify-center text-primary-foreground">
-                D
-              </div>
+              <img
+                src="/android-chrome-192x192.png"
+                alt="로또탐정 로고"
+                width={32}
+                height={32}
+                className="hidden xl:block rounded-lg object-contain"
+              />
               <span className="hidden sm:inline-block">로또탐정</span>
               <span className="sm:hidden">로또탐정</span>
             </Link>
@@ -423,9 +427,13 @@ export function Header() {
             className="font-bold text-xl flex items-center gap-2"
             onClick={() => setIsMobileMenuOpen(false)}
           >
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-              D
-            </div>
+            <img
+              src="/android-chrome-192x192.png"
+              alt="로또탐정 로고"
+              width={32}
+              height={32}
+              className="rounded-lg object-contain"
+            />
             로또탐정
           </Link>
           <Button
