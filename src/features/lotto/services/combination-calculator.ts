@@ -262,7 +262,23 @@ export class CombinationCalculator {
     }
     ratio *= acRatio;
 
-    // 3. 패턴 및 수학 필터는 샘플링으로 추정
+    // 3. 수학 필터: 정확한 계산 시도
+    const mathCount = this.exactCounter.countMathFilters(filters);
+    if (mathCount !== null) {
+      // 정확한 계산 가능
+      const baseMathTotal = combination(
+        45 - filters.fixedNumbers.length,
+        6 - filters.fixedNumbers.length,
+      );
+      if (baseMathTotal > 0) {
+        const mathRatio = mathCount / baseMathTotal;
+        ratio *= mathRatio;
+      }
+    } else {
+      // 수학 필터 정확 계산 불가 - 샘플링에 포함됨
+    }
+
+    // 4. 패턴 필터는 샘플링으로 추정
     const samplingRatio = this.estimateOtherFiltersBySampling(filters);
     ratio *= samplingRatio;
 
