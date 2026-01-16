@@ -1,8 +1,10 @@
 import { createClient } from "@/shared/lib/supabase/server";
+import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
+  const adminSupabase = createAdminClient();
 
   // 1. Authenticate
   const {
@@ -21,8 +23,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 
-    // 2. Check Balance
-    const { data: userPoints, error: fetchError } = await supabase
+    // 2. Check Balance (Use Admin Client to be safe, though user read might be allowed)
+    const { data: userPoints, error: fetchError } = await adminSupabase
       .from("user_points")
       .select("balance, total_spent")
       .eq("user_id", user.id)
@@ -43,11 +45,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Deduct Points (Update Balance)
+    // 3. Deduct Points (Update Balance) - Use Admin Client
     const newBalance = userPoints.balance - amount;
     const newTotalSpent = (userPoints.total_spent || 0) + amount;
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await adminSupabase
       .from("user_points")
       .update({
         balance: newBalance,
@@ -58,16 +60,16 @@ export async function POST(request: NextRequest) {
 
     if (updateError) throw updateError;
 
-    // 4. Insert Transaction
-    const { error: transactionError } = await supabase
+    // 4. Insert Transaction - Use Admin Client
+    const { error: transactionError } = await adminSupabase
       .from("point_transactions")
       .insert({
         user_id: user.id,
         transaction_type: "use",
         amount: -amount,
         balance_after: newBalance,
+        // feature_type: featureType, // Temporarily disabled for debugging
         description: description || "Points used",
-        feature_type: featureType,
         created_at: new Date().toISOString(),
       });
 
@@ -77,7 +79,7 @@ export async function POST(request: NextRequest) {
       // For now log it (or rely on robust backend if we had SQL functions).
       console.error(
         "Transaction insertion failed after deduction",
-        transactionError,
+        JSON.stringify(transactionError, null, 2),
       );
       return NextResponse.json(
         { error: "Transaction record failed" },

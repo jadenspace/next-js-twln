@@ -37,6 +37,22 @@ export function usePoints() {
     queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
   };
 
+  const usePointsMutation = useMutation({
+    mutationFn: (params: {
+      amount: number;
+      featureType: string;
+      description: string;
+    }) =>
+      pointsApi.deductPoints(
+        params.amount,
+        params.featureType,
+        params.description,
+      ),
+    onSuccess: () => {
+      refreshPoints();
+    },
+  });
+
   return {
     userPoints,
     pointPackages,
@@ -44,5 +60,6 @@ export function usePoints() {
     isPackagesLoading,
     userId,
     refreshPoints,
+    usePointsMutation,
   };
 }

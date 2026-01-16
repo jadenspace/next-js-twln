@@ -32,7 +32,7 @@ export default function ChargePage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-10">
+    <div className="max-w-5xl mx-auto py-6 px-4 md:py-10">
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold mb-2">포인트 충전</h1>
         <p className="text-muted-foreground">

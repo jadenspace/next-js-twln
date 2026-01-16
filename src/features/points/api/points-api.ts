@@ -71,4 +71,27 @@ export const pointsApi = {
 
     return data as PointTransaction[];
   },
+
+  // 포인트 사용
+  async deductPoints(
+    amount: number,
+    featureType: string,
+    description: string,
+  ): Promise<{ success: boolean; balance: number }> {
+    const response = await fetch("/api/points/use", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ amount, featureType, description }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "포인트 사용에 실패했습니다.");
+    }
+
+    return result;
+  },
 };

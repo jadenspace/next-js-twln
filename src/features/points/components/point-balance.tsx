@@ -4,8 +4,17 @@ import { CreditCard, History } from "lucide-react";
 import { useState } from "react";
 import { PointHistoryModal } from "./point-history-modal";
 import Link from "next/link";
+import { cn } from "@/shared/lib/utils";
 
-export function PointBalance() {
+interface PointBalanceProps {
+  showBalance?: boolean;
+  onHistoryClick?: () => void;
+}
+
+export function PointBalance({
+  showBalance = false,
+  onHistoryClick,
+}: PointBalanceProps) {
   const { userPoints, userId, isPointsLoading } = usePoints();
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
@@ -14,7 +23,12 @@ export function PointBalance() {
   return (
     <>
       <div className="flex items-center gap-2">
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-secondary/20 rounded-full border border-border">
+        <div
+          className={cn(
+            "flex items-center gap-2 px-3 py-1.5 bg-secondary/20 rounded-full border border-border",
+            !showBalance && "hidden md:flex",
+          )}
+        >
           <CreditCard className="w-4 h-4 text-primary" />
           <span className="font-semibold text-sm">
             {isPointsLoading
@@ -28,7 +42,10 @@ export function PointBalance() {
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => setIsHistoryOpen(true)}
+          onClick={() => {
+            setIsHistoryOpen(true);
+            onHistoryClick?.();
+          }}
           title="포인트 내역"
         >
           <History className="w-4 h-4" />

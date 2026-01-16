@@ -67,8 +67,36 @@ export default function RandomGeneratePage() {
     });
   };
 
-  const handleSave = () => {
-    toast.info("추천 번호가 저장되었습니다. (준비 중)");
+  const handleSave = async () => {
+    if (drawnNumbers.length !== 6) {
+      toast.error("추첨이 완료되지 않았습니다.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/lotto/saved-numbers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          numbers: drawnNumbers.sort((a, b) => a - b),
+          source: "simulation",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "저장에 실패했습니다.");
+      }
+
+      toast.success("마이페이지에 번호가 저장되었습니다!", {
+        description: drawnNumbers.sort((a, b) => a - b).join(", "),
+      });
+    } catch (error: any) {
+      console.error("Save error:", error);
+      toast.error(
+        error.message || "저장에 실패했습니다. 로그인 상태를 확인해주세요.",
+      );
+    }
   };
 
   return (
@@ -182,7 +210,7 @@ export default function RandomGeneratePage() {
               onClick={handleSave}
             >
               <Save className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-              서버에 저장하기
+              마이페이지에 저장
             </Button>
           </DialogFooter>
         </DialogContent>

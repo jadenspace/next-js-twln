@@ -608,6 +608,12 @@ export function Header() {
               <p className="text-sm font-medium text-foreground px-1">
                 {user?.email}
               </p>
+              <div className="px-1 py-1">
+                <PointBalance
+                  showBalance
+                  onHistoryClick={() => setIsMobileMenuOpen(false)}
+                />
+              </div>
               {isAdmin && (
                 <Link href="/admin">
                   <Button

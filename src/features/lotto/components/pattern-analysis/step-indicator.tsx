@@ -46,7 +46,7 @@ export function StepIndicator({
             >
               <div
                 className={cn(
-                  "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold border-2 transition-all duration-300 bg-background",
+                  "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 bg-background",
                   isCompleted
                     ? "bg-primary text-primary-foreground border-primary"
                     : isCurrent
@@ -54,16 +54,12 @@ export function StepIndicator({
                       : "bg-background text-muted-foreground border-muted",
                 )}
               >
-                {isCompleted ? (
-                  <Check className="w-4 h-4 sm:w-5 sm:h-5" />
-                ) : (
-                  stepInfo.step
-                )}
+                {isCompleted ? <Check className="w-5 h-5" /> : stepInfo.step}
               </div>
               <div className="mt-2 text-center">
                 <p
                   className={cn(
-                    "text-[10px] sm:text-sm font-medium whitespace-nowrap",
+                    "text-xs sm:text-sm font-medium whitespace-nowrap",
                     isCurrent || isCompleted
                       ? "text-foreground"
                       : "text-muted-foreground",

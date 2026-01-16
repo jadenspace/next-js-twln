@@ -42,7 +42,7 @@ export const useAuth = () => {
       const result = await authApi.signIn(email, password);
       if ("error" in result) {
         // 오류를 throw하지 말고 오류 객체 반환
-        return Promise.reject({ message: result.error });
+        return Promise.reject(result.error);
       }
       return result.data;
     },
@@ -85,7 +85,7 @@ export const useAuth = () => {
       const result = await authApi.signUp(email, password);
       if ("error" in result) {
         // 오류를 throw하지 말고 오류 객체 반환
-        return Promise.reject({ message: result.error });
+        return Promise.reject(result.error);
       }
       return result.data;
     },
