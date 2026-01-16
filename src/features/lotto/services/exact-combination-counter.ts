@@ -301,6 +301,54 @@ export class ExactCombinationCounter {
   }
 
   /**
+   * 번호 총합 범위 조합 수 계산
+   * @param filters 필터 상태
+   * @returns 정확한 조합 수, 계산 불가능하면 null
+   */
+  countSumRangeFilter(filters: PatternFilterState): number | null {
+    const { sumRange, fixedNumbers } = filters;
+
+    // 총합 범위가 전체 범위인 경우 (비활성화)
+    const minPossible = 21; // 1+2+3+4+5+6
+    const maxPossible = 255; // 40+41+42+43+44+45
+
+    if (sumRange[0] <= minPossible && sumRange[1] >= maxPossible) {
+      return null; // 전체 범위, 계산 불필요
+    }
+
+    // DP로 정확한 조합 수 계산
+    return this.dpCounter.countSumRangeCombinations(
+      sumRange[0],
+      sumRange[1],
+      fixedNumbers,
+    );
+  }
+
+  /**
+   * AC값 범위 조합 수 계산
+   * @param filters 필터 상태
+   * @returns 정확한 조합 수, 계산 불가능하면 null
+   */
+  countACRangeFilter(filters: PatternFilterState): number | null {
+    const { acRange, fixedNumbers } = filters;
+
+    // AC값 범위가 전체 범위인 경우 (비활성화)
+    const minPossible = 0; // 1,2,3,4,5,6 => 6-1-5=0
+    const maxPossible = 39; // 1,6,12,18,24,45 같은 극단적 경우
+
+    if (acRange[0] <= minPossible && acRange[1] >= maxPossible) {
+      return null; // 전체 범위, 계산 불필요
+    }
+
+    // DP로 정확한 조합 수 계산
+    return this.dpCounter.countACRangeCombinations(
+      acRange[0],
+      acRange[1],
+      fixedNumbers,
+    );
+  }
+
+  /**
    * 기본 필터 조합 수 계산 (통합 인터페이스)
    * @param filters 필터 상태
    * @returns 정확한 조합 수, 계산 불가능하면 null

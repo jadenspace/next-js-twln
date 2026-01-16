@@ -251,16 +251,47 @@ export class CombinationCalculator {
   private estimateNonBasicFilters(filters: PatternFilterState): number {
     let ratio = 1.0;
 
-    // 1. 총합 범위 적용
-    const sumRatio = getSumRangeRatio(filters.sumRange[0], filters.sumRange[1]);
-    ratio *= sumRatio;
-
-    // 2. AC값 범위 적용
-    let acRatio = 0;
-    for (let ac = filters.acRange[0]; ac <= filters.acRange[1]; ac++) {
-      acRatio += AC_VALUE_RATIOS[ac] || 0;
+    // 1. 번호 총합 범위: 정확한 계산 시도
+    const sumCount = this.exactCounter.countSumRangeFilter(filters);
+    if (sumCount !== null) {
+      // 정확한 계산 가능
+      const baseSumTotal = combination(
+        45 - filters.fixedNumbers.length,
+        6 - filters.fixedNumbers.length,
+      );
+      if (baseSumTotal > 0) {
+        const sumRatio = sumCount / baseSumTotal;
+        ratio *= sumRatio;
+      }
+    } else {
+      // 전체 범위 - 샘플링 사용
+      const sumRatio = getSumRangeRatio(
+        filters.sumRange[0],
+        filters.sumRange[1],
+      );
+      ratio *= sumRatio;
     }
-    ratio *= acRatio;
+
+    // 2. AC값 범위: 정확한 계산 시도
+    const acCount = this.exactCounter.countACRangeFilter(filters);
+    if (acCount !== null) {
+      // 정확한 계산 가능
+      const baseACTotal = combination(
+        45 - filters.fixedNumbers.length,
+        6 - filters.fixedNumbers.length,
+      );
+      if (baseACTotal > 0) {
+        const acRatio = acCount / baseACTotal;
+        ratio *= acRatio;
+      }
+    } else {
+      // 전체 범위 - 샘플링 사용
+      let acRatio = 0;
+      for (let ac = filters.acRange[0]; ac <= filters.acRange[1]; ac++) {
+        acRatio += AC_VALUE_RATIOS[ac] || 0;
+      }
+      ratio *= acRatio;
+    }
 
     // 3. 수학 필터: 정확한 계산 시도
     const mathCount = this.exactCounter.countMathFilters(filters);

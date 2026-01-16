@@ -301,6 +301,153 @@ export class DPCombinationCounter {
   }
 
   /**
+   * 번호 총합 범위에 해당하는 조합 수 계산 (DP)
+   * @param minSum 최소 총합
+   * @param maxSum 최대 총합
+   * @param excludedNumbers 제외할 번호
+   * @returns 정확한 조합 수
+   */
+  countSumRangeCombinations(
+    minSum: number,
+    maxSum: number,
+    excludedNumbers: number[] = [],
+  ): number {
+    const excludedSet = new Set(excludedNumbers);
+    const availableNumbers = Array.from({ length: 45 }, (_, i) => i + 1).filter(
+      (n) => !excludedSet.has(n),
+    );
+
+    const selectCount = 6 - excludedNumbers.length;
+    if (selectCount <= 0) {
+      // 이미 6개 선택됨 - 총합 확인
+      const sum = excludedNumbers.reduce((a, b) => a + b, 0);
+      return sum >= minSum && sum <= maxSum ? 1 : 0;
+    }
+
+    // DP: dp[i][j][s] = i번째 번호까지 고려, j개 선택, 총합 s
+    // 메모리 최적화: Map으로 필요한 상태만 저장
+    const dp = new Map<string, number>();
+
+    const getKey = (idx: number, selected: number, sum: number) =>
+      `${idx},${selected},${sum}`;
+
+    const solve = (idx: number, selected: number, sum: number): number => {
+      // 종료 조건
+      if (selected === selectCount) {
+        return sum >= minSum && sum <= maxSum ? 1 : 0;
+      }
+
+      // 남은 번호로 선택 불가능
+      if (idx >= availableNumbers.length) {
+        return 0;
+      }
+
+      // 남은 번호가 부족
+      if (availableNumbers.length - idx < selectCount - selected) {
+        return 0;
+      }
+
+      // 캐시 확인
+      const key = getKey(idx, selected, sum);
+      if (dp.has(key)) {
+        return dp.get(key)!;
+      }
+
+      // 현재 번호 선택 or 미선택
+      const currentNum = availableNumbers[idx];
+      const count =
+        solve(idx + 1, selected + 1, sum + currentNum) + // 선택
+        solve(idx + 1, selected, sum); // 미선택
+
+      dp.set(key, count);
+      return count;
+    };
+
+    return solve(0, 0, 0);
+  }
+
+  /**
+   * AC값 (Arithmetic Complexity) 범위에 해당하는 조합 수 계산
+   * AC = (최대값 - 최소값) - 5
+   * @param minAC 최소 AC값
+   * @param maxAC 최대 AC값
+   * @param excludedNumbers 제외할 번호
+   * @returns 정확한 조합 수
+   */
+  countACRangeCombinations(
+    minAC: number,
+    maxAC: number,
+    excludedNumbers: number[] = [],
+  ): number {
+    const excludedSet = new Set(excludedNumbers);
+    const availableNumbers = Array.from({ length: 45 }, (_, i) => i + 1).filter(
+      (n) => !excludedSet.has(n),
+    );
+
+    const selectCount = 6 - excludedNumbers.length;
+    if (selectCount <= 0) {
+      // 이미 6개 선택됨 - AC값 확인
+      const sorted = excludedNumbers.slice().sort((a, b) => a - b);
+      const ac = sorted[sorted.length - 1] - sorted[0] - 5;
+      return ac >= minAC && ac <= maxAC ? 1 : 0;
+    }
+
+    // DP: dp[i][j][min][max] = 조합 수
+    // 메모리 최적화: Map으로 필요한 상태만 저장
+    const dp = new Map<string, number>();
+
+    const getKey = (idx: number, selected: number, min: number, max: number) =>
+      `${idx},${selected},${min},${max}`;
+
+    const solve = (
+      idx: number,
+      selected: number,
+      min: number,
+      max: number,
+    ): number => {
+      // 종료 조건
+      if (selected === selectCount) {
+        const ac = max - min - 5;
+        return ac >= minAC && ac <= maxAC ? 1 : 0;
+      }
+
+      // 남은 번호로 선택 불가능
+      if (idx >= availableNumbers.length) {
+        return 0;
+      }
+
+      // 남은 번호가 부족
+      if (availableNumbers.length - idx < selectCount - selected) {
+        return 0;
+      }
+
+      // 캐시 확인
+      const key = getKey(idx, selected, min, max);
+      if (dp.has(key)) {
+        return dp.get(key)!;
+      }
+
+      // 현재 번호 선택 or 미선택
+      const currentNum = availableNumbers[idx];
+
+      let count = 0;
+
+      // 선택: min/max 업데이트
+      const newMin = Math.min(min, currentNum);
+      const newMax = Math.max(max, currentNum);
+      count += solve(idx + 1, selected + 1, newMin, newMax);
+
+      // 미선택
+      count += solve(idx + 1, selected, min, max);
+
+      dp.set(key, count);
+      return count;
+    };
+
+    return solve(0, 0, Infinity, -Infinity);
+  }
+
+  /**
    * 캐시 초기화
    */
   clearCache(): void {
