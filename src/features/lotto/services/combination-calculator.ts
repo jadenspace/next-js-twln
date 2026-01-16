@@ -14,6 +14,7 @@ import {
   generateRandomCombinationWithFixed,
 } from "../lib/lotto-math";
 import { PatternFilter } from "./pattern-filter";
+import { ExactCombinationCounter } from "./exact-combination-counter";
 
 // 사전 계산된 홀짝 비율별 조합 수
 const ODD_EVEN_COUNTS: Record<string, number> = {
@@ -50,6 +51,66 @@ const AC_VALUE_RATIOS: Record<number, number> = {
   8: 0.2,
   9: 0.17,
   10: 0.089,
+};
+
+// 연속번호 패턴별 비율 (실제 분포 기반 추정)
+const CONSECUTIVE_PATTERN_RATIOS: Record<string, number> = {
+  any: 1.0, // 제한 없음
+  none: 0.223, // 연속번호 없음 (~22.3%)
+  "2-pair-1": 0.425, // 2연속 1쌍 (~42.5%)
+  "2-pair-2": 0.089, // 2연속 2쌍 (~8.9%)
+  "3-run-1": 0.175, // 3연속 1쌍 (~17.5%)
+  "4-run-1": 0.045, // 4연속 1쌍 (~4.5%)
+};
+
+// 동일 끝수 제한별 비율
+const SAME_END_DIGIT_RATIOS: Record<number, number> = {
+  0: 1.0, // 제한 없음 (모든 경우)
+  3: 0.95, // 3개까지 허용 (~95% - 4개 이상 제외)
+  2: 0.65, // 2개까지 허용 (~65% - 3개 이상 제외)
+};
+
+// 동일 구간 제한별 비율
+const SAME_SECTION_RATIOS: Record<number, number> = {
+  0: 1.0, // 제한 없음 (모든 경우)
+  3: 0.92, // 3개까지 허용 (~92% - 4개 이상 제외)
+  2: 0.58, // 2개까지 허용 (~58% - 3개 이상 제외)
+};
+
+// 소수 개수별 비율 (1~45 중 소수: 2,3,5,7,11,13,17,19,23,29,31,37,41,43 = 14개)
+const PRIME_COUNT_RATIOS: Record<string, number> = {
+  "0-6": 1.0, // 제한 없음
+  "0-0": 0.002, // 0개
+  "1-1": 0.018,
+  "2-2": 0.088,
+  "3-3": 0.232,
+  "4-4": 0.312,
+  "5-5": 0.235,
+  "6-6": 0.113,
+};
+
+// 3의 배수 개수별 비율 (1~45 중 15개)
+const MULTIPLES_OF_3_RATIOS: Record<string, number> = {
+  "0-6": 1.0,
+  "0-0": 0.007,
+  "1-1": 0.056,
+  "2-2": 0.195,
+  "3-3": 0.325,
+  "4-4": 0.281,
+  "5-5": 0.118,
+  "6-6": 0.018,
+};
+
+// 5의 배수 개수별 비율 (1~45 중 9개)
+const MULTIPLES_OF_5_RATIOS: Record<string, number> = {
+  "0-6": 1.0,
+  "0-0": 0.065,
+  "1-1": 0.285,
+  "2-2": 0.368,
+  "3-3": 0.213,
+  "4-4": 0.062,
+  "5-5": 0.007,
+  "6-6": 0.0003,
 };
 
 // 총합 구간별 비율 (정규분포 근사)
@@ -93,14 +154,17 @@ function getSumRangeRatio(min: number, max: number): number {
 
 export class CombinationCalculator {
   private patternFilter: PatternFilter;
+  private exactCounter: ExactCombinationCounter;
 
   constructor() {
     this.patternFilter = new PatternFilter();
+    this.exactCounter = new ExactCombinationCounter();
   }
 
   /**
    * 필터 조건에 따른 경우의 수 추정
-   * 샘플링 + 사전 계산 비율 조합
+   * 기본 필터(홀짝, 고저, 고정수)는 정확한 계산 사용
+   * 나머지는 샘플링 + 사전 계산 비율 조합
    */
   estimateCombinations(filters: PatternFilterState): CombinationInfo {
     const fixedNumbers = Array.from(new Set(filters.fixedNumbers));
@@ -110,120 +174,10 @@ export class CombinationCalculator {
       return { total: 0, percentage: 0, status: "excessive" };
     }
 
-    const fixedBaseTotal =
-      fixedCount > 0 ? combination(45 - fixedCount, 6 - fixedCount) : null;
-
-    const isUnfiltered =
-      filters.oddEvenRatios.length === 0 &&
-      filters.highLowRatios.length === 0 &&
-      filters.sumRange[0] <= 21 &&
-      filters.sumRange[1] >= 255 &&
-      filters.acRange[0] <= 0 &&
-      filters.acRange[1] >= 10 &&
-      filters.consecutivePattern === "any" &&
-      filters.sameEndDigit <= 0 &&
-      filters.sameSection <= 0 &&
-      filters.primeCount[0] <= 0 &&
-      filters.primeCount[1] >= 6 &&
-      filters.compositeCount[0] <= 0 &&
-      filters.compositeCount[1] >= 6 &&
-      filters.multiplesOf3[0] <= 0 &&
-      filters.multiplesOf3[1] >= 6 &&
-      filters.multiplesOf5[0] <= 0 &&
-      filters.multiplesOf5[1] >= 6 &&
-      filters.squareCount[0] <= 0 &&
-      filters.squareCount[1] >= 6;
-
-    if (fixedBaseTotal !== null && isUnfiltered) {
-      const ratio = fixedBaseTotal / TOTAL_COMBINATIONS;
-      return {
-        total: fixedBaseTotal,
-        percentage: ratio * 100,
-        status: this.getStatus(fixedBaseTotal),
-      };
-    }
-
-    if (fixedBaseTotal !== null) {
-      const samplingRatio = this.estimateWithFixedSampling(
-        filters,
-        fixedNumbers,
-      );
-      const estimated = Math.round(fixedBaseTotal * samplingRatio);
-      const ratio = estimated / TOTAL_COMBINATIONS;
-
-      return {
-        total: Math.max(0, estimated),
-        percentage: ratio * 100,
-        status: this.getStatus(estimated),
-      };
-    }
-
-    let ratio = 1.0;
-
-    // 1. 홀짝 비율 적용
-    if (filters.oddEvenRatios.length > 0 && filters.oddEvenRatios.length < 7) {
-      const oddEvenRatio =
-        filters.oddEvenRatios.reduce(
-          (sum, r) => sum + (ODD_EVEN_COUNTS[r] || 0),
-          0,
-        ) / TOTAL_COMBINATIONS;
-      ratio *= oddEvenRatio;
-    }
-
-    // 2. 고저 비율 적용
-    if (filters.highLowRatios.length > 0 && filters.highLowRatios.length < 7) {
-      const highLowRatio =
-        filters.highLowRatios.reduce(
-          (sum, r) => sum + (HIGH_LOW_COUNTS[r] || 0),
-          0,
-        ) / TOTAL_COMBINATIONS;
-      ratio *= highLowRatio;
-    }
-
-    // 3. 총합 범위 적용
-    const sumRatio = getSumRangeRatio(filters.sumRange[0], filters.sumRange[1]);
-    ratio *= sumRatio;
-
-    // 4. AC값 범위 적용
-    let acRatio = 0;
-    for (let ac = filters.acRange[0]; ac <= filters.acRange[1]; ac++) {
-      acRatio += AC_VALUE_RATIOS[ac] || 0;
-    }
-    ratio *= acRatio;
-
-    // 5. 기타 필터는 샘플링으로 추정
-    const samplingRatio = this.estimateOtherFiltersBySampling(filters);
-    ratio *= samplingRatio;
-
-    // 최종 계산
-    const estimated = Math.round(TOTAL_COMBINATIONS * ratio);
-
-    return {
-      total: Math.max(0, estimated),
-      percentage: ratio * 100,
-      status: this.getStatus(estimated),
-    };
-  }
-
-  /**
-   * 샘플링으로 기타 필터 비율 추정
-   */
-  private estimateOtherFiltersBySampling(filters: PatternFilterState): number {
-    const sampleSize = 10000;
-    let matchCount = 0;
-
-    // 기본 필터를 제외한 나머지 필터만 적용
-    const otherFilters: PatternFilterState = {
-      ...filters,
-      // 이미 사전 계산된 필터는 무시
-      oddEvenRatios: [],
-      highLowRatios: [],
-      sumRange: [21, 255],
-      acRange: [0, 10],
-    };
-
-    // 남은 필터가 기본값인지 확인
+    // 기타 필터가 모두 비활성화되었는지 확인
     const hasOtherFilters =
+      !(filters.sumRange[0] <= 21 && filters.sumRange[1] >= 255) ||
+      !(filters.acRange[0] <= 0 && filters.acRange[1] >= 10) ||
       filters.consecutivePattern !== "any" ||
       filters.sameEndDigit > 0 ||
       filters.sameSection > 0 ||
@@ -238,18 +192,302 @@ export class CombinationCalculator {
       filters.squareCount[0] > 0 ||
       filters.squareCount[1] < 6;
 
+    // 기본 필터(홀짝, 고저, 고정수)만 있는 경우 정확한 계산 사용
     if (!hasOtherFilters) {
-      return 1.0;
+      const exactCount = this.exactCounter.countBasicFilters(filters);
+
+      if (exactCount !== null) {
+        const ratio = exactCount / TOTAL_COMBINATIONS;
+        return {
+          total: exactCount,
+          percentage: ratio * 100,
+          status: this.getStatus(exactCount),
+        };
+      }
     }
+
+    // 복잡한 필터가 있는 경우: 기본 필터는 정확하게, 나머지는 샘플링
+    const exactBasicCount = this.exactCounter.countBasicFilters(filters);
+
+    if (exactBasicCount !== null && exactBasicCount > 0) {
+      // 기본 필터 제외한 나머지 필터의 비율 추정
+      const otherFiltersRatio = this.estimateNonBasicFilters(filters);
+
+      const estimated = Math.round(exactBasicCount * otherFiltersRatio);
+      const ratio = estimated / TOTAL_COMBINATIONS;
+
+      return {
+        total: Math.max(0, estimated),
+        percentage: ratio * 100,
+        status: this.getStatus(estimated),
+      };
+    }
+
+    // 기본 필터가 복잡하거나 계산 불가능한 경우: 기존 방식 사용 (전체 샘플링)
+    // 이 경로는 exactCounter.countBasicFilters가 null을 반환하거나 0을 반환했을 때 사용될 수 있음.
+    // 또는 fixedNumbers가 있지만 exactCounter가 처리하지 못하는 경우 (현재는 처리함)
+    // 이 경우, 전체 조합에 대해 샘플링을 수행하여 비율을 추정한다.
+    const sampleSize = 10000;
+    let matchCount = 0;
+    for (let i = 0; i < sampleSize; i++) {
+      const combination = generateRandomCombination();
+      if (this.patternFilter.matchesFilter(combination, filters)) {
+        matchCount++;
+      }
+    }
+    const ratio = matchCount / sampleSize;
+    const estimated = Math.round(TOTAL_COMBINATIONS * ratio);
+
+    return {
+      total: Math.max(0, estimated),
+      percentage: ratio * 100,
+      status: this.getStatus(estimated),
+    };
+  }
+
+  /**
+   * 기본 필터(홀짝, 고저, 고정수) 외 나머지 필터의 비율 추정
+   */
+  private estimateNonBasicFilters(filters: PatternFilterState): number {
+    let ratio = 1.0;
+
+    // 1. 번호 총합 범위: 정확한 계산 시도
+    const sumCount = this.exactCounter.countSumRangeFilter(filters);
+    if (sumCount !== null) {
+      // 정확한 계산 가능
+      const baseSumTotal = combination(
+        45 - filters.fixedNumbers.length,
+        6 - filters.fixedNumbers.length,
+      );
+      if (baseSumTotal > 0) {
+        const sumRatio = sumCount / baseSumTotal;
+        ratio *= sumRatio;
+      }
+    } else {
+      // 전체 범위 - 샘플링 사용
+      const sumRatio = getSumRangeRatio(
+        filters.sumRange[0],
+        filters.sumRange[1],
+      );
+      ratio *= sumRatio;
+    }
+
+    // 2. AC값 범위: 정확한 계산 시도
+    const acCount = this.exactCounter.countACRangeFilter(filters);
+    if (acCount !== null) {
+      // 정확한 계산 가능
+      const baseACTotal = combination(
+        45 - filters.fixedNumbers.length,
+        6 - filters.fixedNumbers.length,
+      );
+      if (baseACTotal > 0) {
+        const acRatio = acCount / baseACTotal;
+        ratio *= acRatio;
+      }
+    } else {
+      // 전체 범위 - 샘플링 사용
+      let acRatio = 0;
+      for (let ac = filters.acRange[0]; ac <= filters.acRange[1]; ac++) {
+        acRatio += AC_VALUE_RATIOS[ac] || 0;
+      }
+      ratio *= acRatio;
+    }
+
+    // 3. 수학 필터: 정확한 계산 시도
+    const mathCount = this.exactCounter.countMathFilters(filters);
+    if (mathCount !== null) {
+      // 정확한 계산 가능
+      const baseMathTotal = combination(
+        45 - filters.fixedNumbers.length,
+        6 - filters.fixedNumbers.length,
+      );
+      if (baseMathTotal > 0) {
+        const mathRatio = mathCount / baseMathTotal;
+        ratio *= mathRatio;
+      }
+    } else {
+      // 수학 필터 정확 계산 불가 - 샘플링에 포함됨
+    }
+
+    // 4. 패턴 필터는 샘플링으로 추정
+    const samplingRatio = this.estimateOtherFiltersBySampling(filters);
+    ratio *= samplingRatio;
+
+    return ratio;
+  }
+
+  /**
+   * 샘플링으로 기타 필터 비율 추정
+   */
+  private estimateOtherFiltersBySampling(filters: PatternFilterState): number {
+    let ratio = 1.0;
+
+    // 반복/패턴 필터가 여러 개 활성화되었는지 확인
+    const repeatPatternFiltersActive = [
+      filters.consecutivePattern !== "any",
+      filters.sameEndDigit > 0,
+      filters.sameSection > 0,
+    ].filter(Boolean).length;
+
+    // 반복/패턴 필터가 2개 이상 활성화되면 교집합 문제가 있으므로 샘플링 사용
+    if (repeatPatternFiltersActive >= 2) {
+      const sampleSize = 10000;
+      let matchCount = 0;
+
+      const repeatFilters: PatternFilterState = {
+        ...filters,
+        // 기본 필터는 무시 (이미 계산됨)
+        oddEvenRatios: [],
+        highLowRatios: [],
+        sumRange: [21, 255],
+        acRange: [0, 10],
+        // 수학 필터도 무시
+        primeCount: [0, 6],
+        compositeCount: [0, 6],
+        multiplesOf3: [0, 6],
+        multiplesOf5: [0, 6],
+        squareCount: [0, 6],
+      };
+
+      for (let i = 0; i < sampleSize; i++) {
+        const combination = generateRandomCombination();
+        if (
+          this.patternFilter.matchesOtherFilters(combination, repeatFilters)
+        ) {
+          matchCount++;
+        }
+      }
+
+      ratio = matchCount / sampleSize;
+    } else {
+      // 반복/패턴 필터가 0개 또는 1개만 활성화되면 사전 계산 비율 사용 가능
+
+      // 1. 연속번호 패턴 (사전 계산된 비율 사용)
+      const consecutiveRatio =
+        CONSECUTIVE_PATTERN_RATIOS[filters.consecutivePattern] ?? 1.0;
+      ratio *= consecutiveRatio;
+
+      // 2. 동일 끝수 (사전 계산된 비율 사용)
+      const sameEndDigitRatio =
+        SAME_END_DIGIT_RATIOS[filters.sameEndDigit] ?? 1.0;
+      ratio *= sameEndDigitRatio;
+
+      // 3. 동일 구간 (사전 계산된 비율 사용)
+      const sameSectionRatio = SAME_SECTION_RATIOS[filters.sameSection] ?? 1.0;
+      ratio *= sameSectionRatio;
+    }
+
+    // 4. 소수 개수 (사전 계산된 비율 우선 사용)
+    const primeKey = `${filters.primeCount[0]}-${filters.primeCount[1]}`;
+    const primeRatio = PRIME_COUNT_RATIOS[primeKey];
+    if (primeRatio !== undefined) {
+      ratio *= primeRatio;
+    } else if (filters.primeCount[0] > 0 || filters.primeCount[1] < 6) {
+      // 범위가 복잡하면 샘플링으로 추정
+      ratio *= this.estimateSingleFilterBySampling((nums) => {
+        const count = nums.filter((n) => this.isPrime(n)).length;
+        return count >= filters.primeCount[0] && count <= filters.primeCount[1];
+      });
+    }
+
+    // 5. 3의 배수 개수 (사전 계산된 비율 우선 사용)
+    const mult3Key = `${filters.multiplesOf3[0]}-${filters.multiplesOf3[1]}`;
+    const mult3Ratio = MULTIPLES_OF_3_RATIOS[mult3Key];
+    if (mult3Ratio !== undefined) {
+      ratio *= mult3Ratio;
+    } else if (filters.multiplesOf3[0] > 0 || filters.multiplesOf3[1] < 6) {
+      ratio *= this.estimateSingleFilterBySampling((nums) => {
+        const count = nums.filter((n) => n % 3 === 0).length;
+        return (
+          count >= filters.multiplesOf3[0] && count <= filters.multiplesOf3[1]
+        );
+      });
+    }
+
+    // 6. 5의 배수 개수 (사전 계산된 비율 우선 사용)
+    const mult5Key = `${filters.multiplesOf5[0]}-${filters.multiplesOf5[1]}`;
+    const mult5Ratio = MULTIPLES_OF_5_RATIOS[mult5Key];
+    if (mult5Ratio !== undefined) {
+      ratio *= mult5Ratio;
+    } else if (filters.multiplesOf5[0] > 0 || filters.multiplesOf5[1] < 6) {
+      ratio *= this.estimateSingleFilterBySampling((nums) => {
+        const count = nums.filter((n) => n % 5 === 0).length;
+        return (
+          count >= filters.multiplesOf5[0] && count <= filters.multiplesOf5[1]
+        );
+      });
+    }
+
+    // 7. 합성수와 제곱수는 복잡하므로 샘플링 사용
+    const hasComplexMathFilters =
+      filters.compositeCount[0] > 0 ||
+      filters.compositeCount[1] < 6 ||
+      filters.squareCount[0] > 0 ||
+      filters.squareCount[1] < 6;
+
+    if (hasComplexMathFilters) {
+      const complexFilters: PatternFilterState = {
+        ...filters,
+        oddEvenRatios: [],
+        highLowRatios: [],
+        sumRange: [21, 255],
+        acRange: [0, 10],
+        consecutivePattern: "any",
+        sameEndDigit: 0,
+        sameSection: 0,
+        primeCount: [0, 6],
+        multiplesOf3: [0, 6],
+        multiplesOf5: [0, 6],
+      };
+
+      const sampleSize = 10000;
+      let matchCount = 0;
+
+      for (let i = 0; i < sampleSize; i++) {
+        const combination = generateRandomCombination();
+        if (
+          this.patternFilter.matchesOtherFilters(combination, complexFilters)
+        ) {
+          matchCount++;
+        }
+      }
+
+      ratio *= matchCount / sampleSize;
+    }
+
+    return ratio;
+  }
+
+  /**
+   * 단일 필터 조건에 대한 샘플링 추정
+   */
+  private estimateSingleFilterBySampling(
+    filterFn: (numbers: number[]) => boolean,
+  ): number {
+    const sampleSize = 10000;
+    let matchCount = 0;
 
     for (let i = 0; i < sampleSize; i++) {
       const combination = generateRandomCombination();
-      if (this.patternFilter.matchesOtherFilters(combination, otherFilters)) {
+      if (filterFn(combination)) {
         matchCount++;
       }
     }
 
     return matchCount / sampleSize;
+  }
+
+  /**
+   * 소수 판별
+   */
+  private isPrime(n: number): boolean {
+    if (n < 2) return false;
+    if (n === 2) return true;
+    if (n % 2 === 0) return false;
+    for (let i = 3; i * i <= n; i += 2) {
+      if (n % i === 0) return false;
+    }
+    return true;
   }
 
   private estimateWithFixedSampling(

@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
     "/api",
     "/lotto/search",
     "/lotto/generate/random",
-    "/lotto/generate/pattern",
+    "/lotto/generate/manual-pattern",
     "/lotto/analysis/simulation",
   ];
 
