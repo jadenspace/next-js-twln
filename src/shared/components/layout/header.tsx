@@ -53,6 +53,11 @@ const STATS_MENU = {
 const GENERATE_MENU = [
   { href: "/lotto/generate/random", label: "랜덤 추첨", isPublic: true },
   { href: "/lotto/generate/pattern", label: "패턴 조합 생성", isPublic: true },
+  {
+    href: "/lotto/generate/manual-pattern",
+    label: "일반 패턴 분석",
+    isPublic: true,
+  },
 ];
 
 const SEARCH_ITEM = {
@@ -315,7 +320,6 @@ export function Header() {
                 >
                   <div className="space-y-1">
                     {GENERATE_MENU.map((item) => {
-                      const ItemIcon = item.icon;
                       const isPublic = item.isPublic ?? false;
                       const isPrivate = !isPublic && !isAuthenticated;
                       return (
@@ -332,7 +336,6 @@ export function Header() {
                               : "hover:bg-muted hover:text-foreground",
                           )}
                         >
-                          {ItemIcon && <ItemIcon className="w-4 h-4" />}
                           {item.label}
                         </Link>
                       );
@@ -540,7 +543,6 @@ export function Header() {
             {isMobileGenerateOpen && (
               <div className="px-2 py-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
                 {GENERATE_MENU.map((item) => {
-                  const ItemIcon = item.icon;
                   const isPublic = item.isPublic ?? false;
                   const isPrivate = !isPublic && !isAuthenticated;
                   return (
@@ -557,7 +559,6 @@ export function Header() {
                           : "hover:bg-muted hover:text-foreground",
                       )}
                     >
-                      {ItemIcon && <ItemIcon className="w-4 h-4" />}
                       {item.label}
                     </Link>
                   );

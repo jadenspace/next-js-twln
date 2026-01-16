@@ -43,6 +43,16 @@ export class PatternFilter {
       }
     }
 
+    // 0-1. 제외수 미포함 여부 검사
+    if (filters.excludedNumbers && filters.excludedNumbers.length > 0) {
+      const excludedSet = new Set(filters.excludedNumbers);
+      for (const num of sorted) {
+        if (excludedSet.has(num)) {
+          return false;
+        }
+      }
+    }
+
     // 1. 총합 검사
     const sum = calculateSum(sorted);
     if (sum < filters.sumRange[0] || sum > filters.sumRange[1]) {
@@ -402,8 +412,13 @@ export class PatternFilter {
     while (results.length < count && attempts < maxAttempts) {
       const combination =
         fixedNumbers.length > 0
-          ? generateRandomCombinationWithFixed(fixedNumbers)
-          : generateRandomCombination();
+          ? this.generateRandomCombinationWithExcluded(
+              fixedNumbers,
+              filters.excludedNumbers || [],
+            )
+          : this.generateRandomCombinationExcluding(
+              filters.excludedNumbers || [],
+            );
 
       if (this.matchesAllFilters(combination, filters, statsData)) {
         // 중복 검사
@@ -431,5 +446,64 @@ export class PatternFilter {
     }
 
     return results;
+  }
+
+  /**
+   * 제외수를 고려한 랜덤 조합 생성
+   */
+  private generateRandomCombinationExcluding(
+    excludedNumbers: number[],
+  ): number[] {
+    const excludedSet = new Set(excludedNumbers);
+    const available = Array.from({ length: 45 }, (_, i) => i + 1).filter(
+      (n) => !excludedSet.has(n),
+    );
+
+    if (available.length < 6) {
+      throw new Error("사용 가능한 번호가 부족합니다.");
+    }
+
+    const numbers: number[] = [];
+    const pool = [...available];
+
+    while (numbers.length < 6) {
+      const idx = Math.floor(Math.random() * pool.length);
+      numbers.push(pool[idx]);
+      pool.splice(idx, 1);
+    }
+
+    return numbers.sort((a, b) => a - b);
+  }
+
+  /**
+   * 고정수와 제외수를 모두 고려한 랜덤 조합 생성
+   */
+  private generateRandomCombinationWithExcluded(
+    fixedNumbers: number[],
+    excludedNumbers: number[],
+  ): number[] {
+    const fixedSet = new Set(fixedNumbers);
+    const excludedSet = new Set(excludedNumbers);
+
+    const available = Array.from({ length: 45 }, (_, i) => i + 1).filter(
+      (n) => !fixedSet.has(n) && !excludedSet.has(n),
+    );
+
+    const remainingCount = 6 - fixedNumbers.length;
+
+    if (available.length < remainingCount) {
+      throw new Error("사용 가능한 번호가 부족합니다.");
+    }
+
+    const numbers = [...fixedNumbers];
+    const pool = [...available];
+
+    while (numbers.length < 6) {
+      const idx = Math.floor(Math.random() * pool.length);
+      numbers.push(pool[idx]);
+      pool.splice(idx, 1);
+    }
+
+    return numbers.sort((a, b) => a - b);
   }
 }

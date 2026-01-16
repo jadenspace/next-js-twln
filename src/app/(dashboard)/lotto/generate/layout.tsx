@@ -7,6 +7,7 @@ import { cn } from "@/shared/lib/utils";
 const TABS = [
   { href: "/lotto/generate/random", label: "3D 추첨기" },
   { href: "/lotto/generate/pattern", label: "AI 패턴 분석" },
+  { href: "/lotto/generate/manual-pattern", label: "일반 패턴 분석" },
 ];
 
 export default function GenerateLayout({

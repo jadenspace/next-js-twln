@@ -64,7 +64,10 @@ export interface PatternFilterState {
   // D. 고정수
   fixedNumbers: number[]; // 고정 번호 (1~45 중 최대 6개)
 
-  // E. 통계 기반 (유료)
+  // E. 제외수
+  excludedNumbers: number[]; // 제외 번호 (1~45 중 최대 39개)
+
+  // F. 통계 기반 (유료)
   statsFilter?: StatsFilterConfig;
 }
 
@@ -72,6 +75,35 @@ export interface PatternFilterState {
  * 선택된 카테고리
  */
 export type PatternCategory = "basic" | "repeat" | "math" | "fixed" | "stats";
+
+/**
+ * 패턴 분석 스텝
+ */
+export type PatternAnalysisStep = 1 | 2 | 3;
+
+/**
+ * 패턴 분석 스텝 데이터
+ */
+export interface PatternAnalysisStepData {
+  step1: {
+    fixedNumbers: number[];
+    excludedNumbers: number[];
+    completed: boolean;
+  };
+  step2: {
+    sumRange: [number, number];
+    oddEvenRatios: string[];
+    highLowRatios: string[];
+    acRange: [number, number];
+    completed: boolean;
+  };
+  step3: {
+    consecutivePattern: "any" | "none";
+    sameEndDigit: 0 | 2 | 3;
+    sameSection: 0 | 2 | 3;
+    completed: boolean;
+  };
+}
 
 /**
  * 생성 옵션
@@ -135,6 +167,9 @@ export const DEFAULT_FILTER_STATE: PatternFilterState = {
   // 고정수
   fixedNumbers: [],
 
+  // 제외수
+  excludedNumbers: [],
+
   // 통계 기반 (기본값)
   statsFilter: {
     hotNumberCount: [0, 6],
@@ -180,6 +215,9 @@ export const UNFILTERED_FILTER_STATE: PatternFilterState = {
 
   // 고정수
   fixedNumbers: [],
+
+  // 제외수
+  excludedNumbers: [],
 
   // 통계 기반 (필터 미적용)
   statsFilter: {
