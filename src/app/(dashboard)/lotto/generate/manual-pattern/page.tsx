@@ -438,6 +438,8 @@ export default function ManualPatternAnalysisPage() {
     setStepData(INITIAL_STEP_DATA);
     setCompletedSteps(new Set());
     setResults([]);
+    // 페이지 상단으로 스크롤
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   // Step 1 완료 처리

@@ -605,9 +605,19 @@ export function Header() {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-foreground px-1">
-                {user?.email}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-foreground px-1 truncate flex-1">
+                  {user?.email}
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-destructive shrink-0"
+                  onClick={() => signOut()}
+                >
+                  로그아웃
+                </Button>
+              </div>
               <div className="px-1 py-1">
                 <PointBalance
                   showBalance
@@ -625,14 +635,6 @@ export function Header() {
                   </Button>
                 </Link>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-muted-foreground hover:text-destructive"
-                onClick={() => signOut()}
-              >
-                로그아웃
-              </Button>
             </div>
           )}
         </div>
