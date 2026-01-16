@@ -54,8 +54,11 @@ function LoginForm() {
       router.push(redirectUrl);
     }
     if (signUpMutation.data) {
-      alert("회원가입이 완료되었습니다. 관리자 승인 후 로그인이 가능합니다.");
-      const redirectUrl = callbackUrl || "/";
+      alert(
+        "회원가입이 완료되었습니다. 입력하신 이메일로 인증 메일을 발송했습니다. 인증 후 로그인해주세요.",
+      );
+      setIsSignUp(false);
+      const redirectUrl = callbackUrl || "/login";
       router.push(redirectUrl);
     }
   }, [

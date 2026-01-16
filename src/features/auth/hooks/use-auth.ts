@@ -54,7 +54,9 @@ export const useAuth = () => {
         }
         const approval = await approvalApi.checkApprovalStatus(data.user.email);
         if (!approval.is_approved) {
-          throw new Error("승인되지 않은 사용자입니다. 관리자에게 문의하세요.");
+          throw new Error(
+            "이메일 인증이 완료되지 않았습니다. 메일함을 확인해주세요.",
+          );
         }
       } catch (error) {
         console.error("승인 확인 실패:", error);
