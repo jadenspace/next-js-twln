@@ -623,6 +623,32 @@ export default function ManualPatternAnalysisPage() {
           toast(`${generated.length}개의 번호 조합이 생성되었습니다!`, {
             icon: <Sparkles className="w-4 h-4 text-yellow-400" />,
           });
+
+          // 마이페이지에 자동 저장
+          try {
+            const numbersToSave = generated.map((g) => g.numbers);
+            await fetch("/api/lotto/saved-numbers", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                numbers: numbersToSave,
+                source: "pattern_generator",
+                filters: {
+                  fixedNumbers: stepData.step1.fixedNumbers,
+                  excludedNumbers: stepData.step1.excludedNumbers,
+                  sumRange: stepData.step2.sumRange,
+                  oddEvenRatios: stepData.step2.oddEvenRatios,
+                  highLowRatios: stepData.step2.highLowRatios,
+                  acRange: stepData.step2.acRange,
+                  consecutivePattern: stepData.step3.consecutivePattern,
+                  sameEndDigit: stepData.step3.sameEndDigit,
+                  sameSection: stepData.step3.sameSection,
+                },
+              }),
+            });
+          } catch (saveError) {
+            console.error("마이페이지 자동 저장 실패:", saveError);
+          }
         }
       } catch (error: any) {
         console.error("Generation error:", error);
@@ -1049,6 +1075,9 @@ export default function ManualPatternAnalysisPage() {
               <Sparkles className="w-5 h-5 text-yellow-400" />
               생성 결과
             </CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              생성된 번호는 마이페이지에 자동 저장되었습니다.
+            </p>
           </CardHeader>
           <CardContent className="space-y-3">
             {results.map((result, idx) => {

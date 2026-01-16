@@ -113,6 +113,15 @@ export default function Home() {
                           포인트 충전하기
                         </Button>
                       </Link>
+                      <Link href="/mypage" className="block">
+                        <Button
+                          id="btn-mypage"
+                          variant="outline"
+                          className="w-full font-bold"
+                        >
+                          마이페이지
+                        </Button>
+                      </Link>
                     </CardContent>
                   </Card>
                 </>
