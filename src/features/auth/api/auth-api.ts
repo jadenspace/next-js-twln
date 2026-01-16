@@ -202,4 +202,26 @@ export const authApi = {
       };
     }
   },
+
+  async withdraw() {
+    try {
+      const response = await fetch("/api/auth/withdraw", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "회원 탈퇴 처리에 실패했습니다.");
+      }
+
+      return { success: true };
+    } catch (err) {
+      return {
+        error:
+          err instanceof Error
+            ? err.message
+            : "회원 탈퇴 중 오류가 발생했습니다.",
+      };
+    }
+  },
 };
