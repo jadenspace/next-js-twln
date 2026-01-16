@@ -3,6 +3,15 @@
 import { approvalApi } from "@/features/auth/api/approval-api";
 import { authApi } from "@/features/auth/api/auth-api";
 import { Button } from "@/shared/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/shared/ui/card";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
@@ -76,132 +85,106 @@ function AuthSuccessContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-md space-y-8 p-8 rounded-lg border-2 bg-card">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2">이메일 인증</h1>
-          <p className="text-muted-foreground">
-            이메일 인증을 처리하고 있습니다...
-          </p>
-        </div>
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/30 p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="text-center space-y-1">
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            이메일 인증
+          </CardTitle>
+          <CardDescription>
+            {status === "loading" && "이메일 인증을 처리하고 있습니다..."}
+            {status === "success" && "인증이 성공적으로 완료되었습니다."}
+            {status === "error" && "인증 처리 중 문제가 발생했습니다."}
+          </CardDescription>
+        </CardHeader>
 
-        <div className="space-y-6">
+        <CardContent className="space-y-6">
           {status === "loading" && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">
-                인증을 처리하고 있습니다...
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+              <p className="text-sm text-muted-foreground">
+                잠시만 기다려주세요...
               </p>
             </div>
           )}
 
           {status === "success" && (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  className="w-8 h-8 text-green-600 dark:text-green-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
+            <div className="flex flex-col items-center justify-center py-4 text-center">
+              <div className="rounded-full bg-primary/10 p-3 mb-4">
+                <CheckCircle2 className="h-10 w-10 text-primary" />
               </div>
-              <h2 className="text-xl font-semibold text-green-800 dark:text-green-200 mb-2">
-                인증 완료!
-              </h2>
-              <p className="text-green-700 dark:text-green-300 mb-6">
-                {message}
-              </p>
-              <div className="space-y-3">
-                <Button
-                  onClick={handleGoToLogin}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                >
-                  로그인하기
-                </Button>
-                <Button
-                  onClick={handleGoToHome}
-                  variant="outline"
-                  className="w-full"
-                >
-                  홈으로 이동
-                </Button>
+              <h3 className="font-semibold text-lg mb-2">인증 완료!</h3>
+              <p className="text-muted-foreground mb-4">{message}</p>
+
+              <div className="w-full p-4 bg-muted/50 rounded-lg text-left">
+                <p className="text-xs text-muted-foreground">
+                  <strong>참고:</strong> 이메일 인증이 완료되면 자동으로 계정이
+                  승인됩니다. 문제가 발생하면 관리자에게 문의하세요.
+                </p>
               </div>
             </div>
           )}
 
           {status === "error" && (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  className="w-8 h-8 text-red-600 dark:text-red-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+            <div className="flex flex-col items-center justify-center py-4 text-center">
+              <div className="rounded-full bg-destructive/10 p-3 mb-4">
+                <XCircle className="h-10 w-10 text-destructive" />
               </div>
-              <h2 className="text-xl font-semibold text-red-800 dark:text-red-200 mb-2">
-                인증 실패
-              </h2>
-              <p className="text-red-700 dark:text-red-300 mb-6">{error}</p>
-              <div className="space-y-3">
-                <Button
-                  onClick={handleGoToLogin}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white"
-                >
-                  로그인 페이지로
-                </Button>
-                <Button
-                  onClick={handleGoToHome}
-                  variant="outline"
-                  className="w-full"
-                >
-                  홈으로 이동
-                </Button>
-              </div>
+              <h3 className="font-semibold text-lg mb-2">인증 실패</h3>
+              <p className="text-muted-foreground text-sm">{error}</p>
             </div>
           )}
-        </div>
+        </CardContent>
 
-        <div className="mt-8 p-4 bg-muted rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            <strong>참고:</strong> 이메일 인증이 완료되면 자동으로 계정이
-            승인됩니다. 문제가 발생하면 관리자에게 문의하세요.
-          </p>
-        </div>
-      </div>
+        <CardFooter className="flex flex-col gap-3">
+          {status === "success" && (
+            <>
+              <Button onClick={handleGoToLogin} className="w-full">
+                로그인하기
+              </Button>
+              <Button
+                onClick={handleGoToHome}
+                variant="outline"
+                className="w-full"
+              >
+                홈으로 이동
+              </Button>
+            </>
+          )}
+          {status === "error" && (
+            <>
+              <Button onClick={handleGoToLogin} className="w-full">
+                로그인 페이지로
+              </Button>
+              <Button
+                onClick={handleGoToHome}
+                variant="outline"
+                className="w-full"
+              >
+                홈으로 이동
+              </Button>
+            </>
+          )}
+        </CardFooter>
+      </Card>
     </div>
   );
 }
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-md space-y-8 p-8 rounded-lg border-2 bg-card">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2">이메일 인증</h1>
-          <p className="text-muted-foreground">
-            이메일 인증을 처리하고 있습니다...
-          </p>
-        </div>
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">페이지를 로딩하고 있습니다...</p>
-        </div>
-      </div>
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/30 p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="text-center space-y-1">
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            이메일 인증
+          </CardTitle>
+          <CardDescription>페이지를 로딩하고 있습니다...</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center py-8">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </CardContent>
+      </Card>
     </div>
   );
 }

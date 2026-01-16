@@ -12,9 +12,9 @@ export const approvalApi = {
     const supabase = createClient();
 
     const { data, error } = await supabase
-      .from("approved_users")
-      .select("is_active, approved_at, approved_by")
-      .ilike("email", email)
+      .from("user_profiles")
+      .select("is_approved, approved_at")
+      .eq("email", email)
       .maybeSingle();
 
     if (error && error.code !== "PGRST116") {
@@ -23,9 +23,9 @@ export const approvalApi = {
     }
 
     return {
-      is_approved: data?.is_active || false,
+      is_approved: data?.is_approved || false,
       approved_at: data?.approved_at || null,
-      approved_by: data?.approved_by || null,
+      approved_by: null, // user_profiles에는 approved_by가 없을 수 있음
     };
   },
 
