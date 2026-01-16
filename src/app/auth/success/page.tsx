@@ -51,7 +51,7 @@ function AuthSuccessContent() {
           try {
             await approvalApi.approveUser(currentUser.email, "system");
             setStatus("success");
-            setMessage("이메일 인증이 완료되었고, 계정이 승인되었습니다!");
+            setMessage("이메일 인증이 완료되었습니다.");
           } catch (approvalError) {
             console.error("자동 승인 실패:", approvalError);
             setStatus("success");

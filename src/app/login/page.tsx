@@ -42,35 +42,72 @@ function LoginForm() {
     }
   };
 
+  // 로그인 처리 관련 Effect
   useEffect(() => {
     if (signInMutation.error) {
-      alert(signInMutation.error.message);
+      const error = signInMutation.error as any;
+      if (
+        error.code === "invalid_credentials" ||
+        error.message?.includes("Invalid login credentials")
+      ) {
+        alert("이메일 또는 비밀번호가 일치하지 않습니다.");
+      } else if (
+        error.code === "email_not_confirmed" ||
+        error.message?.includes("Email not confirmed")
+      ) {
+        alert(
+          "이메일 인증이 필요합니다. 가입 시 입력한 이메일을 확인해주세요.",
+        );
+      } else {
+        alert(error.message || "로그인 중 오류가 발생했습니다.");
+      }
     }
-    if (signUpMutation.error) {
-      alert(signUpMutation.error.message);
-    }
+
     if (signInMutation.data) {
       const redirectUrl = callbackUrl || "/";
       router.push(redirectUrl);
     }
+  }, [signInMutation.error, signInMutation.data, router, callbackUrl]);
+
+  // 회원가입 처리 관련 Effect
+  useEffect(() => {
+    if (signUpMutation.error) {
+      const error = signUpMutation.error as any;
+      if (
+        error.code === "user_already_exists" ||
+        error.message?.includes("User already registered")
+      ) {
+        alert("이미 가입된 이메일입니다.");
+      } else {
+        alert(error.message || "회원가입 중 오류가 발생했습니다.");
+      }
+    }
+
     if (signUpMutation.data) {
       alert(
         "회원가입이 완료되었습니다. 입력하신 이메일로 인증 메일을 발송했습니다. 인증 후 로그인해주세요.",
       );
       setIsSignUp(false);
+      setEmail("");
+      setPassword("");
+      signUpMutation.reset();
+
       const redirectUrl = callbackUrl || "/login";
-      router.push(redirectUrl);
+      if (redirectUrl !== "/login") {
+        router.push(redirectUrl);
+      }
     }
-  }, [
-    signInMutation.error,
-    signUpMutation.error,
-    signInMutation.data,
-    signUpMutation.data,
-    router,
-    callbackUrl,
-  ]);
+  }, [signUpMutation.error, signUpMutation.data, router, callbackUrl]);
 
   const isLoading = isSigningIn || isSigningUp;
+
+  const handleModeToggle = () => {
+    setIsSignUp(!isSignUp);
+    signInMutation.reset();
+    signUpMutation.reset();
+    setEmail("");
+    setPassword("");
+  };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-muted/30 p-4">
@@ -139,7 +176,7 @@ function LoginForm() {
               {isSignUp ? "이미 계정이 있으신가요? " : "계정이 없으신가요? "}
               <button
                 type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
+                onClick={handleModeToggle}
                 className="underline underline-offset-4 hover:text-primary"
                 tabIndex={5}
               >

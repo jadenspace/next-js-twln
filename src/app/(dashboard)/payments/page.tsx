@@ -45,7 +45,7 @@ export default function PaymentsHistoryPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-10">
+    <div className="max-w-5xl mx-auto py-6 px-4 md:py-10">
       <div className="flex items-center gap-4 mb-6">
         <Link href="/points/charge">
           <Button variant="ghost" size="icon">
@@ -66,44 +66,89 @@ export default function PaymentsHistoryPage() {
             </div>
           ) : payments.length > 0 ? (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>신청일시</TableHead>
-                    <TableHead>주문번호</TableHead>
-                    <TableHead>입금자명</TableHead>
-                    <TableHead className="text-right">결제금액</TableHead>
-                    <TableHead className="text-right">충전 포인트</TableHead>
-                    <TableHead className="text-center">상태</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>
+              {/* Desktop View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>신청일시</TableHead>
+                      <TableHead>주문번호</TableHead>
+                      <TableHead>입금자명</TableHead>
+                      <TableHead className="text-right">결제금액</TableHead>
+                      <TableHead className="text-right">충전 포인트</TableHead>
+                      <TableHead className="text-center">상태</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payments.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell>
+                          {format(
+                            new Date(payment.created_at),
+                            "yyyy-MM-dd HH:mm",
+                            { locale: ko },
+                          )}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
+                          {payment.order_id}
+                        </TableCell>
+                        <TableCell>{payment.depositor_name}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          {payment.amount.toLocaleString()}원
+                        </TableCell>
+                        <TableCell className="text-right text-blue-600">
+                          +{payment.points_amount.toLocaleString()} P
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {getStatusBadge(payment.status)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile View */}
+              <div className="md:hidden space-y-4">
+                {payments.map((payment) => (
+                  <div
+                    key={payment.id}
+                    className="flex flex-col gap-3 p-4 border rounded-lg bg-card text-card-foreground shadow-sm"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
                         {format(
                           new Date(payment.created_at),
                           "yyyy-MM-dd HH:mm",
                           { locale: ko },
                         )}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
-                        {payment.order_id}
-                      </TableCell>
-                      <TableCell>{payment.depositor_name}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {payment.amount.toLocaleString()}원
-                      </TableCell>
-                      <TableCell className="text-right text-blue-600">
-                        +{payment.points_amount.toLocaleString()} P
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {getStatusBadge(payment.status)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </span>
+                      {getStatusBadge(payment.status)}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">결제금액</span>
+                        <span className="font-bold">
+                          {payment.amount.toLocaleString()}원
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">충전 포인트</span>
+                        <span className="font-bold text-blue-600">
+                          +{payment.points_amount.toLocaleString()} P
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">입금자명</span>
+                        <span>{payment.depositor_name}</span>
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t text-[10px] text-muted-foreground font-mono">
+                      주문번호: {payment.order_id}
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               <div className="flex justify-center items-center gap-4 mt-6">
                 <Button

@@ -22,10 +22,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 lg:py-16">
-        <div className="space-y-12">
+        <div className="space-y-8 md:space-y-12">
           {/* Hero Section */}
           <div className="text-center space-y-4">
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-md text-muted-foreground max-w-2xl mx-auto">
               통계 분석 기반으로 로또 당첨 확률을 높이는{" "}
               <br className="md:hidden" /> 프리미엄 인사이트를 경험하세요.
             </p>

@@ -10,8 +10,8 @@ export const authApi = {
     });
 
     if (error) {
-      // 오류를 throw하지 말고 오류 메시지만 반환
-      return { error: error.message };
+      // 오류를 throw하지 말고 오류 객체 반환
+      return { error };
     }
 
     return { data };
@@ -32,8 +32,8 @@ export const authApi = {
     });
 
     if (error) {
-      // 오류를 throw하지 말고 오류 메시지만 반환
-      return { error: error.message };
+      // 오류를 throw하지 말고 오류 객체 반환
+      return { error };
     }
 
     // 회원가입 성공 후 수동으로 프로필 생성
