@@ -33,7 +33,15 @@ import {
   Sparkles,
   Dices,
   RefreshCw,
+  CreditCard,
+  History,
+  UserX,
+  ChevronRight,
 } from "lucide-react";
+import { PointHistoryModal } from "@/features/points/components/point-history-modal";
+import { PaymentHistoryModal } from "@/features/payments/components/payment-history-modal";
+import { WithdrawModal } from "@/features/auth/components/withdraw-modal";
+import { usePoints } from "@/features/points/hooks/use-points";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
 import { getLottoBallColor } from "@/features/lotto/lib/lotto-colors";
@@ -63,6 +71,10 @@ export default function MyPage() {
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPointHistoryOpen, setIsPointHistoryOpen] = useState(false);
+  const [isPaymentHistoryOpen, setIsPaymentHistoryOpen] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const { userId } = usePoints();
 
   const fetchSavedNumbers = useCallback(
     async (offset = 0) => {
@@ -155,7 +167,7 @@ export default function MyPage() {
         <div>
           <h1 className="text-xl md:text-2xl font-bold">마이페이지</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            저장된 로또 번호를 관리하세요.
+            내 정보와 저장된 번호를 관리하세요.
           </p>
         </div>
         <Button
@@ -171,6 +183,80 @@ export default function MyPage() {
           새로고침
         </Button>
       </div>
+
+      {/* 메뉴 섹션 */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">내 정보 관리</CardTitle>
+          <CardDescription>
+            결제 및 포인트 내역을 확인하고 계정을 관리하세요.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2">
+          {/* 결제 내역 */}
+          <button
+            onClick={() => setIsPaymentHistoryOpen(true)}
+            className="w-full text-left"
+          >
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-blue-500/10">
+                  <CreditCard className="w-4 h-4 text-blue-500" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">결제 내역</p>
+                  <p className="text-xs text-muted-foreground">
+                    무통장 입금 신청 및 결제 상태 확인
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </button>
+
+          {/* 포인트 내역 */}
+          <button
+            onClick={() => setIsPointHistoryOpen(true)}
+            className="w-full text-left"
+          >
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-green-500/10">
+                  <History className="w-4 h-4 text-green-500" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">포인트 내역</p>
+                  <p className="text-xs text-muted-foreground">
+                    충전, 사용, 보너스 등 포인트 이력 확인
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </button>
+
+          {/* 회원 탈퇴 */}
+          <button
+            onClick={() => setIsWithdrawOpen(true)}
+            className="w-full text-left"
+          >
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-red-500/10">
+                  <UserX className="w-4 h-4 text-red-500" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">회원 탈퇴</p>
+                  <p className="text-xs text-muted-foreground">
+                    서비스 탈퇴 및 계정 삭제
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </button>
+        </CardContent>
+      </Card>
 
       {/* 필터 */}
       <Card>
@@ -315,6 +401,27 @@ export default function MyPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 포인트 내역 모달 */}
+      {userId && (
+        <PointHistoryModal
+          userId={userId}
+          isOpen={isPointHistoryOpen}
+          onClose={() => setIsPointHistoryOpen(false)}
+        />
+      )}
+
+      {/* 결제 내역 모달 */}
+      <PaymentHistoryModal
+        isOpen={isPaymentHistoryOpen}
+        onClose={() => setIsPaymentHistoryOpen(false)}
+      />
+
+      {/* 회원 탈퇴 모달 */}
+      <WithdrawModal
+        isOpen={isWithdrawOpen}
+        onClose={() => setIsWithdrawOpen(false)}
+      />
     </div>
   );
 }

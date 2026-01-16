@@ -78,12 +78,6 @@ export default function ChargePage() {
         ))}
       </div>
 
-      <div className="mt-12 text-center">
-        <Button variant="link" onClick={() => router.push("/payments")}>
-          결제 내역 확인하기
-        </Button>
-      </div>
-
       <PaymentRequestModal
         isOpen={!!selectedPackage}
         onClose={() => setSelectedPackage(null)}
