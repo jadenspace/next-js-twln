@@ -92,7 +92,7 @@ export function ConstrainedBasicFilter({
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">번호 총합</Label>
             <span className="text-xs text-muted-foreground">
-              추천: 100 ~ 175
+              추천: 114 ~ 162
             </span>
           </div>
           <Slider
@@ -206,7 +206,7 @@ export function ConstrainedBasicFilter({
                 <Info className="w-4 h-4" />
               </button>
             </div>
-            <span className="text-xs text-muted-foreground">추천: 7 ~ 10</span>
+            <span className="text-xs text-muted-foreground">추천: 6 ~ 8</span>
           </div>
           <Slider
             min={constraints.acRange[0]}

@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Copy,
   Loader2,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
@@ -56,6 +57,28 @@ const INITIAL_STEP_DATA: PatternAnalysisStepData = {
 };
 
 export default function ManualPatternAnalysisPage() {
+  const [recommendations, setRecommendations] = useState<{
+    hot: number[];
+    cold: number[];
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        const res = await fetch("/api/lotto/recommendations");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.hot && data.cold) {
+            setRecommendations(data);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch recommendations", error);
+      }
+    };
+    fetchRecommendations();
+  }, []);
+
   const [currentStep, setCurrentStep] = useState<PatternAnalysisStep>(1);
   const [stepData, setStepData] =
     useState<PatternAnalysisStepData>(INITIAL_STEP_DATA);
@@ -451,7 +474,9 @@ export default function ManualPatternAnalysisPage() {
     }));
     setCompletedSteps((prev) => new Set([...prev, 1]));
     setCurrentStep(2);
-    toast.success("Step 1 완료! 기본 수치 패턴을 설정하세요.");
+    toast("Step 1 완료! 기본 수치 패턴을 설정하세요.", {
+      icon: <Check className="w-4 h-4 text-blue-500" />,
+    });
   }, [stepData.step1.fixedNumbers, stepData.step1.excludedNumbers, calculator]);
 
   // Step 1 다음 단계 가능 여부 (5개 이상 조합)
@@ -465,7 +490,9 @@ export default function ManualPatternAnalysisPage() {
     }));
     setCompletedSteps((prev) => new Set([...prev, 2]));
     setCurrentStep(3);
-    toast.success("Step 2 완료! 반복/패턴 구조를 설정하세요.");
+    toast("Step 2 완료! 반복/패턴 구조를 설정하세요.", {
+      icon: <Check className="w-4 h-4 text-blue-500" />,
+    });
   }, []);
 
   // Step 2 다음 단계 가능 여부 (5개 이상 조합)
@@ -526,7 +553,9 @@ export default function ManualPatternAnalysisPage() {
           );
         } else {
           setResults(generated);
-          toast.success(`${generated.length}개의 번호 조합이 생성되었습니다!`);
+          toast(`${generated.length}개의 번호 조합이 생성되었습니다!`, {
+            icon: <Sparkles className="w-4 h-4 text-yellow-400" />,
+          });
         }
       } catch (error) {
         console.error("Generation error:", error);
@@ -550,7 +579,7 @@ export default function ManualPatternAnalysisPage() {
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold">일반 패턴 분석</h1>
+          <h1 className="text-xl md:text-2xl font-bold">패턴 조합 생성기</h1>
           <p className="text-sm text-muted-foreground mt-1">
             단계별로 조건을 설정하여 맞춤형 번호를 생성하세요.
           </p>
@@ -587,14 +616,15 @@ export default function ManualPatternAnalysisPage() {
             step1: { ...prev.step1, excludedNumbers: numbers },
           }))
         }
+        recommendations={recommendations}
         disabled={currentStep !== 1}
       />
 
       {/* Step 1 경우의 수 표시 */}
       <Card className="bg-muted/30 border-border/50">
         <CardContent className="py-4">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="w-full sm:w-auto">
               <p className="text-sm font-medium text-foreground">
                 현재 고정수/제외수 적용 시
               </p>
@@ -603,7 +633,7 @@ export default function ManualPatternAnalysisPage() {
                 {stepData.step1.excludedNumbers.length}개
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right w-full sm:w-auto">
               <p className="text-2xl font-bold text-primary">
                 {step1CombinationCount.toLocaleString()}
               </p>
@@ -667,38 +697,57 @@ export default function ManualPatternAnalysisPage() {
           {/* Step 2 경우의 수 표시 */}
           <Card className="bg-muted/30 border-border/50">
             <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">
-                    Step 2 기본 수치 패턴 적용 후
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 w-full">
+                <div className="w-full sm:w-auto space-y-3">
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    Step 2 필터 적용 결과
                   </p>
-                  <div className="text-xs text-muted-foreground space-y-0.5">
-                    <p>
-                      총합: {stepData.step2.sumRange[0]}~
-                      {stepData.step2.sumRange[1]}
-                    </p>
-                    <p>
-                      홀짝: {stepData.step2.oddEvenRatios.join(", ") || "전체"}
-                    </p>
-                    <p>
-                      고저: {stepData.step2.highLowRatios.join(", ") || "전체"}
-                    </p>
-                    <p>
-                      AC값: {stepData.step2.acRange[0]}~
-                      {stepData.step2.acRange[1]}
-                    </p>
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground/70">
+                        총합
+                      </span>
+                      <span>
+                        {stepData.step2.sumRange[0]}~
+                        {stepData.step2.sumRange[1]}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground/70">
+                        홀짝
+                      </span>
+                      <span className="truncate max-w-[120px]">
+                        {stepData.step2.oddEvenRatios.join(", ") || "전체"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground/70">
+                        고저
+                      </span>
+                      <span className="truncate max-w-[120px]">
+                        {stepData.step2.highLowRatios.join(", ") || "전체"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground/70">
+                        AC값
+                      </span>
+                      <span>
+                        {stepData.step2.acRange[0]}~{stepData.step2.acRange[1]}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right w-full sm:w-auto flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 mt-2 sm:mt-0">
                   {isCalculating ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center sm:justify-end gap-2 py-1">
                       <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">
                         계산 중...
                       </span>
                     </div>
                   ) : step2CombinationCount ? (
-                    <>
+                    <div className="flex flex-row sm:flex-col items-baseline sm:items-end justify-between sm:justify-center gap-2 sm:gap-0">
                       <p className="text-2xl font-bold text-foreground">
                         {step2CombinationCount.total.toLocaleString()}
                       </p>
@@ -706,7 +755,7 @@ export default function ManualPatternAnalysisPage() {
                         가지 조합 ({step2CombinationCount.percentage.toFixed(2)}
                         %)
                       </p>
-                    </>
+                    </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">-</p>
                   )}
@@ -767,9 +816,9 @@ export default function ManualPatternAnalysisPage() {
           {/* Step 3 경우의 수 표시 */}
           <Card className="bg-muted/30 border-border/50">
             <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="w-full sm:w-auto">
+                  <p className="text-sm font-medium text-foreground mb-1">
                     Step 3 반복/패턴 구조 적용 후 (최종)
                   </p>
                   <div className="text-xs text-muted-foreground space-y-0.5">
@@ -793,9 +842,9 @@ export default function ManualPatternAnalysisPage() {
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right w-full sm:w-auto">
                   {isCalculatingStep3 ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center sm:justify-end gap-2">
                       <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">
                         계산 중...
@@ -828,12 +877,12 @@ export default function ManualPatternAnalysisPage() {
                   {step3CombinationCount.total}가지)
                 </p>
               )}
-              <div className="flex justify-center gap-3">
+              <div className="flex flex-col sm:flex-row justify-center gap-3 w-full sm:w-auto">
                 <Button
                   size="lg"
                   onClick={() => handleGenerate(5)}
                   disabled={isGenerating || !canGenerate}
-                  className="min-w-[140px]"
+                  className="min-w-[140px] w-full sm:w-auto h-auto py-2"
                 >
                   {isGenerating ? (
                     <>
@@ -841,10 +890,15 @@ export default function ManualPatternAnalysisPage() {
                       생성 중...
                     </>
                   ) : (
-                    <>
-                      <Sparkles className="w-5 h-5 mr-2 text-yellow-400" />
-                      5게임 생성
-                    </>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center">
+                        <Sparkles className="w-4 h-4 mr-2 text-yellow-400" />
+                        <span>5게임 생성</span>
+                      </div>
+                      <span className="text-[10px] opacity-80 font-medium">
+                        -500P
+                      </span>
+                    </div>
                   )}
                 </Button>
                 <Button
@@ -852,7 +906,7 @@ export default function ManualPatternAnalysisPage() {
                   variant="outline"
                   onClick={() => handleGenerate(10)}
                   disabled={isGenerating || !canGenerate10Games}
-                  className="min-w-[140px]"
+                  className="min-w-[140px] w-full sm:w-auto h-auto py-2"
                 >
                   {isGenerating ? (
                     <>
@@ -860,10 +914,15 @@ export default function ManualPatternAnalysisPage() {
                       생성 중...
                     </>
                   ) : (
-                    <>
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      10게임 생성
-                    </>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center">
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        <span>10게임 생성</span>
+                      </div>
+                      <span className="text-[10px] opacity-80 font-medium">
+                        -1,000P
+                      </span>
+                    </div>
                   )}
                 </Button>
               </div>
@@ -893,24 +952,24 @@ export default function ManualPatternAnalysisPage() {
                   key={idx}
                   className="rounded-lg bg-muted/50 overflow-hidden"
                 >
-                  <div className="flex items-center justify-between p-4">
-                    <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 gap-2 sm:gap-0">
+                    <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide w-full sm:w-auto">
                       {result.numbers.map((num) => (
                         <div
                           key={num}
-                          className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow"
+                          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow"
                           style={{ backgroundColor: getLottoBallColor(num) }}
                         >
                           {num}
                         </div>
                       ))}
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-end gap-1 w-full sm:w-auto">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleResultExpanded(idx)}
-                        className="text-muted-foreground"
+                        className="text-muted-foreground h-8 w-8 p-0"
                       >
                         <ChevronDown
                           className={cn(
@@ -923,6 +982,7 @@ export default function ManualPatternAnalysisPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleCopy(result.numbers)}
+                        className="h-8 w-8 p-0"
                       >
                         <Copy className="w-4 h-4" />
                       </Button>
@@ -989,30 +1049,57 @@ export default function ManualPatternAnalysisPage() {
             })}
 
             {/* 다시 생성 버튼 */}
-            <div className="flex justify-center gap-3 pt-4">
-              <Button variant="outline" onClick={handleReset}>
-                <RotateCcw className="w-4 h-4 mr-2" />
-                초기화
+            <div className="flex flex-col sm:flex-row justify-center gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={handleReset}
+                className="w-full sm:w-auto h-auto py-2"
+              >
+                <div className="flex flex-col items-center justify-center min-h-[36px]">
+                  <div className="flex items-center">
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    <span>초기화</span>
+                  </div>
+                </div>
               </Button>
-              <Button onClick={() => handleGenerate(5)} disabled={isGenerating}>
+              <Button
+                onClick={() => handleGenerate(5)}
+                disabled={isGenerating}
+                className="w-full sm:w-auto h-auto py-2"
+              >
                 {isGenerating ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
-                  <Sparkles className="w-4 h-4 mr-2" />
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      <span>5게임 생성</span>
+                    </div>
+                    <span className="text-[10px] opacity-80 font-medium">
+                      -500P
+                    </span>
+                  </div>
                 )}
-                5게임 생성
               </Button>
               <Button
                 variant="outline"
                 onClick={() => handleGenerate(10)}
                 disabled={isGenerating || !canGenerate10Games}
+                className="w-full sm:w-auto h-auto py-2"
               >
                 {isGenerating ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
-                  <Sparkles className="w-4 h-4 mr-2" />
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      <span>10게임 생성</span>
+                    </div>
+                    <span className="text-[10px] opacity-80 font-medium">
+                      -1,000P
+                    </span>
+                  </div>
                 )}
-                10게임 생성
               </Button>
             </div>
           </CardContent>

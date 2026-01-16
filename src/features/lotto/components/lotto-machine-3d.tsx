@@ -610,7 +610,7 @@ export function LottoMachine3D({
       <div className="absolute top-4 left-4 flex items-center gap-2">
         {isSpinning && visualExtracted.length < 6 && (
           <div className="rounded-full bg-emerald-500/20 px-3 py-1 text-[11px] font-medium text-emerald-400 backdrop-blur animate-pulse">
-            교반 중...
+            추첨 중...
           </div>
         )}
         {visualExtracted.length >= 6 && (

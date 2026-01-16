@@ -50,9 +50,9 @@ export default function Home() {
                   icon={<BarChart3 className="w-6 h-6" />}
                 />
                 <FeatureLinkCard
-                  title="패턴 조합 생성"
+                  title="패턴 조합 생성기"
                   description="원하는 패턴을 선택하고 조건에 맞는 번호 조합을 생성"
-                  href="/lotto/generate/pattern"
+                  href="/lotto/generate/manual-pattern"
                   icon={<Sparkles className="w-6 h-6" />}
                 />
                 <FeatureLinkCard

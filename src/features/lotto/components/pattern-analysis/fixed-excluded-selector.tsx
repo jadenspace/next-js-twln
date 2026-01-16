@@ -2,7 +2,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { cn } from "@/shared/lib/utils";
-import { Lock, Unlock } from "lucide-react";
+import {
+  Lock,
+  Unlock,
+  Flame,
+  Snowflake,
+  MousePointerClick,
+} from "lucide-react";
 
 type SelectionMode = "fixed" | "excluded" | null;
 
@@ -11,6 +17,7 @@ interface FixedExcludedSelectorProps {
   excludedNumbers: number[];
   onFixedChange: (numbers: number[]) => void;
   onExcludedChange: (numbers: number[]) => void;
+  recommendations?: { hot: number[]; cold: number[] } | null;
   disabled?: boolean;
 }
 
@@ -19,6 +26,7 @@ export function FixedExcludedSelector({
   excludedNumbers,
   onFixedChange,
   onExcludedChange,
+  recommendations,
   disabled = false,
 }: FixedExcludedSelectorProps) {
   const handleToggle = (value: number) => {
@@ -86,6 +94,91 @@ export function FixedExcludedSelector({
           </div>
         </div>
 
+        {/* 사용 안내 */}
+        <div className="bg-secondary/40 p-3 sm:p-4 rounded-lg border flex items-start sm:items-center gap-3">
+          <div className="p-2 bg-background rounded-full shadow-sm shrink-0">
+            <MousePointerClick className="w-4 h-4 text-primary" />
+          </div>
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            번호를 클릭할 때마다{" "}
+            <strong className="text-foreground border-muted-foreground/50">
+              일반
+            </strong>{" "}
+            → <span className="font-bold text-blue-500">고정수</span> →{" "}
+            <span className="font-bold text-red-500">제외수</span> →{" "}
+            <strong className="text-foreground border-muted-foreground/50">
+              일반
+            </strong>{" "}
+            순서로 전환됩니다.
+          </p>
+        </div>
+        {/* 추천 번호 (Balanced Strategy) */}
+        {recommendations && !disabled && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 p-3 bg-muted/30 rounded-lg border border-border/50">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Flame className="w-4 h-4 text-orange-500" />
+                <span className="text-xs font-medium text-muted-foreground">
+                  최근 강세 (Hot 5)
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {recommendations.hot.map((num) => {
+                  const isFixed = fixedNumbers.includes(num);
+                  const isExcluded = excludedNumbers.includes(num);
+                  return (
+                    <button
+                      key={`hot-${num}`}
+                      onClick={() => handleToggle(num)}
+                      className={cn(
+                        "px-2.5 py-1 text-xs font-semibold rounded-full border transition-colors",
+                        isFixed
+                          ? "bg-blue-500 text-white border-blue-500"
+                          : isExcluded
+                            ? "bg-red-500/20 text-red-500/70 border-red-500/50 line-through"
+                            : "bg-background text-foreground border-border hover:bg-muted",
+                      )}
+                    >
+                      {num}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Snowflake className="w-4 h-4 text-blue-500" />
+                <span className="text-xs font-medium text-muted-foreground">
+                  최근 약세 (Cold 5)
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {recommendations.cold.map((num) => {
+                  const isFixed = fixedNumbers.includes(num);
+                  const isExcluded = excludedNumbers.includes(num);
+                  return (
+                    <button
+                      key={`cold-${num}`}
+                      onClick={() => handleToggle(num)}
+                      className={cn(
+                        "px-2.5 py-1 text-xs font-semibold rounded-full border transition-colors",
+                        isFixed
+                          ? "bg-blue-500 text-white border-blue-500"
+                          : isExcluded
+                            ? "bg-red-500/20 text-red-500/70 border-red-500/50 line-through"
+                            : "bg-background text-foreground border-border hover:bg-muted",
+                      )}
+                    >
+                      {num}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 선택 현황 */}
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>
@@ -116,6 +209,7 @@ export function FixedExcludedSelector({
                   "aspect-square rounded-lg border text-xs sm:text-sm font-semibold transition-all duration-200",
                   getButtonStyle(value),
                   disabled && "cursor-not-allowed",
+                  // 추천 번호 하이라이트 효과 (뱃지 대신 테두리로 표현 가능하지만 복잡해짐)
                 )}
               >
                 {value}
@@ -123,12 +217,6 @@ export function FixedExcludedSelector({
             );
           })}
         </div>
-
-        {/* 사용 안내 */}
-        <p className="text-xs text-muted-foreground">
-          💡 번호를 클릭하면: 일반 → 고정수(파란색) → 제외수(빨간색) → 일반
-          순서로 전환됩니다.
-        </p>
       </CardContent>
     </Card>
   );

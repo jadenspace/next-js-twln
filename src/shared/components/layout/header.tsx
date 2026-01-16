@@ -51,11 +51,14 @@ const STATS_MENU = {
   ],
 };
 const GENERATE_MENU = [
-  { href: "/lotto/generate/random", label: "랜덤 추첨", isPublic: true },
-  { href: "/lotto/generate/pattern", label: "패턴 조합 생성", isPublic: true },
+  {
+    href: "/lotto/generate/random",
+    label: "3D 추첨 시뮬레이션",
+    isPublic: true,
+  },
   {
     href: "/lotto/generate/manual-pattern",
-    label: "일반 패턴 분석",
+    label: "패턴 조합 생성기",
     isPublic: true,
   },
 ];

@@ -189,14 +189,6 @@ export function SimpleRepeatFilter({
             11-15, ...)
           </p>
         </div>
-
-        {/* 안내 메시지 */}
-        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-          <p className="text-xs text-amber-600 dark:text-amber-400">
-            ⚠️ 반복/패턴 조건은 경우의 수 계산이 복잡하여, 필터 생성 후 검증
-            방식으로 필터링됩니다.
-          </p>
-        </div>
       </CardContent>
     </Card>
   );
