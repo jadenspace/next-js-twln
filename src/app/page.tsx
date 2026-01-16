@@ -11,6 +11,8 @@ import {
 } from "@/shared/ui/card";
 import { AttendanceCard } from "@/features/points/components/attendance-card";
 import { Search, BarChart3, TrendingUp, Sparkles, Binary } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Link from "next/link";
 
 import { UserLevelInfo } from "@/features/gamification/components/user-level-info";
@@ -18,6 +20,26 @@ import { LottoResultCard } from "@/features/lotto/components/lotto-result-card";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  // Handle auth redirects that land on the root path
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash;
+      const search = window.location.search;
+
+      // If there are auth-related parameters (tokens or errors) at the root
+      if (
+        hash.includes("access_token") ||
+        hash.includes("error") ||
+        search.includes("error") ||
+        hash.includes("type=signup")
+      ) {
+        // Redirect to the success page with all params preserved
+        router.replace(`/auth/success${search}${hash}`);
+      }
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-background">

@@ -20,7 +20,10 @@ import { Loader2 } from "lucide-react";
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showResendButton, setShowResendButton] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callback");
@@ -31,11 +34,17 @@ function LoginForm() {
     isSigningUp,
     signInMutation,
     signUpMutation,
+    resendVerification,
+    isResendingVerification,
+    resendVerificationMutation,
   } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSignUp) {
+      if (password !== confirmPassword) {
+        return;
+      }
       signUp({ email, password });
     } else {
       signIn({ email, password });
@@ -55,6 +64,8 @@ function LoginForm() {
         error.code === "email_not_confirmed" ||
         error.message?.includes("Email not confirmed")
       ) {
+        setShowResendButton(true);
+        setResendEmail(email);
         alert(
           "이메일 인증이 필요합니다. 가입 시 입력한 이메일을 확인해주세요.",
         );
@@ -85,11 +96,12 @@ function LoginForm() {
 
     if (signUpMutation.data) {
       alert(
-        "회원가입이 완료되었습니다. 입력하신 이메일로 인증 메일을 발송했습니다. 인증 후 로그인해주세요.",
+        "입력하신 이메일로 인증 메일을 발송했습니다. 인증 후 로그인해주세요.",
       );
       setIsSignUp(false);
       setEmail("");
       setPassword("");
+      setConfirmPassword("");
       signUpMutation.reset();
 
       const redirectUrl = callbackUrl || "/login";
@@ -99,6 +111,20 @@ function LoginForm() {
     }
   }, [signUpMutation.error, signUpMutation.data, router, callbackUrl]);
 
+  // 재인증 메일 발송 처리 Effect
+  useEffect(() => {
+    if (resendVerificationMutation.error) {
+      const error = resendVerificationMutation.error as any;
+      alert(error.message || "인증 메일 재발송 중 오류가 발생했습니다.");
+    }
+
+    if (resendVerificationMutation.data) {
+      alert("인증 메일이 재발송되었습니다. 이메일을 확인해주세요.");
+      setShowResendButton(false);
+      resendVerificationMutation.reset();
+    }
+  }, [resendVerificationMutation.error, resendVerificationMutation.data]);
+
   const isLoading = isSigningIn || isSigningUp;
 
   const handleModeToggle = () => {
@@ -107,6 +133,14 @@ function LoginForm() {
     signUpMutation.reset();
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
+    setShowResendButton(false);
+  };
+
+  const handleResendVerification = () => {
+    if (resendEmail) {
+      resendVerification(resendEmail);
+    }
   };
 
   return (
@@ -144,7 +178,7 @@ function LoginForm() {
                   <Link
                     href="/forgot-password"
                     className="text-xs text-muted-foreground hover:underline"
-                    tabIndex={4}
+                    tabIndex={5}
                   >
                     비밀번호 찾기
                   </Link>
@@ -160,17 +194,53 @@ function LoginForm() {
                 tabIndex={2}
               />
             </div>
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">비밀번호 확인</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  tabIndex={3}
+                />
+                {password &&
+                  confirmPassword &&
+                  password !== confirmPassword && (
+                    <p className="text-xs text-destructive animate-in fade-in slide-in-from-top-1">
+                      비밀번호가 일치하지 않습니다.
+                    </p>
+                  )}
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col gap-4 pt-4">
             <Button
               className="w-full"
               type="submit"
-              disabled={isLoading}
-              tabIndex={3}
+              disabled={isLoading || (isSignUp && password !== confirmPassword)}
+              tabIndex={4}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSignUp ? "가입하기" : "로그인"}
             </Button>
+
+            {showResendButton && !isSignUp && (
+              <Button
+                variant="outline"
+                className="w-full border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary"
+                type="button"
+                onClick={handleResendVerification}
+                disabled={isResendingVerification}
+              >
+                {isResendingVerification && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                인증 메일 재발송하기
+              </Button>
+            )}
 
             <div className="text-center text-sm text-muted-foreground">
               {isSignUp ? "이미 계정이 있으신가요? " : "계정이 없으신가요? "}
@@ -178,7 +248,7 @@ function LoginForm() {
                 type="button"
                 onClick={handleModeToggle}
                 className="underline underline-offset-4 hover:text-primary"
-                tabIndex={5}
+                tabIndex={6}
               >
                 {isSignUp ? "로그인" : "회원가입"}
               </button>

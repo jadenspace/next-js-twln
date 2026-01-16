@@ -36,27 +36,7 @@ export const authApi = {
       return { error };
     }
 
-    // 회원가입 성공 후 수동으로 프로필 생성
-    if (data.user) {
-      try {
-        const { error: profileError } = await supabase
-          .from("user_profiles")
-          .insert({
-            id: data.user.id,
-            email: data.user.email,
-            is_approved: false,
-          });
-
-        if (profileError) {
-          console.error("프로필 생성 실패:", profileError);
-          // 프로필 생성 실패해도 회원가입은 성공으로 처리
-        }
-      } catch (profileErr) {
-        console.error("프로필 생성 중 오류:", profileErr);
-        // 프로필 생성 실패해도 회원가입은 성공으로 처리
-      }
-    }
-
+    // 회원가입 성공 시 (Supabase의 트리거 등으로 프로필 생성이 자동화되어 있는 경우 수동 삽입 불필요)
     return { data };
   },
 
@@ -223,5 +203,23 @@ export const authApi = {
             : "회원 탈퇴 중 오류가 발생했습니다.",
       };
     }
+  },
+
+  async resendVerificationEmail(email: string) {
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/success`,
+      },
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { success: true };
   },
 };
