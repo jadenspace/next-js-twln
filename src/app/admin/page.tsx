@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { UserManagement } from "./components/user-management";
 import { PaymentManagement } from "./components/payment-management";
 import { PointManagement } from "./components/point-management";
+import { ReportManagement } from "./components/report-management";
 import { Button } from "@/shared/ui/button";
 import {
   Loader2,
@@ -14,10 +15,11 @@ import {
   CreditCard,
   Coins,
   LayoutDashboard,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type AdminTab = "overview" | "users" | "payments" | "points";
+type AdminTab = "overview" | "users" | "payments" | "points" | "reports";
 
 export default function AdminPage() {
   const { user, isAuthenticated } = useAuth();
@@ -82,6 +84,12 @@ export default function AdminPage() {
           icon={<Coins className="w-4 h-4" />}
           label="포인트 관리"
         />
+        <NavButton
+          active={activeTab === "reports"}
+          onClick={() => setActiveTab("reports")}
+          icon={<FileText className="w-4 h-4" />}
+          label="리포트 관리"
+        />
       </aside>
 
       {/* Main Content */}
@@ -93,6 +101,7 @@ export default function AdminPage() {
                 {activeTab === "users" && "사용자 승인 관리"}
                 {activeTab === "payments" && "결제 요청 관리"}
                 {activeTab === "points" && "포인트 수동 관리"}
+                {activeTab === "reports" && "주간 리포트 관리"}
               </h1>
               <p className="text-muted-foreground mt-1">
                 시스템의 중요한 설정 및 데이터를 관리합니다.
@@ -104,6 +113,7 @@ export default function AdminPage() {
             {activeTab === "users" && <UserManagement />}
             {activeTab === "payments" && <PaymentManagement />}
             {activeTab === "points" && <PointManagement />}
+            {activeTab === "reports" && <ReportManagement />}
           </div>
         </div>
       </main>
