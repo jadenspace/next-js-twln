@@ -367,7 +367,7 @@ export default function SearchPage() {
                 </CardContent>
               </Card>
 
-              <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0">
+              <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 overflow-hidden gap-0">
                 <DialogHeader className="sticky top-0 bg-background px-6 pt-6 pb-4 border-b z-10">
                   <DialogTitle>
                     <span className="text-primary">{draw.drw_no}회</span> 당첨
