@@ -10,6 +10,7 @@ import {
 } from "@/shared/ui/card";
 import { BarChart2, PieChart, Timer, Binary, Hash } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { PageHeader } from "@/shared/ui/page-header";
 
 const STAT_MENUS = [
   {
@@ -56,13 +57,11 @@ const STAT_MENUS = [
 
 export default function StatsAnalysisDashboard() {
   return (
-    <div className="container mx-auto py-10 px-4 max-w-5xl">
-      <div className="mb-12 text-center">
-        <h1 className="text-4xl font-black mb-4">기본 통계 분석 센터</h1>
-        <p className="text-muted-foreground text-lg">
-          역대 로또 당첨 데이터를 기반으로 한 5가지 핵심 기본 통계를 제공합니다.
-        </p>
-      </div>
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
+      <PageHeader
+        title="기본 통계 분석 센터"
+        description="역대 로또 당첨 데이터를 기반으로 한 5가지 핵심 기본 통계를 제공합니다."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {STAT_MENUS.map((menu) => {

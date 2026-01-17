@@ -51,7 +51,7 @@ export default function MissingStatsPage() {
     : [];
 
   return (
-    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
       <PageHeader
         title="미출현 번호 분석"
         description="최근 당첨되지 않은 번호들을 분석하여 '임계점'에 도달한 번호를 확인하세요."

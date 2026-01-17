@@ -53,7 +53,7 @@ export default function ConsecutiveStatsPage() {
     : [];
 
   return (
-    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
       <PageHeader
         title="연속번호 출현 분석"
         description="연속된 숫자가 얼마나 자주 당첨되는지 분석하여 패턴을 예측해 보세요."

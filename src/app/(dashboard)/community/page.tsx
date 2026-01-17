@@ -26,6 +26,7 @@ import {
 import { Textarea } from "@/shared/ui/textarea";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { PageHeader } from "@/shared/ui/page-header";
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -69,13 +70,12 @@ export default function CommunityPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
-      <div className="flex justify-between items-center mb-6 md:mb-8">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold">문의/답변</h1>
-          <p className="text-xs md:text-sm text-muted-foreground mt-1">
-            서비스 이용 중 궁금한 내용을 문의해 주세요.
-          </p>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6 md:mb-8">
+        <PageHeader
+          title="문의/답변"
+          description="서비스 이용 중 궁금한 내용을 문의해 주세요."
+          className="mb-0 md:mb-0"
+        />
 
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>

@@ -15,6 +15,7 @@ import { Sparkles, RotateCcw, Save, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
 import { getLottoBallColor } from "@/features/lotto/lib/lotto-colors";
+import { PageHeader } from "@/shared/ui/page-header";
 
 export default function RandomGeneratePage() {
   const [isSpinning, setIsSpinning] = useState(false);
@@ -100,45 +101,43 @@ export default function RandomGeneratePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 md:space-y-8">
-      <div className="flex flex-col gap-3 md:gap-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <h2 className="text-lg md:text-xl font-bold">3D 추첨 시뮬레이션</h2>
-            <p className="text-xs md:text-sm text-muted-foreground mt-1">
-              실제 로또 추첨기와 동일한 물리 시뮬레이션으로 행운의 번호를
-              뽑아보세요.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 md:flex-none text-xs md:text-sm"
-              onClick={() => {
-                setDrawnNumbers([]);
-                setTargetNumbers([]);
-                setIsCompleted(false);
-                setIsModalOpen(false);
-                setIsSpinning(false); // 초기화 시 추첨 상태도 리셋
-              }}
-              disabled={isSpinning || drawnNumbers.length === 0}
-            >
-              <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-              초기화
-            </Button>
-            <Button
-              size="sm"
-              className="flex-1 md:flex-none text-xs md:text-sm"
-              onClick={() => setIsModalOpen(true)}
-              disabled={!isCompleted}
-            >
-              <Save className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-              추첨 결과
-            </Button>
-          </div>
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6 md:mb-8">
+        <PageHeader
+          title="3D 추첨 시뮬레이션"
+          description="실제 로또 추첨기와 동일한 물리 시뮬레이션으로 행운의 번호를 뽑아보세요."
+          className="mb-0 md:mb-0"
+        />
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 md:flex-none text-xs md:text-sm"
+            onClick={() => {
+              setDrawnNumbers([]);
+              setTargetNumbers([]);
+              setIsCompleted(false);
+              setIsModalOpen(false);
+              setIsSpinning(false);
+            }}
+            disabled={isSpinning || drawnNumbers.length === 0}
+          >
+            <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+            초기화
+          </Button>
+          <Button
+            size="sm"
+            className="flex-1 md:flex-none text-xs md:text-sm"
+            onClick={() => setIsModalOpen(true)}
+            disabled={!isCompleted}
+          >
+            <Save className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+            추첨 결과
+          </Button>
         </div>
+      </div>
 
+      <div className="flex flex-col gap-3 md:gap-4">
         <div className="relative">
           <LottoMachine3D
             isSpinning={isSpinning}

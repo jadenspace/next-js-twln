@@ -16,6 +16,8 @@ import { PointPackage } from "@/features/points/types";
 import { PaymentRequestModal } from "@/features/payments/components/payment-request-modal";
 import { useRouter } from "next/navigation";
 
+import { PageHeader } from "@/shared/ui/page-header";
+
 export default function ChargePage() {
   const { pointPackages, isPackagesLoading } = usePoints();
   const [selectedPackage, setSelectedPackage] = useState<PointPackage | null>(
@@ -32,14 +34,11 @@ export default function ChargePage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-6 px-4 md:py-10">
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold mb-2">포인트 충전</h1>
-        <p className="text-muted-foreground">
-          원하시는 포인트 패키지를 선택해주세요. 무통장 입금으로 결제가
-          진행됩니다.
-        </p>
-      </div>
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
+      <PageHeader
+        title="포인트 충전"
+        description="원하시는 포인트 패키지를 선택해주세요. 무통장 입금으로 결제가 진행됩니다."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {pointPackages?.map((pkg) => (

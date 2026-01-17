@@ -65,7 +65,7 @@ export default function NumbersStatsPage() {
     : [];
 
   return (
-    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
       <PageHeader
         title="번호별 통계"
         description="각 번호(1~45)의 출현 빈도를 통해 행운의 패턴을 발견하세요."

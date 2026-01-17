@@ -17,6 +17,7 @@ import { ko } from "date-fns/locale";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { PaymentStatus } from "@/features/payments/types";
+import { PageHeader } from "@/shared/ui/page-header";
 
 export default function PaymentsHistoryPage() {
   const { payments, isLoading, page, setPage, totalCount, LIMIT } =
@@ -45,14 +46,18 @@ export default function PaymentsHistoryPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-6 px-4 md:py-10">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/mypage">
-          <Button variant="ghost" size="icon">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
+      <div className="flex items-start gap-2 mb-2">
+        <Link href="/mypage" className="mt-0.5 md:mt-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8">
             <ArrowLeft className="w-4 h-4" />
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">결제 내역</h1>
+        <PageHeader
+          title="결제 내역"
+          description="무통장 입금 신청 내역을 확인하고 관리할 수 있습니다."
+          className="mb-0 md:mb-0"
+        />
       </div>
 
       <Card>
