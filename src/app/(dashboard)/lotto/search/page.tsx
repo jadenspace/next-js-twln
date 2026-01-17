@@ -24,6 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/shared/ui/spinner";
+import { PageHeader } from "@/shared/ui/page-header";
 
 interface LottoDraw {
   drw_no: number;
@@ -169,12 +170,10 @@ export default function SearchPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
-      <h1 className="text-xl md:text-2xl font-bold mb-1 md:mb-2">
-        로또 당첨번호 검색
-      </h1>
-      <p className="text-xs md:text-sm text-muted-foreground mb-6 md:mb-8">
-        회차별로 과거 당첨번호를 조회해보세요.
-      </p>
+      <PageHeader
+        title="로또 당첨번호 검색"
+        description="회차별로 과거 당첨번호를 조회해보세요."
+      />
 
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex flex-wrap items-center gap-2">
@@ -367,7 +366,7 @@ export default function SearchPage() {
                 </CardContent>
               </Card>
 
-              <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0">
+              <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 overflow-hidden gap-0">
                 <DialogHeader className="sticky top-0 bg-background px-6 pt-6 pb-4 border-b z-10">
                   <DialogTitle>
                     <span className="text-primary">{draw.drw_no}회</span> 당첨

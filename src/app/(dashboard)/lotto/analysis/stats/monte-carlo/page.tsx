@@ -17,7 +17,7 @@ import {
   CardDescription,
 } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
-import { Play, RotateCcw, Zap, Info } from "lucide-react";
+import { Play, RotateCcw, Zap, Info, Loader2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
 import { PageHeader } from "@/shared/ui/page-header";
@@ -151,7 +151,7 @@ export default function MonteCarloStatsPage() {
                 disabled={isSimulating}
               >
                 {isSimulating ? (
-                  <RotateCcw className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+                  <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
                 ) : (
                   <Play className="w-4 h-4 md:w-5 md:h-5 fill-current" />
                 )}

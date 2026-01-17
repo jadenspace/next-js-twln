@@ -47,6 +47,7 @@ import { cn } from "@/shared/lib/utils";
 import { getLottoBallColor } from "@/features/lotto/lib/lotto-colors";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import { PageHeader } from "@/shared/ui/page-header";
 
 interface SavedNumber {
   id: string;
@@ -161,15 +162,14 @@ export default function MyPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-6 md:py-10 px-4 md:px-0 space-y-6 pb-10">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0 space-y-6 pb-10">
       {/* 헤더 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold">마이페이지</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            내 정보와 저장된 번호를 관리하세요.
-          </p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <PageHeader
+          title="마이페이지"
+          description="내 정보와 저장된 번호를 관리하세요."
+          className="mb-0 md:mb-0"
+        />
         <Button
           variant="outline"
           size="sm"

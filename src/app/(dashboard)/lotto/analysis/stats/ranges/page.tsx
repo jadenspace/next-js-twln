@@ -68,7 +68,7 @@ export default function RangesStatsPage() {
     : 0;
 
   return (
-    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
       <PageHeader
         title="구간별 출현 횟수"
         description="번호대별 분포를 통해 어느 구간에서 번호가 집중되는지 확인하세요."

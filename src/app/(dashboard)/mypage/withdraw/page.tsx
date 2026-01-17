@@ -50,7 +50,7 @@ export default function WithdrawPage() {
   };
 
   return (
-    <div className="container max-w-2xl py-8 px-4">
+    <div className="max-w-2xl mx-auto py-6 md:py-10 px-4 md:px-0">
       <PageHeader
         title="회원 탈퇴"
         description="서비스 탈퇴 및 계정 삭제를 진행합니다."

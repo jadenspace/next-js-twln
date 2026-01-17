@@ -56,7 +56,7 @@ export default function MarkovStatsPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
       <PageHeader
         title="마르코프 전이 확률 분석"
         description="특정 번호가 당첨된 다음 회차에 어떤 번호가 출현할 확률이 높은지 분석합니다."

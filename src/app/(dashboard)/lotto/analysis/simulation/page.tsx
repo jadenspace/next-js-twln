@@ -122,44 +122,6 @@ export default function SimulationPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* 선택된 번호 표시 */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                선택된 번호 ({selectedNumbers.length}/6)
-              </span>
-              {selectedNumbers.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearAll}
-                  className="h-7 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <X className="w-3 h-3 mr-1" />
-                  전체 해제
-                </Button>
-              )}
-            </div>
-            <div className="flex gap-2 min-h-[48px] p-3 bg-muted/30 rounded-lg">
-              {selectedNumbers.length === 0 ? (
-                <span className="text-sm text-muted-foreground">
-                  아래에서 번호를 선택해주세요
-                </span>
-              ) : (
-                selectedNumbers.map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => handleNumberToggle(num)}
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md hover:opacity-80 transition-opacity"
-                    style={{ backgroundColor: getLottoBallColor(num) }}
-                  >
-                    {num}
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-
           {/* 1~45 번호 그리드 */}
           <div className="md:max-w-[70%] md:mx-auto">
             <div className="grid grid-cols-9 md:grid-cols-10 gap-1.5 md:gap-2">
@@ -185,6 +147,49 @@ export default function SimulationPage() {
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* 선택된 번호 표시 - 그리드 아래로 이동 */}
+          <div className="mt-8 mb-4">
+            <div className="flex items-center justify-between mb-2 h-7">
+              <span className="text-sm font-medium text-muted-foreground">
+                선택된 번호 ({selectedNumbers.length}/6)
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearAll}
+                className={cn(
+                  "h-7 text-xs text-muted-foreground hover:text-foreground transition-opacity",
+                  selectedNumbers.length === 0
+                    ? "opacity-0 pointer-events-none"
+                    : "opacity-100",
+                )}
+              >
+                <X className="w-3 h-3 mr-1" />
+                전체 해제
+              </Button>
+            </div>
+            <div className="flex gap-2 min-h-[64px] p-3 bg-muted/30 rounded-lg items-center">
+              {selectedNumbers.length === 0 ? (
+                <span className="text-sm text-muted-foreground w-full text-center py-2">
+                  위에서 번호를 선택해주세요
+                </span>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {selectedNumbers.map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => handleNumberToggle(num)}
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md hover:opacity-80 transition-opacity"
+                      style={{ backgroundColor: getLottoBallColor(num) }}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

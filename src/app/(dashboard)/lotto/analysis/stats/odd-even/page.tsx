@@ -54,7 +54,7 @@ export default function OddEvenStatsPage() {
     stats && total > 0 ? (stats.oddEvenRatio.even / total) * 100 : 0;
 
   return (
-    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+    <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
       <PageHeader
         title="홀짝 통계 분석"
         description="당첨 번호의 홀수와 짝수 비율을 통해 행운의 균형을 찾으세요."
