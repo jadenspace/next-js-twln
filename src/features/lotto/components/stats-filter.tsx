@@ -13,7 +13,7 @@ import {
 } from "@/shared/ui/select";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Switch } from "@/shared/ui/switch";
-import { Search, RotateCcw } from "lucide-react";
+import { Search, RotateCcw, Loader2 } from "lucide-react";
 
 export interface FilterValues {
   type: "all" | "range" | "recent";
@@ -181,7 +181,7 @@ export function StatsFilter({
             disabled={isPending}
           >
             {isPending ? (
-              <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
             ) : (
               <Search className="w-3.5 h-3.5 md:w-4 md:h-4" />
             )}
