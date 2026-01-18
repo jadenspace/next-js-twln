@@ -27,6 +27,7 @@ import { Textarea } from "@/shared/ui/textarea";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/shared/ui/page-header";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export default function CommunityPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["communityPosts"],
@@ -79,7 +81,14 @@ export default function CommunityPage() {
 
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button
+              onClick={(e) => {
+                if (!isAuthenticated) {
+                  e.preventDefault();
+                  router.push("/login?callback=/community");
+                }
+              }}
+            >
               <PenSquare className="w-4 h-4 mr-2" />
               문의하기
             </Button>

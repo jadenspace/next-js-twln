@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { createClient } from "@/shared/lib/supabase/client";
 import { approvalApi } from "../api/approval-api";
 import { authApi } from "../api/auth-api";
 import { useAuthStore } from "../model/auth-store";
@@ -160,9 +161,31 @@ export const useAuth = () => {
     },
   });
 
+  // auth state change 리스너 설정
+  useEffect(() => {
+    const supabase = createClient();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        if (session?.user) {
+          setUser(session.user);
+        }
+      } else if (event === "SIGNED_OUT") {
+        logout();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [setUser, logout]);
+
   // 현재 사용자 정보가 변경되면 스토어 업데이트
   useEffect(() => {
-    if (currentUser) {
+    // data가 undefined인 경우는 아직 로딩 중인 상태
+    if (currentUser !== undefined) {
       setUser(currentUser);
     }
   }, [currentUser, setUser]);
