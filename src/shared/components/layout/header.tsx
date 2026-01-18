@@ -81,7 +81,7 @@ const NAV_ITEMS = [
 ];
 
 export function Header() {
-  const { user, isAuthenticated, signOut, isLoading } = useAuth();
+  const { user, isAuthenticated, signOut } = useAuth();
   const pathname = usePathname();
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
@@ -397,12 +397,10 @@ export function Header() {
                   로그아웃
                 </Button>
               </>
-            ) : !isLoading ? (
+            ) : (
               <Link href="/login">
                 <Button size="sm">로그인</Button>
               </Link>
-            ) : (
-              <div className="w-16 h-8 bg-muted animate-pulse rounded-md" />
             )}
           </div>
         </div>
@@ -605,21 +603,14 @@ export function Header() {
 
         <div className="p-4 border-t bg-muted/20">
           {!isAuthenticated ? (
-            !isLoading ? (
-              <div className="flex flex-col gap-2">
-                <Link href="/login" className="w-full">
-                  <Button className="w-full">로그인</Button>
-                </Link>
-                <p className="text-xs text-center text-muted-foreground">
-                  로그인 후 모든 기능을 이용해보세요
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <div className="h-10 bg-muted animate-pulse rounded-md w-full" />
-                <div className="h-3 bg-muted animate-pulse rounded w-2/3 mx-auto" />
-              </div>
-            )
+            <div className="flex flex-col gap-2">
+              <Link href="/login" className="w-full">
+                <Button className="w-full">로그인</Button>
+              </Link>
+              <p className="text-xs text-center text-muted-foreground">
+                로그인 후 모든 기능을 이용해보세요
+              </p>
+            </div>
           ) : (
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
