@@ -36,7 +36,6 @@ export async function middleware(request: NextRequest) {
     "/lotto/search",
     "/lotto/generate",
     "/lotto/generate/random",
-    "/lotto/generate/manual-pattern",
     "/lotto/analysis/simulation",
     "/privacy",
     "/terms",
@@ -46,6 +45,12 @@ export async function middleware(request: NextRequest) {
   const isPublicPath = publicPaths.some(
     (path) =>
       pathname === path || (path !== "/" && pathname.startsWith(path + "/")),
+  );
+
+  // Restricted Generate paths (require login)
+  const restrictedGeneratePaths = ["/lotto/generate/manual-pattern"];
+  const isRestrictedGeneratePath = restrictedGeneratePaths.some(
+    (path) => pathname === path,
   );
 
   // Basic Statistics paths (allowed for everyone)
@@ -79,12 +84,21 @@ export async function middleware(request: NextRequest) {
   );
 
   // Redirection logic
-  if (!isDevelopment && !user) {
+  // if (!isDevelopment && !user) {
+  if (!user) {
     // If not public path and not basic stats path, redirect to login
-    // BUT explicitly block advanced stats paths
-    if (isAdvancedStatsPath || (!isPublicPath && !isBasicStatsPath)) {
+    // BUT explicitly block advanced stats paths and restricted generate paths
+    if (
+      isAdvancedStatsPath ||
+      isRestrictedGeneratePath ||
+      (!isPublicPath && !isBasicStatsPath)
+    ) {
+      // Prevent infinite redirect loop if already on login page
+      if (pathname === "/login") return supabaseResponse;
+
       const url = request.nextUrl.clone();
       url.pathname = "/login";
+      url.searchParams.set("callback", pathname);
       return NextResponse.redirect(url);
     }
   }

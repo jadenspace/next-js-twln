@@ -10,7 +10,15 @@ import {
   CardContent,
 } from "@/shared/ui/card";
 import { AttendanceCard } from "@/features/points/components/attendance-card";
-import { Search, BarChart3, TrendingUp, Sparkles, Binary } from "lucide-react";
+import {
+  Search,
+  BarChart3,
+  TrendingUp,
+  Sparkles,
+  Binary,
+  Lock,
+} from "lucide-react";
+import { cn } from "@/shared/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
@@ -76,6 +84,8 @@ export default function Home() {
                   description="원하는 패턴을 선택하고 조건에 맞는 번호 조합을 생성"
                   href="/lotto/generate/manual-pattern"
                   icon={<Sparkles className="w-6 h-6" />}
+                  requiresAuth={true}
+                  isAuthenticated={isAuthenticated}
                 />
                 <FeatureLinkCard
                   title="당첨 시뮬레이션"
@@ -161,15 +171,37 @@ function FeatureLinkCard({
   description,
   href,
   icon,
+  requiresAuth,
+  isAuthenticated,
 }: {
   title: string;
   description: string;
   href: string;
   icon: React.ReactNode;
+  requiresAuth?: boolean;
+  isAuthenticated?: boolean;
 }) {
+  const isLocked = requiresAuth && !isAuthenticated;
+
   return (
-    <Link href={href}>
-      <Card className="hover:border-primary transition-colors h-full">
+    <Link
+      href={isLocked ? "#" : href}
+      className={cn(isLocked && "cursor-default")}
+    >
+      <Card
+        className={cn(
+          "hover:border-primary transition-colors h-full relative overflow-hidden",
+          isLocked && "opacity-80 border-dashed",
+        )}
+      >
+        {isLocked && (
+          <div className="absolute top-2 right-2">
+            <span className="text-[10px] text-orange-500 font-bold border border-orange-200 px-1.5 py-0.5 rounded bg-orange-50/50 flex items-center gap-1">
+              <Lock className="w-3 h-3" />
+              로그인 필요
+            </span>
+          </div>
+        )}
         <CardHeader className="flex flex-row items-center gap-4 space-y-0">
           <div className="p-2 bg-secondary rounded-lg">{icon}</div>
           <div>

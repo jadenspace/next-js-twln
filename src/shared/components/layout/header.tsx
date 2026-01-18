@@ -59,7 +59,7 @@ const GENERATE_MENU = [
   {
     href: "/lotto/generate/manual-pattern",
     label: "패턴 조합 생성기",
-    isPublic: true,
+    isPublic: false,
   },
 ];
 
@@ -322,19 +322,18 @@ export function Header() {
                       setIsGenerateOpen(false);
                     }, 150);
                   }}
-                  className="w-48 p-2"
+                  className="w-56 p-2"
                   align="start"
                 >
                   <div className="space-y-1">
                     {GENERATE_MENU.map((item) => {
-                      const isPublic = item.isPublic ?? false;
-                      const isPrivate = !isPublic && !isAuthenticated;
+                      const isPrivate = !item.isPublic && !isAuthenticated;
                       return (
                         <Link
                           key={item.href}
                           href={isPrivate ? "#" : item.href}
                           className={cn(
-                            "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
+                            "flex items-center justify-between px-3 py-2 text-sm rounded-md transition-colors",
                             pathname === item.href
                               ? "bg-primary/10 text-primary font-medium"
                               : "text-muted-foreground",
@@ -343,7 +342,12 @@ export function Header() {
                               : "hover:bg-muted hover:text-foreground",
                           )}
                         >
-                          {item.label}
+                          <span>{item.label}</span>
+                          {isPrivate && (
+                            <span className="text-[10px] text-orange-500 font-bold border border-orange-200 px-1.5 rounded animate-pulse">
+                              로그인 필요
+                            </span>
+                          )}
                         </Link>
                       );
                     })}
@@ -554,14 +558,13 @@ export function Header() {
             {isMobileGenerateOpen && (
               <div className="px-2 py-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
                 {GENERATE_MENU.map((item) => {
-                  const isPublic = item.isPublic ?? false;
-                  const isPrivate = !isPublic && !isAuthenticated;
+                  const isPrivate = !item.isPublic && !isAuthenticated;
                   return (
                     <Link
                       key={item.href}
                       href={isPrivate ? "#" : item.href}
                       className={cn(
-                        "flex items-center gap-2 px-3 py-2 text-sm rounded-md pl-9 transition-colors",
+                        "flex items-center justify-between px-3 py-2 text-sm rounded-md pl-9 transition-colors",
                         pathname === item.href
                           ? "bg-primary/10 text-primary font-medium"
                           : "text-muted-foreground",
@@ -569,8 +572,14 @@ export function Header() {
                           ? "opacity-60 pointer-events-none"
                           : "hover:bg-muted hover:text-foreground",
                       )}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      {item.label}
+                      <span>{item.label}</span>
+                      {isPrivate && (
+                        <span className="text-[10px] text-orange-500 font-bold">
+                          로그인 필요
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
