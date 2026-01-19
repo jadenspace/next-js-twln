@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import Link from "next/link";
+import { Lock } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import {
@@ -22,6 +25,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib/utils";
+import { useRouter } from "next/navigation";
 import { getLottoBallColor } from "@/features/lotto/lib/lotto-colors";
 import {
   StepIndicator,
@@ -67,6 +71,7 @@ const INITIAL_STEP_DATA: PatternAnalysisStepData = {
 };
 
 export default function ManualPatternAnalysisPage() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { userPoints, usePointsMutation } = usePoints();
 
   const [recommendations, setRecommendations] = useState<{
@@ -669,6 +674,14 @@ export default function ManualPatternAnalysisPage() {
     navigator.clipboard.writeText(text);
     toast.success("번호가 클립보드에 복사되었습니다.", { description: text });
   }, []);
+
+  if (authLoading || !isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-10">

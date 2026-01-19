@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // lucide-react barrel import 최적화 (개발 ~2.8s, 프로덕션 콜드스타트 개선)
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
   /* config options here */
   // 개발 모드에서 오버레이 비활성화
   devIndicators: {

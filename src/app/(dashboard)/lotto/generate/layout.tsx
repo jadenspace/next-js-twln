@@ -4,9 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/lib/utils";
 
+import { useAuth } from "@/features/auth/hooks/use-auth";
+
 const TABS = [
-  { href: "/lotto/generate/random", label: "3D 추첨 시뮬레이션" },
-  { href: "/lotto/generate/manual-pattern", label: "패턴 조합 생성기" },
+  {
+    href: "/lotto/generate/random",
+    label: "3D 추첨 시뮬레이션",
+    isPublic: true,
+  },
+  {
+    href: "/lotto/generate/manual-pattern",
+    label: "패턴 조합 생성기",
+    isPublic: false,
+  },
 ];
 
 export default function GenerateLayout({
@@ -15,6 +25,7 @@ export default function GenerateLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -31,10 +42,12 @@ export default function GenerateLayout({
         <div className="flex items-center gap-1 border-b">
           {TABS.map((tab) => {
             const isActive = pathname === tab.href;
+            const isLocked = !tab.isPublic && !isAuthenticated && !isLoading;
+
             return (
               <Link
                 key={tab.href}
-                href={tab.href}
+                href={isLocked ? "/login?callback=" + tab.href : tab.href}
                 className={cn(
                   "px-6 py-3 text-sm font-medium transition-all relative",
                   isActive
