@@ -1,8 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/shared/ui/button";
-import { LottoMachine3D } from "@/features/lotto/components/lotto-machine-3d";
+
+// Three.js 관련 컴포넌트 동적 로딩 (~300KB 메인 번들에서 분리)
+const LottoMachine3D = dynamic(
+  () =>
+    import("@/features/lotto/components/lotto-machine-3d").then(
+      (m) => m.LottoMachine3D,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[400px] md:h-[500px] bg-muted/20 rounded-lg">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    ),
+  },
+);
 import {
   Dialog,
   DialogContent,
