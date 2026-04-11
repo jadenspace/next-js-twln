@@ -75,8 +75,19 @@ export default function ManualPatternAnalysisPage() {
   const { userPoints, usePointsMutation } = usePoints();
 
   const [recommendations, setRecommendations] = useState<{
-    hot: number[];
-    cold: number[];
+    groups: {
+      id: string;
+      label: string;
+      description: string;
+      defaultAction: "fixed" | "excluded";
+      numbers: number[];
+    }[];
+    baseDraw?: {
+      drawNo: number;
+      drawDate: string;
+    } | null;
+    hot?: number[];
+    cold?: number[];
   } | null>(null);
 
   useEffect(() => {
@@ -85,7 +96,7 @@ export default function ManualPatternAnalysisPage() {
         const res = await fetch("/api/lotto/recommendations");
         if (res.ok) {
           const data = await res.json();
-          if (data.hot && data.cold) {
+          if (data.groups) {
             setRecommendations(data);
           }
         }

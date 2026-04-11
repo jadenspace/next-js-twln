@@ -1,26 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AdvancedStats } from "@/features/lotto/types";
+import { Brain, ChevronRight, Flame, Info, Snowflake } from "lucide-react";
 import { lottoApi } from "@/features/lotto/api/lotto-api";
 import { useLottoNumberStats } from "@/features/lotto/hooks/use-lotto-query";
 import {
-  StatsFilter,
   FilterValues,
+  StatsFilter,
 } from "@/features/lotto/components/stats-filter";
+import type { AdvancedStats } from "@/features/lotto/types";
+import { LotteryBall } from "@/shared/ui/lottery-ball";
+import { EmptyStateCard } from "@/shared/ui/empty-state-card";
+import { PageHeader } from "@/shared/ui/page-header";
+import { Button } from "@/shared/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/shared/ui/card";
-import { Brain, Flame, Snowflake, Scale, Info } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
-import { LotteryBall } from "@/shared/ui/lottery-ball";
-import { PageHeader } from "@/shared/ui/page-header";
-import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function AlgorithmStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
@@ -45,32 +46,22 @@ export default function AlgorithmStatsPage() {
     filters || undefined,
     { style: "advanced" },
   );
-  const stats = statsData?.data || null;
 
-  const getHotNumbers = () => {
-    if (!stats) return [];
-    return Object.entries(stats.frequency)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 10);
-  };
+  const stats = statsData?.data ?? null;
 
-  const getColdNumbers = () => {
-    if (!stats) return [];
-    return Object.entries(stats.frequency)
-      .sort(([, a], [, b]) => a - b)
-      .slice(0, 10);
-  };
+  const hotNumbers = getRankedNumbers(stats, "desc");
+  const coldNumbers = getRankedNumbers(stats, "asc");
 
   return (
-    <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
+    <div className="container mx-auto max-w-6xl px-4 py-6 md:py-10">
       <PageHeader
         title="알고리즘 기법 분석"
-        description="Hot/Cold 이론과 가중치 알고리즘을 통해 추천 번호군을 추출합니다."
+        description="Hot/Cold 해석을 바탕으로 현재 회차 범위에서 어떤 번호 흐름이 나타나는지 확인합니다."
       />
 
       {latestDrawNo ? (
         <StatsFilter
-          onApply={(v) => setFilters(v)}
+          onApply={(value) => setFilters(value)}
           isPending={isLoading && !!filters}
           latestDrawNo={latestDrawNo}
           defaultValues={{
@@ -81,36 +72,73 @@ export default function AlgorithmStatsPage() {
           }}
         />
       ) : (
-        <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
+        <div className="mb-8 h-[100px] animate-pulse rounded-lg bg-muted/20" />
       )}
 
-      {!stats ? (
+      {!stats || !filters ? (
         <EmptyStateCard
           icon={Brain}
           title="알고리즘 분석 대기 중"
-          description="정교한 가중치 분석을 시작하려면 버튼을 클릭해 주세요."
+          description="회차 범위를 선택하고 적용하면 핫 번호와 콜드 번호 흐름을 바로 확인할 수 있습니다."
         />
       ) : (
         <div className="space-y-8 animate-in zoom-in-95 duration-700">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50/70 px-4 py-3 text-sm text-blue-900 shadow-sm">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              핫 번호는 현재 범위에서 자주 나온 번호이고, 콜드 번호는 상대적으로
+              덜 나온 번호입니다. 이 결과는 고정 추천이 아니라 현재 필터 기준의
+              참고 흐름입니다.
+            </p>
+          </div>
+
+          <Card className="border-blue-200 bg-blue-50/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-700">
+                <Info className="h-5 w-5" />
+                현재 분석 기준
+              </CardTitle>
+              <CardDescription>
+                아래 결과는 현재 적용한 회차 범위 기준으로 계산됩니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 md:grid-cols-3">
+              <InfoItem
+                label="분석 회차 범위"
+                value={`${filters.startDraw}회 ~ ${filters.endDraw}회`}
+              />
+              <InfoItem
+                label="총 회차 수"
+                value={`${filters.endDraw - filters.startDraw + 1}회`}
+              />
+              <InfoItem
+                label="보너스 포함"
+                value={filters.includeBonus ? "포함" : "미포함"}
+              />
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card className="border-orange-200 bg-orange-50/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-orange-600">
-                  <Flame className="w-5 h-5 fill-current" />
-                  Hot Numbers (최근 강세)
+                  <Flame className="h-5 w-5 fill-current" />핫 번호
                 </CardTitle>
                 <CardDescription>
-                  지정된 범위 내에서 가장 출현 빈도가 높은 번호들입니다.
+                  현재 회차 범위에서 출현 빈도가 높은 번호입니다.
                 </CardDescription>
+                <p className="text-xs text-muted-foreground">
+                  현재 필터 범위 기준 결과
+                </p>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                  {getHotNumbers().map(([num, count]) => (
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+                  {hotNumbers.map(([num, count]) => (
                     <div
                       key={num}
-                      className="flex flex-col items-center p-3 bg-white rounded-xl border border-orange-100 shadow-sm"
+                      className="flex flex-col items-center rounded-xl border border-orange-100 bg-white p-3 shadow-sm"
                     >
-                      <LotteryBall number={parseInt(num)} className="mb-2" />
+                      <LotteryBall number={Number(num)} className="mb-2" />
                       <span className="text-xs font-bold text-orange-600">
                         {count}회
                       </span>
@@ -123,21 +151,24 @@ export default function AlgorithmStatsPage() {
             <Card className="border-cyan-200 bg-cyan-50/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-cyan-600">
-                  <Snowflake className="w-5 h-5" />
-                  Cold Numbers (최근 약세)
+                  <Snowflake className="h-5 w-5" />
+                  콜드 번호
                 </CardTitle>
                 <CardDescription>
-                  출현 빈도가 낮아 반등의 기회가 있는 번호들입니다.
+                  현재 회차 범위에서 출현 빈도가 낮은 번호입니다.
                 </CardDescription>
+                <p className="text-xs text-muted-foreground">
+                  현재 필터 범위 기준 결과
+                </p>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                  {getColdNumbers().map(([num, count]) => (
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+                  {coldNumbers.map(([num, count]) => (
                     <div
                       key={num}
-                      className="flex flex-col items-center p-3 bg-white rounded-xl border border-cyan-100 shadow-sm"
+                      className="flex flex-col items-center rounded-xl border border-cyan-100 bg-white p-3 shadow-sm"
                     >
-                      <LotteryBall number={parseInt(num)} className="mb-2" />
+                      <LotteryBall number={Number(num)} className="mb-2" />
                       <span className="text-xs font-bold text-cyan-600">
                         {count}회
                       </span>
@@ -150,64 +181,33 @@ export default function AlgorithmStatsPage() {
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Scale className="w-5 h-5 text-indigo-600" />
-                  Balanced 추천 전략 (Mixed Weight)
+                  <Info className="h-5 w-5 text-blue-600" />
+                  다음 단계
                 </CardTitle>
                 <CardDescription>
-                  Hot 3개 + Cold 2개 + 이월수 1개 조합법
+                  현재 흐름을 확인했다면 패턴 조합 생성기에서 고정수와 제외수를
+                  바로 선택할 수 있습니다.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    통계적으로 당첨 번호는 항상 강세인 번호(Hot)와 오랫동안
-                    나오지 않은 번호(Cold)가 적절히 섞여서 출현합니다. 아래는
-                    현재 데이터 기반의 가장 균형 잡힌 가중치 그룹입니다.
+                <div className="rounded-xl border bg-muted/20 p-4">
+                  <p className="text-sm font-medium text-foreground">
+                    패턴 조합 생성기로 이어서 이동
                   </p>
-                  <div className="p-6 bg-slate-50 rounded-2xl border flex flex-col md:flex-row items-center gap-8">
-                    <div className="flex-1 space-y-2">
-                      <h4 className="font-bold text-indigo-700">
-                        추천 그룹 구성
-                      </h4>
-                      <p className="text-xs text-muted-foreground">
-                        이 그룹 내에서 무작위로 번호를 조합하는 것이 가장 높은
-                        승률을 보입니다.
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {[
-                        ...getHotNumbers().slice(0, 5),
-                        ...getColdNumbers().slice(0, 5),
-                      ].map(([num]) => (
-                        <LotteryBall
-                          key={num}
-                          number={parseInt(num)}
-                          className="w-8 h-8 text-[10px]"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Info className="w-5 h-5 text-blue-600" />
-                  알고리즘 활용 팁
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm space-y-4">
-                <p>
-                  <b>가중치 알고리즘</b>은 매 회차 변하는 숫자의 온도를
-                  체크합니다. 무조건 많이 나온 번호만 고르는 '빈도 맹신'보다는,
-                  흐름이 바뀌는 포인트(Cold에서 반등)를 잡아내는 것이
-                  중요합니다.
-                </p>
-                <div className="p-4 bg-blue-50 text-blue-800 rounded-xl text-xs">
-                  최근 10회차 이내의 데이터로 Hot Numbers를 분석하고, 전체 회차
-                  데이터로 Cold Numbers를 분석하여 교차 검증해 보세요.
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    핫 번호, 콜드 번호, 최근 회차 번호 흐름을 실제 조합 선택에
+                    연결합니다.
+                  </p>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="mt-3 w-full justify-between md:w-auto"
+                  >
+                    <Link href="/lotto/generate/manual-pattern">
+                      패턴 조합 생성기로 이동
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -216,4 +216,23 @@ export default function AlgorithmStatsPage() {
       )}
     </div>
   );
+}
+
+function InfoItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border bg-background px-4 py-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-2 text-lg font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function getRankedNumbers(stats: AdvancedStats | null, order: "asc" | "desc") {
+  if (!stats) return [];
+
+  return Object.entries(stats.frequency)
+    .sort(([, left], [, right]) =>
+      order === "asc" ? left - right : right - left,
+    )
+    .slice(0, 10);
 }
