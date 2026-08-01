@@ -25,10 +25,14 @@ import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function MonteCarloStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
+  // 심화 분석은 1회당 200P가 차감되므로, 사용자가 직접 "분석 적용"을
+  // 누르기 전에는 요청하지 않는다.
+  const [hasRequested, setHasRequested] = useState(false);
   const [simResults, setSimResults] = useState<Record<number, number> | null>(
     null,
   );
   const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationError, setSimulationError] = useState<string | null>(null);
 
   const { data: latestDrawNo } = useQuery({
     queryKey: ["lotto", "latest-draw-no"],
@@ -49,18 +53,21 @@ export default function MonteCarloStatsPage() {
   const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
+    { enabled: hasRequested },
   );
   // 시뮬레이션 결과 초기화 로직이 필요하다면 useEffect로 처리 가능하지만,
   // 여기서는 데이터가 바뀌면 시뮬레이션 결과는 그대로 두고 재실행 유도
   // 만약 필터 변경 시 결과 초기화하고 싶다면 useEffect([filters]) 사용
   useEffect(() => {
     setSimResults(null);
+    setSimulationError(null);
   }, [filters]);
 
   const stats = statsData?.data || null;
 
   const runSimulation = () => {
     if (!stats) return;
+    setSimulationError(null);
     setIsSimulating(true);
 
     // Simple frequency-based simulation for demonstration
@@ -69,23 +76,45 @@ export default function MonteCarloStatsPage() {
       const results: Record<number, number> = {};
       for (let i = 1; i <= 45; i++) results[i] = 0;
 
-      const totalFreq = Object.values(stats.frequency).reduce(
-        (a, b) => a + b,
-        0,
-      );
+      // 누적 가중치는 정규화하지 않고 빈도 그대로 쌓는다. 예전에는 빈도 합으로
+      // 나눴는데, 선택한 구간에 회차가 하나도 없으면 합이 0이라 모든 가중치가
+      // NaN 이 되고, 아래 추첨 루프가 6개를 못 채워 무한히 돌았다.
       const cumulativeWeights: number[] = [];
-      let currentSum = 0;
+      let runningTotal = 0;
+      let drawableCount = 0;
       for (let i = 1; i <= 45; i++) {
-        currentSum += (stats.frequency[i] || 0) / totalFreq;
-        cumulativeWeights.push(currentSum);
+        const frequency = stats.frequency[i] || 0;
+        if (frequency > 0) drawableCount++;
+        runningTotal += frequency;
+        cumulativeWeights.push(runningTotal);
       }
+
+      // 출현한 번호가 6개 미만이면 6개짜리 조합 자체를 만들 수 없다.
+      if (runningTotal <= 0 || drawableCount < 6) {
+        setSimulationError(
+          "선택한 구간에 시뮬레이션할 당첨 데이터가 충분하지 않습니다. 분석 범위를 넓혀 주세요.",
+        );
+        setIsSimulating(false);
+        return;
+      }
+
+      const pickNumber = () => {
+        const target = Math.random() * runningTotal;
+        for (let i = 0; i < cumulativeWeights.length; i++) {
+          // 빈도가 0인 번호는 앞 번호와 누적값이 같아 선택되지 않는다.
+          if (target < cumulativeWeights[i]) return i + 1;
+        }
+        // 부동소수 오차로 끝까지 온 경우: 마지막으로 빈도가 있는 번호.
+        for (let i = cumulativeWeights.length - 1; i > 0; i--) {
+          if (cumulativeWeights[i] > cumulativeWeights[i - 1]) return i + 1;
+        }
+        return 1;
+      };
 
       for (let i = 0; i < 10000; i++) {
         const selectedDraw: Set<number> = new Set();
         while (selectedDraw.size < 6) {
-          const rand = Math.random();
-          const num = cumulativeWeights.findIndex((w) => rand <= w) + 1;
-          selectedDraw.add(num);
+          selectedDraw.add(pickNumber());
         }
         selectedDraw.forEach((n) => results[n]++);
       }
@@ -105,13 +134,17 @@ export default function MonteCarloStatsPage() {
     <div className="container mx-auto py-6 md:py-10 px-4 max-w-6xl">
       <PageHeader
         title="몬테카를로 시뮬레이션"
-        description="통계 데이터를 기반으로 10,000번의 가상 추첨을 시행하여 당첨 확률이 가장 높은 조합을 예측합니다."
+        description="선택한 구간의 출현 빈도를 가중치로 삼아 10,000번의 가상 추첨을 돌려봅니다. 과거 분포가 어떻게 생겼는지 보여주는 도구이며, 다음 회차를 예측하지 않습니다."
       />
 
       {latestDrawNo ? (
         <StatsFilter
-          onApply={(v) => setFilters(v)}
+          onApply={(v) => {
+            setFilters(v);
+            setHasRequested(true);
+          }}
           isPending={isLoading && !!filters}
+          isAdvanced
           latestDrawNo={latestDrawNo}
           defaultValues={{
             type: "all",
@@ -159,6 +192,11 @@ export default function MonteCarloStatsPage() {
               </Button>
             </CardHeader>
             <CardContent>
+              {simulationError && (
+                <p className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs md:text-sm text-destructive">
+                  {simulationError}
+                </p>
+              )}
               {simResults ? (
                 <div className="space-y-6 animate-in zoom-in-95 duration-500">
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -227,9 +265,12 @@ export default function MonteCarloStatsPage() {
                 만 번 이상의 가상 추첨을 직접 수행합니다.
               </p>
               <div className="p-4 bg-muted rounded-xl text-xs">
-                수학적으로는 수많은 우연을 겹치게 하여 가장 가능성 높은
-                필연(데이터의 중심)을 찾아내는 기법으로, 핵물리학이나 금융
-                공학에서 널리 사용되는 신뢰도 높은 예측 알고리즘입니다.
+                핵물리학이나 금융공학에서도 쓰이는 표준적인 수치 계산
+                기법이지만, 결과는 어디까지나 입력한 가중치를 그대로 반영합니다.
+                여기서는 과거 출현 빈도를 가중치로 넣었으므로, 상위에 오르는
+                번호는 그 구간에서 많이 나왔던 번호일 뿐입니다. 로또 추첨은 매
+                회차가 독립 시행이라 이 결과가 다음 회차의 확률을 바꾸지
+                않습니다.
               </div>
             </CardContent>
           </Card>

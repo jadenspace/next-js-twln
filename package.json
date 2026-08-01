@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint . --fix",
     "lint-error": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
     "prepare": "husky",
     "mcp": "env-cmd -f .env.local npx -y @supabase/mcp-server-supabase"
   },

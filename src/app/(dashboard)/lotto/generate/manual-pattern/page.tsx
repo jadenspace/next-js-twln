@@ -34,7 +34,6 @@ import {
   SimpleRepeatFilter,
 } from "@/features/lotto/components/pattern-analysis";
 import { PatternConstraintCalculator } from "@/features/lotto/services/pattern-constraint-calculator";
-import { PatternFilter } from "@/features/lotto/services/pattern-filter";
 import {
   TOTAL_COMBINATIONS,
   UNFILTERED_FILTER_STATE,
@@ -72,7 +71,7 @@ const INITIAL_STEP_DATA: PatternAnalysisStepData = {
 
 export default function ManualPatternAnalysisPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { userPoints, usePointsMutation } = usePoints();
+  const { userPoints, refreshPoints } = usePoints();
 
   const [recommendations, setRecommendations] = useState<{
     groups: {
@@ -159,10 +158,10 @@ export default function ManualPatternAnalysisPage() {
     });
     const maxSameEndDigit = Math.max(...Object.values(endDigits));
 
-    // 동일 구간 (같은 10단위 구간 번호 개수)
+    // 동일 구간 (같은 5단위 구간 번호 개수). 필터 조건과 같은 기준으로 센다.
     const sections: Record<number, number> = {};
     sorted.forEach((n) => {
-      const section = Math.floor((n - 1) / 10);
+      const section = Math.floor((n - 1) / 5);
       sections[section] = (sections[section] || 0) + 1;
     });
     const maxSameSection = Math.max(...Object.values(sections));
@@ -191,7 +190,6 @@ export default function ManualPatternAnalysisPage() {
   }, []);
 
   const calculator = useMemo(() => new PatternConstraintCalculator(), []);
-  const patternFilter = useMemo(() => new PatternFilter(), []);
 
   // Step 1 경우의 수 (고정수/제외수 기반)
   const step1CombinationCount = useMemo(() => {
@@ -591,21 +589,6 @@ export default function ManualPatternAnalysisPage() {
       setGeneratingCount(gameCount);
 
       try {
-        // 포인트 차감 시도
-        await usePointsMutation.mutateAsync({
-          amount: totalCost,
-          featureType: "manual_pattern_gen",
-          description: `패턴 조합 ${gameCount}게임 생성`,
-        });
-
-        toast.success(`${totalCost} 포인트가 차감되었습니다.`);
-
-        setStepData((prev) => ({
-          ...prev,
-          step3: { ...prev.step3, completed: true },
-        }));
-        setCompletedSteps((prev) => new Set([...prev, 3]));
-
         // PatternFilterState 구성
         const filters: PatternFilterState = {
           sumRange: stepData.step2.sumRange,
@@ -624,13 +607,29 @@ export default function ManualPatternAnalysisPage() {
           excludedNumbers: stepData.step1.excludedNumbers,
         };
 
-        // 번호 생성 (랜덤 생성 + 검증)
-        const generated = patternFilter.generateFilteredCombinations(
-          filters,
-          gameCount,
-          100000,
-          null,
-        );
+        // 생성과 과금은 서버에서 함께 처리한다. 생성에 실패하면 과금되지 않는다.
+        const response = await fetch("/api/lotto/generate-pattern", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gameCount, filters }),
+        });
+
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          toast.error(payload.error || "번호 생성에 실패했습니다.");
+          return;
+        }
+
+        const generated = (payload.data ?? []) as GeneratedCombination[];
+        refreshPoints();
+        toast.success(`${payload.cost} 포인트가 차감되었습니다.`);
+
+        setStepData((prev) => ({
+          ...prev,
+          step3: { ...prev.step3, completed: true },
+        }));
+        setCompletedSteps((prev) => new Set([...prev, 3]));
 
         if (generated.length === 0) {
           toast.error(
@@ -676,7 +675,7 @@ export default function ManualPatternAnalysisPage() {
         setGeneratingCount(null);
       }
     },
-    [stepData, patternFilter, userPoints, usePointsMutation],
+    [stepData, userPoints, refreshPoints],
   );
 
   // 번호 복사

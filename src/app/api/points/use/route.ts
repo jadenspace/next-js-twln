@@ -1,94 +1,60 @@
-import { createClient } from "@/shared/lib/supabase/server";
-import { createAdminClient } from "@/shared/lib/supabase/admin";
+import { requireVerifiedUser } from "@/shared/lib/auth/guards";
+import { adjustPoints } from "@/shared/lib/points/point-ledger";
+import { isPaidFeature, priceFor } from "@/shared/lib/points/pricing";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * 포인트 차감.
+ *
+ * 차감 금액은 요청 본문이 아니라 서버 가격표(shared/lib/points/pricing.ts)에서
+ * 결정한다. 클라이언트는 어떤 기능을 몇 개 쓰는지만 알려준다.
+ *
+ * 주의: 이 라우트는 포인트만 차감하고 서비스를 제공하지 않는다. 유료 기능은
+ * 결제와 제공을 한 라우트에서 함께 처리해야 결제 후 실패나 무료 이용을 막을 수
+ * 있다(예: /api/lotto/generate-pattern).
+ */
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const adminSupabase = createAdminClient();
-
-  // 1. Authenticate
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const guard = await requireVerifiedUser();
+  if (!guard.ok) return guard.response;
 
   try {
     const body = await request.json();
-    const { amount, featureType, description } = body;
+    const { featureType, quantity = 1 } = body;
 
-    if (!amount || amount <= 0) {
-      return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+    if (!isPaidFeature(featureType)) {
+      return NextResponse.json({ error: "Unknown feature" }, { status: 400 });
     }
 
-    // 2. Check Balance (Use Admin Client to be safe, though user read might be allowed)
-    const { data: userPoints, error: fetchError } = await adminSupabase
-      .from("user_points")
-      .select("balance, total_spent")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const cost = priceFor(featureType, quantity);
+    if (cost === null) {
+      return NextResponse.json({ error: "Invalid quantity" }, { status: 400 });
+    }
 
-    if (fetchError || !userPoints) {
-      // If no points record, they imply 0 balance usually, or error
+    const result = await adjustPoints({
+      userId: guard.user.id,
+      delta: -cost,
+      transactionType: "use",
+      description:
+        typeof body.description === "string" && body.description.trim()
+          ? body.description.slice(0, 200)
+          : featureType,
+      featureType,
+    });
+
+    if (!result.ok) {
       return NextResponse.json(
-        { error: "Insufficient funds" },
-        { status: 402 },
+        { error: result.message },
+        { status: result.reason === "insufficient" ? 402 : 409 },
       );
     }
 
-    if (userPoints.balance < amount) {
-      return NextResponse.json(
-        { error: "Insufficient funds" },
-        { status: 402 },
-      );
-    }
-
-    // 3. Deduct Points (Update Balance) - Use Admin Client
-    const newBalance = userPoints.balance - amount;
-    const newTotalSpent = (userPoints.total_spent || 0) + amount;
-
-    const { error: updateError } = await adminSupabase
-      .from("user_points")
-      .update({
-        balance: newBalance,
-        total_spent: newTotalSpent,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", user.id);
-
-    if (updateError) throw updateError;
-
-    // 4. Insert Transaction - Use Admin Client
-    const { error: transactionError } = await adminSupabase
-      .from("point_transactions")
-      .insert({
-        user_id: user.id,
-        transaction_type: "use",
-        amount: -amount,
-        balance_after: newBalance,
-        // feature_type: featureType, // Temporarily disabled for debugging
-        description: description || "Points used",
-        created_at: new Date().toISOString(),
-      });
-
-    if (transactionError) {
-      // Critical: Point deducted but transaction failed.
-      // ideally we should rollback.
-      // For now log it (or rely on robust backend if we had SQL functions).
-      console.error(
-        "Transaction insertion failed after deduction",
-        JSON.stringify(transactionError, null, 2),
-      );
-      return NextResponse.json(
-        { error: "Transaction record failed" },
-        { status: 500 },
-      );
-    }
-
-    return NextResponse.json({ success: true, balance: newBalance });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      cost,
+      balance: result.balance,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

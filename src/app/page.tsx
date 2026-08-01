@@ -56,8 +56,8 @@ export default function Home() {
           {/* Hero Section */}
           <div className="text-center space-y-4">
             <p className="text-md text-muted-foreground max-w-2xl mx-auto">
-              통계 분석 기반으로 로또 당첨 확률을 높이는{" "}
-              <br className="md:hidden" /> 프리미엄 인사이트를 경험하세요.
+              역대 당첨번호를 통계로 정리해 <br className="md:hidden" /> 번호
+              선택을 더 재미있게 만들어 드립니다.
             </p>
           </div>
 

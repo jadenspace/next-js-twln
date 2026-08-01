@@ -1,9 +1,8 @@
+import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { createClient } from "@/shared/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { StatisticsCalculator } from "@/features/lotto/services/statistics-calculator";
 import { LottoDraw } from "@/features/lotto/types";
-
-const STATS_COST = 100;
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -115,9 +114,11 @@ export async function POST(request: NextRequest) {
 
     // 4. Deduct Points via RPC (if user is logged in and there is a cost)
     if (user && currentCost > 0) {
-      const { data: deductResult, error: deductError } = await supabase.rpc(
-        "deduct_points",
-        {
+      // 포인트/경험치 함수는 service_role 로만 호출한다.
+      const adminSupabase = createAdminClient();
+
+      const { data: deductResult, error: deductError } =
+        await adminSupabase.rpc("deduct_points", {
           user_uuid: user.id,
           amount_to_deduct: currentCost,
           transaction_type: "use",
@@ -125,8 +126,7 @@ export async function POST(request: NextRequest) {
             ? "로또 심화 통계 분석"
             : "로또 기본 통계 분석",
           feat_type: isAdvanced ? "advanced_stat_analysis" : "stat_analysis",
-        },
-      );
+        });
 
       if (deductError || !deductResult?.success) {
         return NextResponse.json(
@@ -140,22 +140,27 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Save Analysis Result
-      const { data: savedResult, error: saveError } = await supabase
+      // Save Analysis Result.
+      // 이 시점에 포인트는 이미 차감됐다. 이력 저장 실패로 요청 전체를 실패시키면
+      // 사용자는 돈만 내고 결과를 못 받는다. 기록만 남기고 결과는 반환한다.
+      const { error: saveError } = await adminSupabase
         .from("analysis_results")
         .insert({
           user_id: user.id,
           analysis_type: isAdvanced ? "advanced_stat" : "stat",
           result_data: result,
           points_spent: currentCost,
-        })
-        .select()
-        .single();
+        });
 
-      if (saveError) throw saveError;
+      if (saveError) {
+        console.error(
+          "[lotto/analysis/stats] 분석 이력 저장 실패 (포인트는 차감됨)",
+          { userId: user.id, cost: currentCost, saveError },
+        );
+      }
 
       // 5. Grant XP (50 XP for advanced, basic is now free so maybe no XP)
-      await supabase.rpc("add_xp", {
+      await adminSupabase.rpc("add_xp", {
         user_uuid: user.id,
         xp_to_add: isAdvanced ? 50 : 0,
       });

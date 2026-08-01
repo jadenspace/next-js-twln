@@ -17,6 +17,15 @@ import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
+/** 같은 사이트 안의 절대 경로만 통과시킨다. 그 외에는 null. */
+function sanitizeCallback(value: string | null | undefined): string | null {
+  if (!value) return null;
+  // "/" 로 시작하되 "//host" 나 "/\host" 같은 프로토콜 상대 주소는 제외한다.
+  if (!value.startsWith("/")) return null;
+  if (value.startsWith("//") || value.startsWith("/\\")) return null;
+  return value;
+}
+
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +35,10 @@ function LoginForm() {
   const [resendEmail, setResendEmail] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callback");
+  // 로그인 후 이동할 주소는 같은 사이트 안의 경로만 허용한다.
+  // 검증 없이 그대로 router.push 하면 /login?callback=https://evil.com 으로
+  // 로그인한 사용자를 외부 사이트로 보낼 수 있다("//evil.com" 형태 포함).
+  const callbackUrl = sanitizeCallback(searchParams?.get("callback"));
   const {
     signIn,
     signUp,

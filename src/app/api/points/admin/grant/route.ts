@@ -1,48 +1,50 @@
-import { createClient as createSsrClient } from "@/shared/lib/supabase/server";
+import { requireAdmin } from "@/shared/lib/auth/guards";
+import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 
+/** 1회 지급 한도. 오타로 인한 대량 지급을 막는다. */
+const MAX_GRANT_AMOUNT = 1_000_000;
+
 export async function POST(request: NextRequest) {
-  const supabase = await createSsrClient();
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard.response;
 
-  // 1. Authenticate & Check Admin
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { data: adminCheck, error: adminError } = await supabase
-    .from("admin_users")
-    .select("id")
-    .eq("email", user.email)
-    .eq("is_active", true)
-    .single();
-
-  if (adminError || !adminCheck) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  // 다른 사용자를 조회하고 포인트를 지급하는 작업이므로 service_role 로 수행한다.
+  // add_points 는 브라우저 롤에서 실행할 수 없도록 권한이 회수되어 있다
+  // (supabase/migrations/20260801000000_revoke_privileged_function_grants.sql).
+  const adminSupabase = createAdminClient();
 
   try {
     const body = await request.json();
     const { targetEmail, amount, description, transactionType } = body;
 
-    if (!targetEmail || !amount) {
+    if (typeof targetEmail !== "string" || !targetEmail.trim()) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "targetEmail is required" },
         { status: 400 },
       );
     }
 
-    // 2. Get Target User ID from email using user_profiles table
-    // 관리자는 user_profiles 테이블의 모든 데이터를 조회할 수 있는 RLS 정책이 있으므로,
-    // service_role 키 없이도 이메일로 사용자 ID를 조회할 수 있습니다.
-    const { data: targetUserProfile, error: userProfileError } = await supabase
-      .from("user_profiles")
-      .select("id")
-      .eq("email", targetEmail)
-      .single();
+    if (!Number.isInteger(amount) || amount <= 0) {
+      return NextResponse.json(
+        { error: "amount must be a positive integer" },
+        { status: 400 },
+      );
+    }
+
+    if (amount > MAX_GRANT_AMOUNT) {
+      return NextResponse.json(
+        { error: `1회 지급 한도(${MAX_GRANT_AMOUNT}P)를 초과했습니다.` },
+        { status: 400 },
+      );
+    }
+
+    const { data: targetUserProfile, error: userProfileError } =
+      await adminSupabase
+        .from("user_profiles")
+        .select("id")
+        .eq("email", targetEmail)
+        .maybeSingle();
 
     if (userProfileError || !targetUserProfile) {
       return NextResponse.json(
@@ -50,15 +52,11 @@ export async function POST(request: NextRequest) {
         { status: 404 },
       );
     }
-    const targetUserId = targetUserProfile.id;
 
-    // 3. Call 'add_points' RPC function
-    // add_points 함수는 SECURITY DEFINER로 정의되어 있어 RLS를 우회하므로,
-    // 일반 supabase 클라이언트로 호출해도 권한 문제가 발생하지 않습니다.
-    const { data: rpcData, error: rpcError } = await supabase.rpc(
+    const { data: rpcData, error: rpcError } = await adminSupabase.rpc(
       "add_points",
       {
-        user_uuid: targetUserId,
+        user_uuid: targetUserProfile.id,
         amount_to_add: amount,
         transaction_type: transactionType || "bonus",
         description_text: description || "Admin grant",
@@ -71,9 +69,14 @@ export async function POST(request: NextRequest) {
       throw new Error(rpcError.message);
     }
 
+    console.info(
+      `[points/admin/grant] ${guard.user.email} → ${targetEmail}: ${amount}P`,
+    );
+
     return NextResponse.json(rpcData);
-  } catch (err: any) {
-    console.error("Grant Points Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("Grant Points Error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

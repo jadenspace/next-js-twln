@@ -64,13 +64,27 @@ export async function POST(request: NextRequest) {
     const periodEnd = currentDraw.created_at;
 
     // 3. 해당 기간 내 저장된 번호 조회
-    const { data: savedNumbers, error: numbersError } = await adminSupabase
-      .from("saved_lotto_numbers")
-      .select("numbers, source")
-      .gte("created_at", periodStart)
-      .lt("created_at", periodEnd);
+    // Supabase 는 한 번에 1000행까지만 돌려준다. 페이지네이션 없이 조회하면
+    // 주간 저장이 1000건을 넘는 순간 오류 없이 조용히 잘려서, 리포트의
+    // 참여 수와 등수 집계가 전부 과소 계산된다.
+    const PAGE_SIZE = 1000;
+    const savedNumbers: { numbers: number[]; source: string }[] = [];
 
-    if (numbersError) throw numbersError;
+    for (let page = 0; ; page++) {
+      const { data: pageRows, error: numbersError } = await adminSupabase
+        .from("saved_lotto_numbers")
+        .select("numbers, source")
+        .gte("created_at", periodStart)
+        .lt("created_at", periodEnd)
+        .order("created_at", { ascending: true })
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+      if (numbersError) throw numbersError;
+      if (!pageRows || pageRows.length === 0) break;
+
+      savedNumbers.push(...pageRows);
+      if (pageRows.length < PAGE_SIZE) break;
+    }
 
     // 당첨 번호 추출
     const winningNumbers = [

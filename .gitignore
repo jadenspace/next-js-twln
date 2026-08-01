@@ -51,5 +51,4 @@ next-env.d.ts
 .codacy
 .serena
 
-*.sql
 test-env.js

@@ -23,6 +23,9 @@ import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function JapaneseStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
+  // 심화 분석은 1회당 200P가 차감되므로, 사용자가 직접 "분석 적용"을
+  // 누르기 전에는 요청하지 않는다.
+  const [hasRequested, setHasRequested] = useState(false);
 
   const { data: latestDrawNo } = useQuery({
     queryKey: ["lotto", "latest-draw-no"],
@@ -43,6 +46,7 @@ export default function JapaneseStatsPage() {
   const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
+    { enabled: hasRequested },
   );
   const stats = statsData?.data || null;
 
@@ -58,8 +62,12 @@ export default function JapaneseStatsPage() {
 
       {latestDrawNo ? (
         <StatsFilter
-          onApply={(v) => setFilters(v)}
+          onApply={(v) => {
+            setFilters(v);
+            setHasRequested(true);
+          }}
           isPending={isLoading && !!filters}
+          isAdvanced
           latestDrawNo={latestDrawNo}
           defaultValues={{
             type: "all",
@@ -167,10 +175,10 @@ export default function JapaneseStatsPage() {
                     황금 합계 구간: 121 ~ 160
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    로또 6/45의 이론적 합계 평균인 138을 기준으로, ±20 범위
-                    내에서 당첨 번호가 나올 확률이 70% 이상입니다. 내가 고른
-                    번호의 합계가 이 구간을 벗어난다면 다시 한 번 검토해 보시기
-                    바랍니다.
+                    로또 6/45의 이론적 합계 평균은 138이며, ±20 범위(121~160)에
+                    해당하는 조합은 전체 8,145,060가지 중 약 48.5%입니다. 절반
+                    가까운 조합이 이 구간에 몰려 있다는 뜻일 뿐, 이 구간을
+                    골랐다고 당첨 확률이 올라가지는 않습니다.
                   </p>
                 </div>
                 <div className="space-y-4">
@@ -180,8 +188,9 @@ export default function JapaneseStatsPage() {
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     산도가 지나치게 낮으면(예: 10 이하) 번호들이 특정 구간에
-                    뭉쳐있다는 의미입니다. 과거 당첨 데이터의 평균 산도인 30~40
-                    사이를 유지하는 것이 통계적으로 유리합니다.
+                    뭉쳐있다는 의미입니다. 과거 당첨 번호의 산도는 대체로 30~40
+                    구간에 분포했는데, 이는 가능한 조합 자체가 그 구간에 많기
+                    때문이지 그 범위가 더 잘 당첨되기 때문은 아닙니다.
                   </p>
                 </div>
               </CardContent>

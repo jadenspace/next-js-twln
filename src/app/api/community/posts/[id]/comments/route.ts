@@ -1,3 +1,4 @@
+import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { createClient } from "@/shared/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -47,8 +48,8 @@ export async function POST(
       adminEmail: user.email,
     });
 
-    // Grant XP (5 XP)
-    await supabase.rpc("add_xp", {
+    // Grant XP (5 XP) — add_xp 는 service_role 로만 호출한다.
+    await createAdminClient().rpc("add_xp", {
       user_uuid: user.id,
       xp_to_add: 5,
     });

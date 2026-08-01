@@ -56,6 +56,9 @@ const parsePair = ([pair, count]: [string, number]): ParsedPair | null => {
 
 export default function CompatibilityStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
+  // 심화 분석은 1회당 200P가 차감되므로, 사용자가 직접 "분석 적용"을
+  // 누르기 전에는 요청하지 않는다.
+  const [hasRequested, setHasRequested] = useState(false);
   const [targetNum, setTargetNum] = useState<number | null>(null);
 
   const { data: latestDrawNo } = useQuery({
@@ -72,6 +75,7 @@ export default function CompatibilityStatsPage() {
   const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
+    { enabled: hasRequested },
   );
   const stats = statsData?.data || null;
 
@@ -128,8 +132,12 @@ export default function CompatibilityStatsPage() {
 
       {latestDrawNo ? (
         <StatsFilter
-          onApply={(v) => setFilters(v)}
+          onApply={(v) => {
+            setFilters(v);
+            setHasRequested(true);
+          }}
           isPending={isLoading && !!filters}
+          isAdvanced
           latestDrawNo={latestDrawNo}
           defaultValues={createDefaultFilters(latestDrawNo)}
         />

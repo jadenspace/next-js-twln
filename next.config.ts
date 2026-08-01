@@ -16,10 +16,10 @@ const nextConfig: NextConfig = {
     pagesBufferLength: 2,
   },
 
-  // 빌드 시 타입스크립트 오류 무시
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // 타입 검사는 빌드에서 수행한다.
+  // ignoreBuildErrors 를 켜 두면 커밋 훅(lint-staged)이 스타일만 보기 때문에
+  // 파이프라인 어디에서도 타입을 확인하지 않게 된다. 실제로 그 상태에서
+  // 서버 라우트를 포함한 오류 7건이 배포되고 있었다.
 
   // 프로덕션 소스맵 생성 비활성화
   productionBrowserSourceMaps: false,

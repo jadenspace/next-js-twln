@@ -31,8 +31,7 @@ export function UserManagement() {
   });
 
   const approveMutation = useMutation({
-    mutationFn: (email: string) =>
-      approvalApi.approveUser(email, "System Admin"),
+    mutationFn: (email: string) => approvalApi.approveUser(email),
     onSuccess: () => {
       toast.success("사용자가 승인되었습니다.");
       queryClient.invalidateQueries({ queryKey: ["admin"] });

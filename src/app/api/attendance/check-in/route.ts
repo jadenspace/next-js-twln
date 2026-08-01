@@ -1,17 +1,18 @@
+import { requireUser } from "@/shared/lib/auth/guards";
 import { getKstDateString } from "@/shared/lib/date-utils";
-import { createClient } from "@/shared/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/shared/lib/supabase/admin";
+import { NextResponse } from "next/server";
 
 const ATTENDANCE_REWARD = 50;
 
-export async function POST(request: NextRequest) {
-  const supabase = await createClient();
+export async function POST() {
+  const guard = await requireUser();
+  if (!guard.ok) return guard.response;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { user, supabase } = guard;
+  // 포인트/경험치 함수는 대상 사용자를 인자로 받으므로 브라우저 롤에서 실행할 수
+  // 없어야 한다. 서버에서만 service_role 로 호출한다.
+  const adminSupabase = createAdminClient();
 
   const today = getKstDateString();
 
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Grant Points via RPC (Handles user_points and point_transactions)
-    const { data: pointResult, error: pointError } = await supabase.rpc(
+    const { data: pointResult, error: pointError } = await adminSupabase.rpc(
       "add_points",
       {
         user_uuid: user.id,
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Grant XP (10 XP)
-    await supabase.rpc("add_xp", {
+    await adminSupabase.rpc("add_xp", {
       user_uuid: user.id,
       xp_to_add: 10,
     });

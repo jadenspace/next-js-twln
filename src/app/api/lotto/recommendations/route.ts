@@ -122,11 +122,15 @@ export async function GET() {
       100,
     );
 
-    const regression3Numbers = collectWindowNumbers(draws, 1, 3);
-    const regression6Numbers = collectWindowNumbers(draws, 4, 3);
-    const regression10Numbers = collectWindowNumbers(draws, 7, 4);
+    // draws 는 최신 회차가 앞에 오도록 정렬돼 있다. 다음 회차 기준으로
+    // draws[0] 이 "1회 전"이므로 각 구간은 인덱스 0/3/6 에서 시작해야 한다.
+    // 예전에는 1/4/7 에서 시작해 라벨보다 한 회차씩 밀렸고, 최신 회차 번호가
+    // "최근 3회 회귀"에서 통째로 빠져 있었다.
+    const regression3Numbers = collectWindowNumbers(draws, 0, 3);
+    const regression6Numbers = collectWindowNumbers(draws, 3, 3);
+    const regression10Numbers = collectWindowNumbers(draws, 6, 4);
 
-    const groups: RecommendationGroup[] = [
+    const allGroups: RecommendationGroup[] = [
       {
         id: "hot-30",
         label: "핫 번호 (30회)",
@@ -169,7 +173,11 @@ export async function GET() {
         defaultAction: "fixed",
         numbers: regression10Numbers,
       },
-    ].filter((group) => group.numbers.length > 0);
+    ];
+
+    // 배열 리터럴에 직접 타입을 붙여야 defaultAction 이 RecommendationAction 으로
+    // 좁혀진다. .filter() 결과에 붙이면 리터럴은 string 으로 추론된다.
+    const groups = allGroups.filter((group) => group.numbers.length > 0);
 
     return NextResponse.json({
       groups,

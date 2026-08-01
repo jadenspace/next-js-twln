@@ -80,10 +80,12 @@ function AuthSuccessContent() {
           return;
         }
 
-        // 이메일 인증 성공 후 자동 승인 처리
+        // 이메일 인증 성공 후 자동 승인 처리.
+        // 승인 대상은 서버가 세션에서 직접 확인한다. 브라우저가 임의의
+        // 이메일을 승인 목록에 넣을 수 없도록 서버 라우트로 위임했다.
         if (currentUser.email) {
           try {
-            await approvalApi.approveUser(currentUser.email, "system");
+            await approvalApi.approveSelf();
             setStatus("success");
             setMessage("이메일 인증이 완료되었습니다.");
           } catch (approvalError) {

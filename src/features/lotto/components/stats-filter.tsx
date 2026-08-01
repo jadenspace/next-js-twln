@@ -51,8 +51,28 @@ export function StatsFilter({
   const [includeBonus, setIncludeBonus] = useState<boolean>(
     defaultValues?.includeBonus || false,
   );
+  const [rangeError, setRangeError] = useState<string | null>(null);
 
   const handleApply = () => {
+    // 직접 구간 입력은 검증 없이 통과하면 회차가 하나도 없는 빈 구간이 만들어져,
+    // 그 위에서 도는 계산들이 0으로 나누거나 끝나지 않는 루프에 빠진다.
+    if (filterType === "range") {
+      if (!Number.isFinite(startDraw) || !Number.isFinite(endDraw)) {
+        setRangeError("회차를 숫자로 입력해 주세요.");
+        return;
+      }
+      if (startDraw < 1 || endDraw > latestDrawNo) {
+        setRangeError(`회차는 1 ~ ${latestDrawNo} 사이여야 합니다.`);
+        return;
+      }
+      if (startDraw > endDraw) {
+        setRangeError("시작 회차가 종료 회차보다 클 수 없습니다.");
+        return;
+      }
+    }
+
+    setRangeError(null);
+
     onApply({
       type: filterType,
       startDraw:
@@ -188,6 +208,11 @@ export function StatsFilter({
             분석 적용
           </Button>
         </div>
+        {rangeError && (
+          <p className="text-xs md:text-sm text-destructive mt-3">
+            {rangeError}
+          </p>
+        )}
         <p className="text-[10px] md:text-xs text-muted-foreground mt-3 md:mt-4 leading-relaxed">
           {isAdvanced
             ? "* 심화 분석 적용 시 200P가 소모되며, 정밀 알고리즘이 가동됩니다. (50 XP 지급)"

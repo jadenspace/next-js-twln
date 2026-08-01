@@ -33,12 +33,21 @@ export const useLottoDraw = (drawNo: number) => {
 };
 
 // 3. 번호별 통계 조회 (무한 캐시 - 과거 회차 데이터는 변하지 않음)
+//
+// 심화 분석은 요청 1건당 200P가 차감된다. 그래서 두 가지 안전장치가 필요하다.
+//   - options.enabled: 사용자가 "분석 적용"을 누르기 전에는 요청하지 않는다.
+//     이 값을 넘기지 않으면 마운트되자마자 과금되던 문제가 있었다.
+//   - retry: false: 실패해도 재시도하지 않는다. React Query 기본값(3회)이
+//     걸려 있어 한 번 실패하면 최대 4번, 800P까지 빠져나갔다.
 export const useLottoNumberStats = <T = BasicStats>(
   filters?: FilterValues,
   extraParams?: Record<string, any>,
+  options?: { enabled?: boolean },
 ) => {
   return useQuery({
     queryKey: ["lotto", "stats", "numbers", filters, extraParams],
+    enabled: options?.enabled ?? true,
+    retry: false,
     queryFn: async () => {
       const res = await fetch("/api/lotto/analysis/stats", {
         method: "POST",
