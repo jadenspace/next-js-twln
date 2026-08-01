@@ -1,3 +1,4 @@
+import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { createClient } from "@/shared/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { WinningSimulator } from "@/features/lotto/services/winning-simulator";
@@ -84,8 +85,8 @@ export async function POST(request: NextRequest) {
         points_spent: 0, // 무료로 변경
       });
 
-      // XP 지급 (20 XP)
-      await supabase.rpc("add_xp", {
+      // XP 지급 (20 XP) — add_xp 는 service_role 로만 호출한다.
+      await createAdminClient().rpc("add_xp", {
         user_uuid: user.id,
         xp_to_add: 20,
       });

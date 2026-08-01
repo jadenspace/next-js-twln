@@ -24,6 +24,9 @@ import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function MarkovStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
+  // 심화 분석은 1회당 200P가 차감되므로, 사용자가 직접 "분석 적용"을
+  // 누르기 전에는 요청하지 않는다.
+  const [hasRequested, setHasRequested] = useState(false);
   const [selectedNum, setSelectedNum] = useState<number | null>(null);
 
   const { data: latestDrawNo } = useQuery({
@@ -45,6 +48,7 @@ export default function MarkovStatsPage() {
   const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
+    { enabled: hasRequested },
   );
   const stats = statsData?.data || null;
 
@@ -59,13 +63,17 @@ export default function MarkovStatsPage() {
     <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
       <PageHeader
         title="마르코프 전이 확률 분석"
-        description="특정 번호가 당첨된 다음 회차에 어떤 번호가 출현할 확률이 높은지 분석합니다."
+        description="어떤 번호가 나온 다음 회차에 어떤 번호가 실제로 몇 번 나왔는지 세어 봅니다. 과거 기록이며 다음 회차의 확률과는 무관합니다."
       />
 
       {latestDrawNo ? (
         <StatsFilter
-          onApply={(v) => setFilters(v)}
+          onApply={(v) => {
+            setFilters(v);
+            setHasRequested(true);
+          }}
           isPending={isLoading && !!filters}
+          isAdvanced
           latestDrawNo={latestDrawNo}
           defaultValues={{
             type: "all",
@@ -122,7 +130,7 @@ export default function MarkovStatsPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MousePointer2 className="w-5 h-5 text-purple-600" />
-                    {selectedNum}번 다음 출현 확률 Top 10
+                    {selectedNum}번 다음 회차 동반 출현 횟수 Top 10
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -174,16 +182,17 @@ export default function MarkovStatsPage() {
                 </CardHeader>
                 <CardContent className="text-sm space-y-4">
                   <p>
-                    <b>마르코프 체인</b>은 '과거의 상태가 미래의 상태에 영향을
-                    준다'는 원리를 이용합니다. 로또에서는 한 회차의 당첨
-                    번호들이 다음 회차의 당첨 번호에 미치는 통계적 영향력을
-                    계산합니다.
+                    <b>마르코프 체인</b>은 현재 상태에서 다음 상태로 넘어갈
+                    확률을 다루는 모형입니다. 다만 로또는 매 회차가 완전히
+                    독립적인 추첨이라 이 전제가 성립하지 않습니다. 아래 표는
+                    실제 전이 확률이 아니라, 과거에 어떤 번호 다음 회차에 어떤
+                    번호가 몇 번 나왔는지를 센 기록입니다.
                   </p>
                   <div className="p-4 rounded-lg bg-muted text-xs leading-relaxed">
-                    예를 들어, 1번이 나온 다음 회차에는 역사적으로 12번이 가장
-                    많이 나왔다면, 1과 12 사이에는 <b>강한 전이 확률</b>이
-                    존재한다고 봅니다. 이 수치는 번호들을 고를 때 '동반 출현'이
-                    아닌 '연계 출현'의 지표로 활용됩니다.
+                    예를 들어 1번이 나온 다음 회차에 12번이 가장 많이 나왔다면,
+                    그건 지금까지 그랬다는 관찰일 뿐입니다. 회차 수가 늘어날수록
+                    이런 횟수 차이는 우연으로 설명되는 범위 안에 들어옵니다.
+                    다음 회차의 12번 확률은 다른 번호와 똑같습니다.
                   </div>
                 </CardContent>
               </Card>

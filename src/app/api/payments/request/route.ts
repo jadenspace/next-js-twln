@@ -18,10 +18,14 @@ export async function POST(request: NextRequest) {
     const { packageId, depositorName } = body;
 
     // 2. Validate Package
+    // is_active 를 함께 확인한다. 상점 목록은 활성 패키지만 보여주지만
+    // (features/points/api/points-api.ts), 이 라우트에 ID 를 직접 넣으면
+    // 비활성화된 테스트·프로모션 패키지도 그대로 구매할 수 있었다.
     const { data: packageInfo, error: pkgError } = await supabase
       .from("point_packages")
       .select("*")
       .eq("id", packageId)
+      .eq("is_active", true)
       .maybeSingle();
 
     if (pkgError || !packageInfo) {

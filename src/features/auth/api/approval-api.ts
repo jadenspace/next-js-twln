@@ -80,90 +80,36 @@ export const approvalApi = {
     return data || [];
   },
 
-  // 사용자 승인 (관리자용)
-  async approveUser(email: string, approvedByEmail: string): Promise<void> {
-    const supabase = createClient();
-
-    try {
-      // 먼저 함수로 시도
-      const { error } = await supabase.rpc("approve_user", {
-        user_email: email,
-        approved_by_email: approvedByEmail,
-      });
-
-      if (error) {
-        console.log("함수 호출 실패, 직접 처리:", error);
-        // 함수가 실패하면 직접 처리
-        await this.approveUserDirectly(email, approvedByEmail);
-      }
-    } catch (err) {
-      console.log("함수 호출 중 오류, 직접 처리:", err);
-      // 오류 발생 시 직접 처리
-      await this.approveUserDirectly(email, approvedByEmail);
-    }
+  // 이메일 인증을 마친 본인을 승인 목록에 등록한다.
+  // 대상 이메일은 서버가 세션에서 직접 읽으므로 여기서 넘기지 않는다.
+  async approveSelf(): Promise<void> {
+    await postApproval("/api/auth/approval/self");
   },
 
-  // 직접 승인 처리 (백업 방법)
-  async approveUserDirectly(
-    email: string,
-    approvedByEmail: string,
-  ): Promise<void> {
-    const supabase = createClient();
-
-    // approved_users 테이블에 추가
-    const { error: approvedError } = await supabase
-      .from("approved_users")
-      .upsert({
-        email,
-        approved_by: approvedByEmail,
-        is_active: true,
-        approved_at: new Date().toISOString(),
-      });
-
-    if (approvedError) {
-      throw new Error(`승인 사용자 추가 실패: ${approvedError.message}`);
-    }
-
-    // user_profiles 테이블 업데이트
-    const { error: profileError } = await supabase
-      .from("user_profiles")
-      .update({
-        is_approved: true,
-        approved_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("email", email);
-
-    if (profileError) {
-      throw new Error(`프로필 업데이트 실패: ${profileError.message}`);
-    }
+  // 사용자 승인 (관리자용). 권한 검사와 쓰기는 모두 서버에서 이뤄진다.
+  async approveUser(email: string): Promise<void> {
+    await postApproval("/api/auth/approval", { email, action: "approve" });
   },
 
   // 사용자 승인 취소 (관리자용)
   async revokeApproval(email: string): Promise<void> {
-    const supabase = createClient();
-
-    const { error } = await supabase
-      .from("approved_users")
-      .update({ is_active: false, updated_at: new Date().toISOString() })
-      .eq("email", email);
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    // 사용자 프로필도 업데이트
-    const { error: profileError } = await supabase
-      .from("user_profiles")
-      .update({
-        is_approved: false,
-        approved_at: null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("email", email);
-
-    if (profileError) {
-      throw new Error(profileError.message);
-    }
+    await postApproval("/api/auth/approval", { email, action: "revoke" });
   },
 };
+
+async function postApproval(
+  url: string,
+  body?: Record<string, unknown>,
+): Promise<void> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body ?? {}),
+  });
+
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(result.error || "승인 처리에 실패했습니다.");
+  }
+}

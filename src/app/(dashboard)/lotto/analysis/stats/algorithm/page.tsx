@@ -25,6 +25,9 @@ import {
 
 export default function AlgorithmStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
+  // 심화 분석은 1회당 200P가 차감되므로, 사용자가 직접 "분석 적용"을
+  // 누르기 전에는 요청하지 않는다.
+  const [hasRequested, setHasRequested] = useState(false);
 
   const { data: latestDrawNo } = useQuery({
     queryKey: ["lotto", "latest-draw-no"],
@@ -45,9 +48,25 @@ export default function AlgorithmStatsPage() {
   const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
+    { enabled: hasRequested },
   );
 
   const stats = statsData?.data ?? null;
+
+  // "최근 N회" 필터에는 startDraw/endDraw 가 없다. 값이 있을 때만 구간으로
+  // 표기하고, 없으면 회차 수로 표기한다.
+  const hasExplicitRange =
+    filters?.startDraw !== undefined && filters?.endDraw !== undefined;
+  const rangeLabel = hasExplicitRange
+    ? `${filters!.startDraw}회 ~ ${filters!.endDraw}회`
+    : filters?.limit
+      ? `최근 ${filters.limit}회`
+      : "-";
+  const totalDrawsLabel = hasExplicitRange
+    ? `${filters!.endDraw! - filters!.startDraw! + 1}회`
+    : filters?.limit
+      ? `${filters.limit}회`
+      : "-";
 
   const hotNumbers = getRankedNumbers(stats, "desc");
   const coldNumbers = getRankedNumbers(stats, "asc");
@@ -61,8 +80,12 @@ export default function AlgorithmStatsPage() {
 
       {latestDrawNo ? (
         <StatsFilter
-          onApply={(value) => setFilters(value)}
+          onApply={(value) => {
+            setFilters(value);
+            setHasRequested(true);
+          }}
           isPending={isLoading && !!filters}
+          isAdvanced
           latestDrawNo={latestDrawNo}
           defaultValues={{
             type: "all",
@@ -103,14 +126,8 @@ export default function AlgorithmStatsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 md:grid-cols-3">
-              <InfoItem
-                label="분석 회차 범위"
-                value={`${filters.startDraw}회 ~ ${filters.endDraw}회`}
-              />
-              <InfoItem
-                label="총 회차 수"
-                value={`${filters.endDraw - filters.startDraw + 1}회`}
-              />
+              <InfoItem label="분석 회차 범위" value={rangeLabel} />
+              <InfoItem label="총 회차 수" value={totalDrawsLabel} />
               <InfoItem
                 label="보너스 포함"
                 value={filters.includeBonus ? "포함" : "미포함"}

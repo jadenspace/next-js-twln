@@ -72,18 +72,20 @@ export const pointsApi = {
     return data as PointTransaction[];
   },
 
-  // 포인트 사용
+  // 포인트 사용.
+  // 금액은 서버 가격표(shared/lib/points/pricing.ts)에서 결정되므로
+  // 클라이언트는 기능과 수량만 전달한다.
   async deductPoints(
-    amount: number,
     featureType: string,
-    description: string,
-  ): Promise<{ success: boolean; balance: number }> {
+    quantity: number = 1,
+    description?: string,
+  ): Promise<{ success: boolean; cost: number; balance: number }> {
     const response = await fetch("/api/points/use", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ amount, featureType, description }),
+      body: JSON.stringify({ featureType, quantity, description }),
     });
 
     const result = await response.json();

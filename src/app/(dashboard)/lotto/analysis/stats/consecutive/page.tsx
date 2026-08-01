@@ -56,7 +56,7 @@ export default function ConsecutiveStatsPage() {
     <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 md:px-0">
       <PageHeader
         title="연속번호 출현 분석"
-        description="연속된 숫자가 얼마나 자주 당첨되는지 분석하여 패턴을 예측해 보세요."
+        description="역대 당첨 번호에 연속된 숫자가 얼마나 자주 포함됐는지 살펴봅니다."
       />
 
       {latestDrawNo ? (

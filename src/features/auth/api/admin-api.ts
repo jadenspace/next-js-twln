@@ -48,34 +48,10 @@ export const adminApi = {
     // admin_users 테이블에 있는 사용자만 관리자
     return true;
   },
-
-  // 관리자 추가
-  async addAdmin(email: string, addedBy: string): Promise<void> {
-    const supabase = createClient();
-
-    const { error } = await supabase.from("approved_users").upsert({
-      email,
-      approved_by: addedBy,
-      is_active: true,
-      approved_at: new Date().toISOString(),
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-  },
-
-  // 관리자 제거
-  async removeAdmin(email: string): Promise<void> {
-    const supabase = createClient();
-
-    const { error } = await supabase
-      .from("approved_users")
-      .update({ is_active: false })
-      .eq("email", email);
-
-    if (error) {
-      throw new Error(error.message);
-    }
-  },
 };
+
+// addAdmin / removeAdmin 은 제거했다.
+// 호출하는 곳이 없는데다 이름과 달리 admin_users 가 아니라 approved_users(일반
+// 회원 승인 목록)를 수정하고 있었다. 관리자 권한 부여는 브라우저에서 할 일이
+// 아니므로, 필요해지면 requireAdmin 가드를 쓰는 서버 라우트로 만들 것.
+// 참고: src/shared/lib/auth/guards.ts

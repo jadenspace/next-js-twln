@@ -23,6 +23,9 @@ import { EmptyStateCard } from "@/shared/ui/empty-state-card";
 
 export default function IntervalStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
+  // 심화 분석은 1회당 200P가 차감되므로, 사용자가 직접 "분석 적용"을
+  // 누르기 전에는 요청하지 않는다.
+  const [hasRequested, setHasRequested] = useState(false);
 
   const { data: latestDrawNo } = useQuery({
     queryKey: ["lotto", "latest-draw-no"],
@@ -43,6 +46,7 @@ export default function IntervalStatsPage() {
   const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
+    { enabled: hasRequested },
   );
   const stats = statsData?.data || null;
 
@@ -57,8 +61,12 @@ export default function IntervalStatsPage() {
 
       {latestDrawNo ? (
         <StatsFilter
-          onApply={(v) => setFilters(v)}
+          onApply={(v) => {
+            setFilters(v);
+            setHasRequested(true);
+          }}
           isPending={isLoading && !!filters}
+          isAdvanced
           latestDrawNo={latestDrawNo}
           defaultValues={{
             type: "all",
@@ -158,9 +166,10 @@ export default function IntervalStatsPage() {
             <CardContent className="text-xs md:text-sm text-slate-300 space-y-3 md:space-y-4">
               <p>
                 <b>간격(Gap)</b>은 번호가 얼마나 골고루 퍼져 있는지를 수치화한
-                것입니다. 모든 간격의 합은 `최댓값 - 최솟값`과 같습니다. 특정
-                위치의 간격이 평균보다 유난히 좁다면, 다음 회차에는 그 위치가
-                넓어지는(번호가 멀어지는) 경향이 있습니다.
+                것입니다. 모든 간격의 합은 `최댓값 - 최솟값`과 같습니다. 이번
+                회차의 간격이 평균보다 좁았다고 해서 다음 회차가 넓어지지는
+                않습니다. 각 회차는 서로 독립이며, 이 값은 지나간 추첨의 모양을
+                설명할 뿐입니다.
               </p>
               <div className="p-3 md:p-4 bg-slate-800 rounded-lg md:rounded-xl text-[10px] md:text-xs border border-slate-700">
                 로또 6/45에서의 <b>황금 간격</b>은 각 번호 사이가 약 <b>7~8</b>{" "}

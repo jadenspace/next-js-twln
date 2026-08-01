@@ -39,13 +39,13 @@ export function usePoints() {
 
   const usePointsMutation = useMutation({
     mutationFn: (params: {
-      amount: number;
       featureType: string;
-      description: string;
+      quantity?: number;
+      description?: string;
     }) =>
       pointsApi.deductPoints(
-        params.amount,
         params.featureType,
+        params.quantity ?? 1,
         params.description,
       ),
     onSuccess: () => {

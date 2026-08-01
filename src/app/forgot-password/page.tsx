@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
       const checkResult = await authApi.checkEmailExists(email);
 
       if ("error" in checkResult) {
-        setError(checkResult.error);
+        setError(checkResult.error ?? "확인 중 오류가 발생했습니다.");
         return;
       }
 

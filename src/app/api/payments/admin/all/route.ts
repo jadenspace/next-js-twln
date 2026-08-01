@@ -1,28 +1,14 @@
-import { createClient } from "@/shared/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/shared/lib/auth/guards";
+import { createAdminClient } from "@/shared/lib/supabase/admin";
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
-  const supabase = await createClient();
+export async function GET() {
+  // 이전 구현은 user_profiles.role 을 읽고도 조건문 본문이 비어 있어 사실상
+  // 아무나 전체 결제 내역(이메일·입금자명 포함)을 조회할 수 있었다.
+  const guard = await requireAdmin();
+  if (!guard.ok) return guard.response;
 
-  // Simple admin check (in a real app, check user role)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { data: profile } = await supabase
-    .from("user_profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
-    // For now, let's assume we use a specific email or role check
-    // For this project, we might just allow for testing or check a specific list
-  }
-
-  const { data, error } = await supabase
+  const { data, error } = await createAdminClient()
     .from("payments")
     .select(
       `
@@ -34,5 +20,6 @@ export async function GET(request: NextRequest) {
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
   return NextResponse.json({ data });
 }

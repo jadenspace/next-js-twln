@@ -130,10 +130,14 @@ function passesFilters(
   }
 
   // 7. 동일 구간 체크
+  // 구간은 5단위 9구간(1-5, 6-10, ..., 41-45)이다. UI 문구와 실제 번호 생성
+  // (features/lotto/lib/lotto-math.ts countSameSection)이 모두 5단위를 쓰는데
+  // 여기만 10단위로 세고 있어서, 화면에 표시되는 조합 수가 실제보다 적게
+  // 나오고 생성 결과의 구간 표기와도 어긋났다.
   if (filters.sameSection !== undefined && filters.sameSection > 0) {
     const sections: Record<number, number> = {};
     sorted.forEach((n) => {
-      const section = Math.floor((n - 1) / 10);
+      const section = Math.floor((n - 1) / 5);
       sections[section] = (sections[section] || 0) + 1;
     });
     const maxSameSection = Math.max(...Object.values(sections));

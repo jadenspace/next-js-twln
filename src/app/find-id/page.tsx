@@ -54,7 +54,7 @@ export default function FindIdPage() {
       const result = await authApi.checkEmailExists(email);
 
       if ("error" in result) {
-        setError(result.error);
+        setError(result.error ?? "확인 중 오류가 발생했습니다.");
       } else if ("exists" in result) {
         if (result.exists) {
           setMessage(

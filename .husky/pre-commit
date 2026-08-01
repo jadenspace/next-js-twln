@@ -1,1 +1,5 @@
 npx lint-staged
+
+# lint-staged 는 스테이징된 파일의 스타일만 본다. 타입 오류는 파일 하나만
+# 봐서는 알 수 없으므로 프로젝트 전체를 한 번 검사한다.
+npm run typecheck
