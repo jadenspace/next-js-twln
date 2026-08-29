@@ -1,7 +1,9 @@
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { createClient } from "@/shared/lib/supabase/server";
+import { getKstDayStartIso } from "@/shared/lib/date-utils";
 import { NextRequest, NextResponse } from "next/server";
 import { WinningSimulator } from "@/features/lotto/services/winning-simulator";
+import { validateLottoNumbers } from "@/features/lotto/lib/validate-lotto-numbers";
 import { LottoDraw } from "@/features/lotto/types";
 
 export async function POST(request: NextRequest) {
@@ -16,8 +18,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { numbers, drawRange } = body; // [1, 2, 3, 4, 5, 6], { startDraw?: number, endDraw?: number }
 
-    if (!numbers || !Array.isArray(numbers) || numbers.length !== 6) {
-      return NextResponse.json({ error: "Invalid numbers" }, { status: 400 });
+    if (!validateLottoNumbers(numbers)) {
+      return NextResponse.json(
+        { error: "1~45 범위의 서로 다른 번호 6개를 선택해주세요." },
+        { status: 400 },
+      );
     }
 
     // 3. Fetch Data & Filter by Draw Range with Pagination
@@ -77,23 +82,42 @@ export async function POST(request: NextRequest) {
 
     // 로그인한 사용자인 경우에만 결과 저장 및 XP 지급
     if (user) {
-      await supabase.from("analysis_results").insert({
-        user_id: user.id,
-        analysis_type: "simulation",
-        input_params: { numbers },
-        result_data: result,
-        points_spent: 0, // 무료로 변경
-      });
+      const { error: insertError } = await supabase
+        .from("analysis_results")
+        .insert({
+          user_id: user.id,
+          analysis_type: "simulation",
+          input_params: { numbers },
+          result_data: result,
+          points_spent: 0, // 무료로 변경
+        });
 
-      // XP 지급 (20 XP) — add_xp 는 service_role 로만 호출한다.
-      await createAdminClient().rpc("add_xp", {
-        user_uuid: user.id,
-        xp_to_add: 20,
-      });
+      // XP(20)는 KST 기준 하루 첫 시뮬레이션에만 지급한다 (반복 호출 XP 파밍 방지).
+      // 방금 저장한 행을 포함해 오늘 행이 정확히 1개일 때만 지급하므로,
+      // 동시 요청이 겹치면 지급하지 않는 쪽(fail-closed)으로 동작한다.
+      // 카운트는 RLS 영향을 받지 않도록 service_role 로 조회한다.
+      if (!insertError) {
+        const adminSupabase = createAdminClient();
+        const { count, error: countError } = await adminSupabase
+          .from("analysis_results")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("analysis_type", "simulation")
+          .gte("created_at", getKstDayStartIso());
+
+        if (!countError && count === 1) {
+          // add_xp 는 service_role 로만 호출한다.
+          await adminSupabase.rpc("add_xp", {
+            user_uuid: user.id,
+            xp_to_add: 20,
+          });
+        }
+      }
     }
 
     return NextResponse.json({ success: true, data: result });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
