@@ -31,5 +31,7 @@ export function createMiddlewareClient(request: NextRequest) {
     },
   );
 
-  return { supabase, supabaseResponse };
+  // supabaseResponse 는 setAll 콜백에서 재할당되므로 getter 로 노출해야
+  // 호출자가 항상 최신 응답(리프레시된 쿠키 포함)을 받는다.
+  return { supabase, getSupabaseResponse: () => supabaseResponse };
 }

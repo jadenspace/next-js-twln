@@ -1,27 +1,49 @@
 import { createMiddlewareClient } from "@/shared/lib/supabase/middleware";
+import { isServiceUnavailable } from "@/shared/lib/service-status";
+import type { User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Supabase 장애 감지 후 이 시간 동안은 getUser() 호출을 건너뛰고 즉시 통과시킨다.
+// (인스턴스별 상태 — 서버리스에서 완벽하진 않지만 요청마다 3초 타임아웃을
+// 기다리는 것을 막아준다)
+const DEGRADED_COOLDOWN_MS = 30_000;
+let degradedUntil = 0;
+
 export async function middleware(request: NextRequest) {
-  const { supabase, supabaseResponse } = createMiddlewareClient(request);
+  let supabaseResponse = NextResponse.next({ request });
+  let user: User | null = null;
+  let degraded = Date.now() < degradedUntil;
 
-  // AUTH CHECK
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (!degraded) {
+    try {
+      const { supabase, getSupabaseResponse } = createMiddlewareClient(request);
+      const { data, error } = await supabase.auth.getUser();
+      supabaseResponse = getSupabaseResponse();
 
-  const isDevelopment =
-    process.env.NODE_ENV === "development" &&
-    (process.env.NEXT_PUBLIC_SUPABASE_URL?.includes("dummy") ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.includes("dummy"));
+      if (error && isServiceUnavailable(error)) {
+        degraded = true;
+      } else {
+        user = data.user;
+      }
+    } catch (error) {
+      // env 누락, 예기치 못한 throw 등 — 전 라우트 500 대신 장애 모드로 통과시킨다.
+      console.error("[Middleware] Supabase unreachable, failing open:", error);
+      degraded = true;
+    }
+
+    if (degraded) {
+      degradedUntil = Date.now() + DEGRADED_COOLDOWN_MS;
+    }
+  }
+
+  if (degraded) {
+    // 로그인 여부를 알 수 없으므로 어떤 리다이렉트도 하지 않는다.
+    // 보호 데이터는 각 API 라우트가 자체 인증으로 차단한다.
+    supabaseResponse.headers.set("x-service-degraded", "1");
+    return supabaseResponse;
+  }
 
   const pathname = request.nextUrl.pathname;
-
-  // Debug log
-  console.log("[Middleware]", {
-    pathname,
-    hasUser: !!user,
-    isDevelopment,
-  });
 
   // Public paths allowed for everyone
   const publicPaths = [
@@ -84,7 +106,6 @@ export async function middleware(request: NextRequest) {
   );
 
   // Redirection logic
-  // if (!isDevelopment && !user) {
   if (!user) {
     // If not public path and not basic stats path, redirect to login
     // BUT explicitly block advanced stats paths and restricted generate paths
