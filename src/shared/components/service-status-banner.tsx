@@ -33,7 +33,7 @@ export function ServiceStatusBanner() {
   return (
     <div
       role="status"
-      className="sticky top-0 z-[60] bg-amber-500/95 px-4 py-2 text-center text-sm font-medium text-black"
+      className="bg-amber-500/95 px-4 py-2 text-center text-sm font-medium text-black"
     >
       일시적으로 서비스 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.
     </div>

@@ -147,7 +147,7 @@ export function Header() {
 
   return (
     <>
-      <header className="border-b bg-background sticky top-0 z-50">
+      <header className="border-b bg-background">
         <div className="w-full max-w-screen-xl mx-auto px-4 h-16 flex items-center justify-between relative">
           <div className="flex items-center gap-4 xl:gap-8">
             {/* Mobile Hamburger Button */}

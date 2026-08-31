@@ -110,9 +110,11 @@ export default function RootLayout({
           gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID as string}
         />
         <QueryProvider>
-          <ServiceStatusBanner />
           <div className="min-h-screen flex flex-col">
-            <Header />
+            <div className="sticky top-0 z-50">
+              <ServiceStatusBanner />
+              <Header />
+            </div>
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
