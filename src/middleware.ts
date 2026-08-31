@@ -7,6 +7,9 @@ import { NextResponse, type NextRequest } from "next/server";
 // (인스턴스별 상태 — 서버리스에서 완벽하진 않지만 요청마다 3초 타임아웃을
 // 기다리는 것을 막아준다)
 const DEGRADED_COOLDOWN_MS = 30_000;
+// auth-js 내부 토큰 리프레시 재시도 루프가 fetch 타임아웃과 무관하게 최대 ~24초까지
+// 반복하므로, getUser() 전체를 여기서 한 번 더 감싼다.
+const AUTH_CHECK_TIMEOUT_MS = 3_500;
 let degradedUntil = 0;
 
 export async function middleware(request: NextRequest) {
@@ -15,9 +18,21 @@ export async function middleware(request: NextRequest) {
   let degraded = Date.now() < degradedUntil;
 
   if (!degraded) {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
       const { supabase, getSupabaseResponse } = createMiddlewareClient(request);
-      const { data, error } = await supabase.auth.getUser();
+      const { data, error } = await Promise.race([
+        supabase.auth.getUser(),
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(
+            () =>
+              reject(
+                new Error("TimeoutError: middleware auth check timed out"),
+              ),
+            AUTH_CHECK_TIMEOUT_MS,
+          );
+        }),
+      ]);
       supabaseResponse = getSupabaseResponse();
 
       if (error && isServiceUnavailable(error)) {
@@ -29,6 +44,8 @@ export async function middleware(request: NextRequest) {
       // env 누락, 예기치 못한 throw 등 — 전 라우트 500 대신 장애 모드로 통과시킨다.
       console.error("[Middleware] Supabase unreachable, failing open:", error);
       degraded = true;
+    } finally {
+      clearTimeout(timeoutId);
     }
 
     if (degraded) {
