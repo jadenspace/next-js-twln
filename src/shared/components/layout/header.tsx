@@ -81,7 +81,7 @@ const NAV_ITEMS = [
 ];
 
 export function Header() {
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, isAuthenticated, signOut, authStatus } = useAuth();
   const pathname = usePathname();
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
@@ -381,7 +381,11 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-4">
-            {isAuthenticated ? (
+            {authStatus === "unknown" ? (
+              <span className="text-xs text-muted-foreground">
+                연결 확인 중
+              </span>
+            ) : isAuthenticated ? (
               <>
                 {isAdmin && (
                   <Link
@@ -611,7 +615,12 @@ export function Header() {
         </div>
 
         <div className="p-4 border-t bg-muted/20">
-          {!isAuthenticated ? (
+          {authStatus === "unknown" ? (
+            <p className="text-xs text-center text-muted-foreground">
+              일시적으로 로그인 상태를 확인할 수 없습니다. 잠시 후 다시
+              시도해주세요.
+            </p>
+          ) : !isAuthenticated ? (
             <div className="flex flex-col gap-2">
               <Link href="/login" className="w-full">
                 <Button className="w-full">로그인</Button>

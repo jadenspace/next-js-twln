@@ -1,4 +1,8 @@
 import { createClient } from "@/shared/lib/supabase/client";
+import {
+  ServiceUnavailableError,
+  isServiceUnavailable,
+} from "@/shared/lib/service-status";
 
 export const authApi = {
   async signIn(email: string, password: string) {
@@ -59,7 +63,14 @@ export const authApi = {
     } = await supabase.auth.getUser();
 
     if (error) {
-      throw new Error(error.message);
+      // 장애는 throw — "로그인 여부를 알 수 없음(unknown)" 으로 구분된다.
+      if (isServiceUnavailable(error)) {
+        throw new ServiceUnavailableError();
+      }
+      // 세션 없음(AuthSessionMissingError 등)은 정상적인 비로그인 상태다.
+      // 기존에는 이것도 throw 해서 비로그인 방문자의 isLoading 이 영원히
+      // true 로 남는 버그가 있었다.
+      return null;
     }
 
     return user;

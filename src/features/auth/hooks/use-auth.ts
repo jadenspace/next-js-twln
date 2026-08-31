@@ -3,9 +3,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { createClient } from "@/shared/lib/supabase/client";
+import { isServiceUnavailable } from "@/shared/lib/service-status";
 import { approvalApi } from "../api/approval-api";
 import { authApi } from "../api/auth-api";
 import { useAuthStore } from "../model/auth-store";
+
+export type AuthStatus =
+  | "loading"
+  | "authenticated"
+  | "unauthenticated"
+  | "unknown";
 
 export const useAuth = () => {
   const { user, isLoading, isAuthenticated, setUser, setLoading, logout } =
@@ -13,7 +20,11 @@ export const useAuth = () => {
   const queryClient = useQueryClient();
 
   // 현재 사용자 정보 가져오기 (항상 실행)
-  const { data: currentUser, isLoading: userLoading } = useQuery({
+  const {
+    data: currentUser,
+    isLoading: userLoading,
+    error: userError,
+  } = useQuery({
     queryKey: ["auth", "user"],
     queryFn: authApi.getCurrentUser,
     retry: false,
@@ -190,8 +201,19 @@ export const useAuth = () => {
     }
   }, [currentUser, setUser]);
 
+  // 장애로 확인 불가(unknown)를 비로그인과 구분한다 — 보호 페이지가
+  // 고장난 /login 으로 사용자를 내쫓는 것을 막는다.
+  const authStatus: AuthStatus = isServiceUnavailable(userError)
+    ? "unknown"
+    : userLoading || isLoading
+      ? "loading"
+      : isAuthenticated
+        ? "authenticated"
+        : "unauthenticated";
+
   return {
     user,
+    authStatus,
     isLoading: userLoading || isLoading,
     isAuthenticated,
     signIn: signInMutation.mutate,

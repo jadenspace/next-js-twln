@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/features/auth/api/admin-api";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 import { Button } from "@/shared/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -23,7 +24,7 @@ import { UserManagement } from "./components/user-management";
 type AdminTab = "users" | "payments" | "points" | "reports" | "draw-trends";
 
 export default function AdminPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, authStatus } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>("draw-trends");
 
   const { data: isAdmin, isLoading: adminLoading } = useQuery({
@@ -39,6 +40,14 @@ export default function AdminPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="animate-spin" />
+      </div>
+    );
+  }
+
+  if (authStatus === "unknown") {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <ServiceUnavailableNotice message="일시적으로 로그인 상태를 확인할 수 없습니다. 잠시 후 다시 시도해주세요." />
       </div>
     );
   }
