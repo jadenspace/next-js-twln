@@ -288,9 +288,15 @@ export const lottoApi = {
       .limit(1)
       .single();
 
-    if (error && error.code !== "PGRST116") {
-      // PGRST116: 'single' found no rows
-      console.error("Failed to get latest draw number:", error);
+    if (error) {
+      // 장애는 throw 해서 useQuery 가 isError 상태로 구분할 수 있게 한다.
+      if (isServiceUnavailable(error)) {
+        throw new ServiceUnavailableError();
+      }
+      if (error.code !== "PGRST116") {
+        // PGRST116: 'single' found no rows
+        console.error("Failed to get latest draw number:", error);
+      }
       return 0;
     }
 
