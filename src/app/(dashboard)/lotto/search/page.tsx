@@ -25,6 +25,8 @@ import { Search, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/shared/ui/spinner";
 import { PageHeader } from "@/shared/ui/page-header";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
+import { ServiceUnavailableError } from "@/shared/lib/service-status";
 
 interface LottoDraw {
   drw_no: number;
@@ -68,7 +70,12 @@ export default function SearchPage() {
   const [openStart, setOpenStart] = useState(false);
   const [openEnd, setOpenEnd] = useState(false);
 
-  const { data: searchResults, isLoading } = useQuery({
+  const {
+    data: searchResults,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["lottoSearch", queryParam],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -79,7 +86,10 @@ export default function SearchPage() {
         }
       }
       const res = await fetch(`/api/lotto/search?${params.toString()}`);
-      if (!res.ok) throw new Error("Search failed");
+      if (!res.ok) {
+        if (res.status === 503) throw new ServiceUnavailableError();
+        throw new Error("Search failed");
+      }
       return res.json();
     },
   });
@@ -308,7 +318,9 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <ServiceUnavailableNotice onRetry={() => refetch()} />
+      ) : isLoading ? (
         <div className="text-center py-10">
           <Spinner className="text-primary" />
         </div>

@@ -133,6 +133,10 @@ export interface LottoDraw {
 
 import { createClient } from "@/shared/lib/supabase/client";
 import axios from "axios";
+import {
+  ServiceUnavailableError,
+  isServiceUnavailable,
+} from "@/shared/lib/service-status";
 
 /**
  * 날짜 문자열을 YYYY-MM-DD 형식으로 변환
@@ -307,6 +311,10 @@ export const lottoApi = {
       .single();
 
     if (error) {
+      // 장애는 throw 해서 useQuery 가 isError 상태로 구분할 수 있게 한다.
+      if (isServiceUnavailable(error)) {
+        throw new ServiceUnavailableError();
+      }
       if (error.code !== "PGRST116") {
         console.error("Failed to fetch latest draw:", error);
       }
