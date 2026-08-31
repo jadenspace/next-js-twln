@@ -3,6 +3,7 @@ import type { PatternFilterState } from "@/features/lotto/types/pattern-filter.t
 import { requireVerifiedUser } from "@/shared/lib/auth/guards";
 import { adjustPoints, getBalance } from "@/shared/lib/points/point-ledger";
 import { PAID_FEATURES, priceFor } from "@/shared/lib/points/pricing";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 
 const FEATURE = "manual_pattern_gen" as const;
@@ -59,11 +60,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (err) {
-    console.error("[lotto/generate-pattern] 잔액 조회 실패", err);
-    return NextResponse.json(
-      { error: "포인트 정보를 확인할 수 없습니다." },
-      { status: 500 },
-    );
+    return unexpectedErrorResponse("api/lotto/generate-pattern", err);
   }
 
   let combinations;

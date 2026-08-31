@@ -1,4 +1,5 @@
 import { createClient } from "@/shared/lib/supabase/server";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -42,9 +43,8 @@ export async function GET(request: NextRequest) {
         hasMore: (count || 0) > offset + limit,
       },
     });
-  } catch (err: any) {
-    console.error("Failed to fetch saved numbers:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    return unexpectedErrorResponse("api/lotto/saved-numbers", err);
   }
 }
 
@@ -96,8 +96,7 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ success: true, data });
-  } catch (err: any) {
-    console.error("Failed to save numbers:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    return unexpectedErrorResponse("api/lotto/saved-numbers", err);
   }
 }

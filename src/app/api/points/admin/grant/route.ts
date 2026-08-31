@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/shared/lib/auth/guards";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 
 /** 1회 지급 한도. 오타로 인한 대량 지급을 막는다. */
@@ -75,8 +76,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(rpcData);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("Grant Points Error:", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return unexpectedErrorResponse("api/points/admin/grant", err);
   }
 }

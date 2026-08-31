@@ -1,5 +1,6 @@
 import { lottoApi, transformLottoData } from "@/features/lotto/api/lotto-api";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextResponse } from "next/server";
 
 const getLatestDrawNo = async (): Promise<number> => {
@@ -81,14 +82,6 @@ export async function GET() {
       });
     }
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
-      {
-        message: "An error occurred during the cron job.",
-        error: errorMessage,
-      },
-      { status: 500 },
-    );
+    return unexpectedErrorResponse("api/cron/update-lotto", error);
   }
 }

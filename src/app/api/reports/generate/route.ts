@@ -1,5 +1,6 @@
 import { createClient } from "@/shared/lib/supabase/server";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 import { aggregateRankings } from "@/features/lotto/lib/calculate-ranking";
 
@@ -157,8 +158,7 @@ export async function POST(request: NextRequest) {
       success: true,
       report,
     });
-  } catch (err: any) {
-    console.error("Failed to generate report:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    return unexpectedErrorResponse("api/reports/generate", err);
   }
 }

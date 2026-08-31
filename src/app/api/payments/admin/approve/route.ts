@@ -1,6 +1,10 @@
 import { requireAdmin } from "@/shared/lib/auth/guards";
 import { adjustPoints } from "@/shared/lib/points/point-ledger";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
+import {
+  supabaseErrorResponse,
+  unexpectedErrorResponse,
+} from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -38,7 +42,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (claimError) {
-      return NextResponse.json({ error: claimError.message }, { status: 500 });
+      return supabaseErrorResponse(claimError);
     }
 
     if (!claimed) {
@@ -104,7 +108,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, balance: credit.balance });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return unexpectedErrorResponse("api/payments/admin/approve", err);
   }
 }

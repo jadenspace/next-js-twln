@@ -1,18 +1,23 @@
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { createClient } from "@/shared/lib/supabase/server";
+import {
+  supabaseErrorResponse,
+  unexpectedErrorResponse,
+} from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const searchParams = request.nextUrl.searchParams;
-  const limit = parseInt(searchParams.get("limit") || "10");
-  const offset = parseInt(searchParams.get("offset") || "0");
+  try {
+    const supabase = await createClient();
+    const searchParams = request.nextUrl.searchParams;
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const offset = parseInt(searchParams.get("offset") || "0");
 
-  const { data, error, count } = await supabase
-    .from("posts")
-    // Join with user_profiles if needed, but for now just raw or simple join
-    .select(
-      `
+    const { data, error, count } = await supabase
+      .from("posts")
+      // Join with user_profiles if needed, but for now just raw or simple join
+      .select(
+        `
         *,
         user:user_profiles!user_id (email),
         comments (
@@ -20,13 +25,15 @@ export async function GET(request: NextRequest) {
             user:user_profiles!user_id (email)
         )
     `,
-    )
-    .order("created_at", { ascending: false })
-    .range(offset, offset + limit - 1);
+      )
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data, count });
+    if (error) return supabaseErrorResponse(error);
+    return NextResponse.json({ data, count });
+  } catch (error) {
+    return unexpectedErrorResponse("api/community/posts", error);
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -60,7 +67,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ data });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    return unexpectedErrorResponse("api/community/posts", err);
   }
 }
