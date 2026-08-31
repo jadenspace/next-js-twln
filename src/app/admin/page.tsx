@@ -24,7 +24,7 @@ import { UserManagement } from "./components/user-management";
 type AdminTab = "users" | "payments" | "points" | "reports" | "draw-trends";
 
 export default function AdminPage() {
-  const { user, isAuthenticated, authStatus } = useAuth();
+  const { user, isAuthenticated, authStatus, refreshAuth } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>("draw-trends");
 
   const { data: isAdmin, isLoading: adminLoading } = useQuery({
@@ -47,7 +47,10 @@ export default function AdminPage() {
   if (authStatus === "unknown") {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <ServiceUnavailableNotice message="일시적으로 로그인 상태를 확인할 수 없습니다. 잠시 후 다시 시도해주세요." />
+        <ServiceUnavailableNotice
+          message="일시적으로 로그인 상태를 확인할 수 없습니다. 잠시 후 다시 시도해주세요."
+          onRetry={() => refreshAuth()}
+        />
       </div>
     );
   }

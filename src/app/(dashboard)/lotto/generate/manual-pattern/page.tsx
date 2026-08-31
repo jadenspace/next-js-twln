@@ -71,7 +71,12 @@ const INITIAL_STEP_DATA: PatternAnalysisStepData = {
 };
 
 export default function ManualPatternAnalysisPage() {
-  const { isAuthenticated, isLoading: authLoading, authStatus } = useAuth();
+  const {
+    isAuthenticated,
+    isLoading: authLoading,
+    authStatus,
+    refreshAuth,
+  } = useAuth();
   const { userPoints, refreshPoints } = usePoints();
 
   const [recommendations, setRecommendations] = useState<{
@@ -689,7 +694,10 @@ export default function ManualPatternAnalysisPage() {
   if (authStatus === "unknown") {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <ServiceUnavailableNotice message="일시적으로 로그인 상태를 확인할 수 없습니다. 잠시 후 다시 시도해주세요." />
+        <ServiceUnavailableNotice
+          message="일시적으로 로그인 상태를 확인할 수 없습니다. 잠시 후 다시 시도해주세요."
+          onRetry={() => refreshAuth()}
+        />
       </div>
     );
   }
