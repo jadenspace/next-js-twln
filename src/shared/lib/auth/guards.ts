@@ -2,6 +2,7 @@ import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { createClient } from "@/shared/lib/supabase/server";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { isServiceUnavailable } from "@/shared/lib/service-status";
 
 /**
  * API 라우트용 인증/인가 가드.
@@ -29,7 +30,14 @@ export async function requireUser(): Promise<GuardResult> {
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
+
+  // Supabase 장애를 "미로그인(401)"으로 위장하지 않는다 — 클라이언트가
+  // 로그아웃 처리를 하거나 로그인 페이지로 보내는 오동작을 막는다.
+  if (error && isServiceUnavailable(error)) {
+    return deny(503, "SERVICE_UNAVAILABLE");
+  }
 
   if (!user) return deny(401, "Unauthorized");
 
@@ -79,6 +87,9 @@ export async function requireAdmin(): Promise<GuardResult> {
 
   if (error) {
     console.error("[requireAdmin] admin_users 조회 실패", error);
+    if (isServiceUnavailable(error)) {
+      return deny(503, "SERVICE_UNAVAILABLE");
+    }
     return deny(500, "권한 확인에 실패했습니다.");
   }
 
