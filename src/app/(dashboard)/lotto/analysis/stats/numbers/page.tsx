@@ -20,6 +20,7 @@ import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
 import { PageHeader } from "@/shared/ui/page-header";
 import { EmptyStateCard } from "@/shared/ui/empty-state-card";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 
 import { useLottoNumberStats } from "@/features/lotto/hooks/use-lotto-query";
 
@@ -43,9 +44,12 @@ export default function NumbersStatsPage() {
     }
   }, [latestDrawNo, filters]);
 
-  const { data: statsData, isLoading } = useLottoNumberStats(
-    filters || undefined,
-  );
+  const {
+    data: statsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useLottoNumberStats(filters || undefined);
   const stats = statsData?.data || null;
 
   const maxFreq = stats ? Math.max(...Object.values(stats.frequency)) : 0;
@@ -87,7 +91,9 @@ export default function NumbersStatsPage() {
         <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
       )}
 
-      {!stats ? (
+      {isError ? (
+        <ServiceUnavailableNotice onRetry={() => refetch()} />
+      ) : !stats ? (
         <EmptyStateCard
           icon={Info}
           title="분석을 시작해 주세요"

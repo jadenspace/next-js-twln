@@ -21,6 +21,7 @@ import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
 import { PageHeader } from "@/shared/ui/page-header";
 import { EmptyStateCard } from "@/shared/ui/empty-state-card";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 
 export default function ConsecutiveStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
@@ -41,9 +42,12 @@ export default function ConsecutiveStatsPage() {
     }
   }, [latestDrawNo, filters]);
 
-  const { data: statsData, isLoading } = useLottoNumberStats(
-    filters || undefined,
-  );
+  const {
+    data: statsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useLottoNumberStats(filters || undefined);
   const stats = statsData?.data || null;
 
   const topPairs = stats
@@ -75,7 +79,9 @@ export default function ConsecutiveStatsPage() {
         <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
       )}
 
-      {!stats ? (
+      {isError ? (
+        <ServiceUnavailableNotice onRetry={() => refetch()} />
+      ) : !stats ? (
         <EmptyStateCard
           icon={Binary}
           title="연번 데이터 대기 중"

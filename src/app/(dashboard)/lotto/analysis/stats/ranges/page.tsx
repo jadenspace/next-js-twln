@@ -19,6 +19,7 @@ import { Info, BarChart3 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { PageHeader } from "@/shared/ui/page-header";
 import { EmptyStateCard } from "@/shared/ui/empty-state-card";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 
 import { useLottoNumberStats } from "@/features/lotto/hooks/use-lotto-query";
 
@@ -42,9 +43,12 @@ export default function RangesStatsPage() {
     }
   }, [latestDrawNo, filters]);
 
-  const { data: statsData, isLoading } = useLottoNumberStats(
-    filters || undefined,
-  );
+  const {
+    data: statsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useLottoNumberStats(filters || undefined);
   const stats = statsData?.data || null;
 
   const sectionColors: Record<string, string> = {
@@ -90,7 +94,9 @@ export default function RangesStatsPage() {
         <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
       )}
 
-      {!stats ? (
+      {isError ? (
+        <ServiceUnavailableNotice onRetry={() => refetch()} />
+      ) : !stats ? (
         <EmptyStateCard
           icon={BarChart3}
           title="구간 분석 대기 중"

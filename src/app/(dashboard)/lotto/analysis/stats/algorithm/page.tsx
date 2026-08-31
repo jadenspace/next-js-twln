@@ -13,6 +13,7 @@ import {
 import type { AdvancedStats } from "@/features/lotto/types";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
 import { EmptyStateCard } from "@/shared/ui/empty-state-card";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Button } from "@/shared/ui/button";
 import {
@@ -45,7 +46,12 @@ export default function AlgorithmStatsPage() {
     }
   }, [latestDrawNo, filters]);
 
-  const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
+  const {
+    data: statsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
     { enabled: hasRequested },
@@ -98,7 +104,9 @@ export default function AlgorithmStatsPage() {
         <div className="mb-8 h-[100px] animate-pulse rounded-lg bg-muted/20" />
       )}
 
-      {!stats || !filters ? (
+      {isError ? (
+        <ServiceUnavailableNotice onRetry={() => refetch()} />
+      ) : !stats || !filters ? (
         <EmptyStateCard
           icon={Brain}
           title="알고리즘 분석 대기 중"

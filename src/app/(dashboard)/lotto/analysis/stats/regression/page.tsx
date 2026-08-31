@@ -21,6 +21,7 @@ import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
 import { PageHeader } from "@/shared/ui/page-header";
 import { EmptyStateCard } from "@/shared/ui/empty-state-card";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 
 type RegressionRow = {
   num: string;
@@ -118,7 +119,12 @@ export default function RegressionStatsPage() {
     }
   }, [defaultFilters, filters]);
 
-  const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
+  const {
+    data: statsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
     { enabled: hasRequested },
@@ -152,7 +158,9 @@ export default function RegressionStatsPage() {
         <div className="mb-8 h-[100px] animate-pulse rounded-lg bg-muted/20" />
       )}
 
-      {!stats ? (
+      {isError ? (
+        <ServiceUnavailableNotice onRetry={() => refetch()} />
+      ) : !stats ? (
         <EmptyStateCard
           icon={History}
           title="n회귀 분석 대기 중"
