@@ -1,5 +1,6 @@
 import { setApprovalStatus } from "@/shared/lib/auth/approval";
 import { requireAdmin } from "@/shared/lib/auth/guards";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 
 /** 관리자가 다른 회원의 승인 상태를 변경한다. */
@@ -36,7 +37,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return unexpectedErrorResponse("api/auth/approval", err);
   }
 }

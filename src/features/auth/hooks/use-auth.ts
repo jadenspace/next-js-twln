@@ -3,9 +3,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { createClient } from "@/shared/lib/supabase/client";
+import { isServiceUnavailable } from "@/shared/lib/service-status";
 import { approvalApi } from "../api/approval-api";
 import { authApi } from "../api/auth-api";
 import { useAuthStore } from "../model/auth-store";
+
+export type AuthStatus =
+  | "loading"
+  | "authenticated"
+  | "unauthenticated"
+  | "unknown";
 
 export const useAuth = () => {
   const { user, isLoading, isAuthenticated, setUser, setLoading, logout } =
@@ -13,7 +20,11 @@ export const useAuth = () => {
   const queryClient = useQueryClient();
 
   // 현재 사용자 정보 가져오기 (항상 실행)
-  const { data: currentUser, isLoading: userLoading } = useQuery({
+  const {
+    data: currentUser,
+    isLoading: userLoading,
+    error: userError,
+  } = useQuery({
     queryKey: ["auth", "user"],
     queryFn: authApi.getCurrentUser,
     retry: false,
@@ -171,6 +182,9 @@ export const useAuth = () => {
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         if (session?.user) {
           setUser(session.user);
+          // 장애에서 복구되면(TOKEN_REFRESHED 등) 에러 상태로 멈춰있는
+          // auth 쿼리를 다시 가져와 unknown 을 벗어나게 한다.
+          queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
         }
       } else if (event === "SIGNED_OUT") {
         logout();
@@ -180,7 +194,7 @@ export const useAuth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [setUser, logout]);
+  }, [setUser, logout, queryClient]);
 
   // 현재 사용자 정보가 변경되면 스토어 업데이트
   useEffect(() => {
@@ -190,8 +204,26 @@ export const useAuth = () => {
     }
   }, [currentUser, setUser]);
 
+  // 장애로 확인 불가(unknown)를 비로그인과 구분한다 — 보호 페이지가
+  // 고장난 /login 으로 사용자를 내쫓는 것을 막는다.
+  // 단, 스토어에 실제 사용자가 있으면(예: onAuthStateChange 로 갱신됨) 장애 오류보다 스토어를 신뢰한다.
+  const authStatus: AuthStatus =
+    isServiceUnavailable(userError) && !isAuthenticated
+      ? "unknown"
+      : userLoading || isLoading
+        ? "loading"
+        : isAuthenticated
+          ? "authenticated"
+          : "unauthenticated";
+
+  // unknown 상태에서 사용자가 수동으로 재확인을 트리거할 수 있는 복구 헬퍼.
+  const refreshAuth = () =>
+    queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
+
   return {
     user,
+    authStatus,
+    refreshAuth,
     isLoading: userLoading || isLoading,
     isAuthenticated,
     signIn: signInMutation.mutate,

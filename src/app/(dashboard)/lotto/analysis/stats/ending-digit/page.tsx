@@ -20,6 +20,7 @@ import { Hash, BarChart3, Info } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { PageHeader } from "@/shared/ui/page-header";
 import { EmptyStateCard } from "@/shared/ui/empty-state-card";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 
 export default function EndingDigitStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
@@ -43,7 +44,12 @@ export default function EndingDigitStatsPage() {
     }
   }, [latestDrawNo, filters]);
 
-  const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
+  const {
+    data: statsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
     { enabled: hasRequested },
@@ -80,7 +86,9 @@ export default function EndingDigitStatsPage() {
         <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
       )}
 
-      {!stats ? (
+      {isError ? (
+        <ServiceUnavailableNotice onRetry={() => refetch()} />
+      ) : !stats ? (
         <EmptyStateCard
           icon={Hash}
           title="끝수 데이터 대기 중"

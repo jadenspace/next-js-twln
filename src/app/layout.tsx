@@ -5,6 +5,7 @@ import { Header } from "@/shared/components/layout/header";
 import { Footer } from "@/shared/components/layout/footer";
 import { Toaster } from "@/shared/ui/sonner";
 import { GoogleTagManager } from "@next/third-parties/google";
+import { ServiceStatusBanner } from "@/shared/components/service-status-banner";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://lottodetective.vercel.app"),
@@ -110,7 +111,10 @@ export default function RootLayout({
         />
         <QueryProvider>
           <div className="min-h-screen flex flex-col">
-            <Header />
+            <div className="sticky top-0 z-50">
+              <ServiceStatusBanner />
+              <Header />
+            </div>
             <main className="flex-1">{children}</main>
             <Footer />
           </div>

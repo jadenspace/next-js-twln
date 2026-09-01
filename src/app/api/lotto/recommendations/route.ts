@@ -1,6 +1,10 @@
 import { StatisticsCalculator } from "@/features/lotto/services/statistics-calculator";
 import type { LottoDraw } from "@/features/lotto/types";
 import { createClient } from "@/shared/lib/supabase/server";
+import {
+  supabaseErrorResponse,
+  unexpectedErrorResponse,
+} from "@/shared/lib/api/route-error";
 import { NextResponse } from "next/server";
 
 type RecommendationAction = "fixed" | "excluded";
@@ -90,10 +94,7 @@ export async function GET() {
       .limit(120);
 
     if (error) {
-      return NextResponse.json(
-        { error: "Failed to fetch data" },
-        { status: 500 },
-      );
+      return supabaseErrorResponse(error);
     }
 
     const draws = (data ?? []) as LottoDraw[];
@@ -188,10 +189,7 @@ export async function GET() {
           }
         : null,
     });
-  } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Unknown server error";
-
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch (error) {
+    return unexpectedErrorResponse("api/lotto/recommendations", error);
   }
 }

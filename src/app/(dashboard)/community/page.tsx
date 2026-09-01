@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/shared/ui/page-header";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
+import { ServiceUnavailableError } from "@/shared/lib/service-status";
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -37,11 +39,19 @@ export default function CommunityPage() {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
 
-  const { data: posts, isLoading } = useQuery({
+  const {
+    data: posts,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["communityPosts"],
     queryFn: async () => {
       const res = await fetch("/api/community/posts");
-      if (!res.ok) throw new Error("Failed to fetch posts");
+      if (!res.ok) {
+        if (res.status === 503) throw new ServiceUnavailableError();
+        throw new Error("Failed to fetch posts");
+      }
       return res.json();
     },
   });
@@ -136,7 +146,9 @@ export default function CommunityPage() {
 
       <Card>
         <CardContent className="p-0">
-          {isLoading ? (
+          {isError ? (
+            <ServiceUnavailableNotice onRetry={() => refetch()} />
+          ) : isLoading ? (
             <div className="flex justify-center p-12">
               <Loader2 className="w-8 h-8 animate-spin" />
             </div>

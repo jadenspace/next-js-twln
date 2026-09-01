@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { createClient } from "@/shared/lib/supabase/server";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 import { StatisticsCalculator } from "@/features/lotto/services/statistics-calculator";
 import { LottoDraw } from "@/features/lotto/types";
@@ -167,7 +168,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data: result });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    return unexpectedErrorResponse("api/lotto/analysis/stats", err);
   }
 }

@@ -21,6 +21,7 @@ import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
 import { PageHeader } from "@/shared/ui/page-header";
 import { EmptyStateCard } from "@/shared/ui/empty-state-card";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 
 export default function MarkovStatsPage() {
   const [filters, setFilters] = useState<FilterValues | null>(null);
@@ -45,7 +46,12 @@ export default function MarkovStatsPage() {
     }
   }, [latestDrawNo, filters]);
 
-  const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
+  const {
+    data: statsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
     { enabled: hasRequested },
@@ -86,7 +92,9 @@ export default function MarkovStatsPage() {
         <div className="h-[100px] bg-muted/20 animate-pulse rounded-lg mb-8" />
       )}
 
-      {!stats ? (
+      {isError ? (
+        <ServiceUnavailableNotice onRetry={() => refetch()} />
+      ) : !stats ? (
         <EmptyStateCard
           icon={Share2}
           title="마르코프 데이터 분석 대기 중"

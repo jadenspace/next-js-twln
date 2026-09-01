@@ -1,6 +1,7 @@
 import { requireVerifiedUser } from "@/shared/lib/auth/guards";
 import { adjustPoints } from "@/shared/lib/points/point-ledger";
 import { isPaidFeature, priceFor } from "@/shared/lib/points/pricing";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -54,7 +55,6 @@ export async function POST(request: NextRequest) {
       balance: result.balance,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return unexpectedErrorResponse("api/points/use", err);
   }
 }

@@ -1,5 +1,6 @@
 import { requireUser } from "@/shared/lib/auth/guards";
 import { getKstDateString } from "@/shared/lib/date-utils";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { NextResponse } from "next/server";
 
@@ -57,7 +58,7 @@ export async function POST() {
     });
 
     return NextResponse.json({ success: true, reward: ATTENDANCE_REWARD });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    return unexpectedErrorResponse("api/attendance/check-in", err);
   }
 }

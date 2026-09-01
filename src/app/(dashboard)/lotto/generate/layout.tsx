@@ -25,7 +25,7 @@ export default function GenerateLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { authStatus } = useAuth();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -42,7 +42,7 @@ export default function GenerateLayout({
         <div className="flex items-center gap-1 border-b">
           {TABS.map((tab) => {
             const isActive = pathname === tab.href;
-            const isLocked = !tab.isPublic && !isAuthenticated && !isLoading;
+            const isLocked = !tab.isPublic && authStatus === "unauthenticated";
 
             return (
               <Link

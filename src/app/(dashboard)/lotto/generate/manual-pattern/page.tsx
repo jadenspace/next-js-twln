@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import Link from "next/link";
 import { Lock } from "lucide-react";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import {
@@ -70,7 +71,12 @@ const INITIAL_STEP_DATA: PatternAnalysisStepData = {
 };
 
 export default function ManualPatternAnalysisPage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const {
+    isAuthenticated,
+    isLoading: authLoading,
+    authStatus,
+    refreshAuth,
+  } = useAuth();
   const { userPoints, refreshPoints } = usePoints();
 
   const [recommendations, setRecommendations] = useState<{
@@ -684,6 +690,17 @@ export default function ManualPatternAnalysisPage() {
     navigator.clipboard.writeText(text);
     toast.success("번호가 클립보드에 복사되었습니다.", { description: text });
   }, []);
+
+  if (authStatus === "unknown") {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <ServiceUnavailableNotice
+          message="일시적으로 로그인 상태를 확인할 수 없습니다. 잠시 후 다시 시도해주세요."
+          onRetry={() => refreshAuth()}
+        />
+      </div>
+    );
+  }
 
   if (authLoading || !isAuthenticated) {
     return (

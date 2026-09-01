@@ -1,4 +1,5 @@
 import { createClient } from "@/shared/lib/supabase/server";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     if (insertError) throw insertError;
 
     return NextResponse.json({ success: true, orderId });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    return unexpectedErrorResponse("api/payments/request", err);
   }
 }

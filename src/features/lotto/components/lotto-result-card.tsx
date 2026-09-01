@@ -7,6 +7,7 @@ import { createClient } from "@/shared/lib/supabase/client";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
 import { TrendingUp, ExternalLink, MapPin } from "lucide-react";
 import { useLottoLatest } from "../hooks/use-lotto-query";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 
 interface LottoDraw {
   drw_no: number;
@@ -28,7 +29,7 @@ interface Countdown {
 }
 
 export function LottoResultCard() {
-  const { data: latestDraw, isLoading } = useLottoLatest();
+  const { data: latestDraw, isLoading, isError, refetch } = useLottoLatest();
   const [countdown, setCountdown] = useState<Countdown>({
     days: 0,
     hours: 0,
@@ -111,6 +112,22 @@ export function LottoResultCard() {
           <div className="text-center py-8 text-muted-foreground">
             불러오는 중...
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            최신 로또 당첨번호
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ServiceUnavailableNotice onRetry={() => refetch()} />
         </CardContent>
       </Card>
     );

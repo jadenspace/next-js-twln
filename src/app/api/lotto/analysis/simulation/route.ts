@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { createClient } from "@/shared/lib/supabase/server";
 import { getKstDayStartIso } from "@/shared/lib/date-utils";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 import { WinningSimulator } from "@/features/lotto/services/winning-simulator";
 import { validateLottoNumbers } from "@/features/lotto/lib/validate-lotto-numbers";
@@ -117,7 +118,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: result });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return unexpectedErrorResponse("api/lotto/analysis/simulation", err);
   }
 }

@@ -1,5 +1,9 @@
 import { createClient } from "@/shared/lib/supabase/server";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
+import {
+  supabaseErrorResponse,
+  unexpectedErrorResponse,
+} from "@/shared/lib/api/route-error";
 import { NextResponse } from "next/server";
 
 export async function POST() {
@@ -84,10 +88,7 @@ export async function POST() {
 
     if (deleteError) {
       console.error("Error deleting user:", deleteError);
-      return NextResponse.json(
-        { error: "Failed to delete user account" },
-        { status: 500 },
-      );
+      return supabaseErrorResponse(deleteError);
     }
 
     // 3. Sign out the user from the current session
@@ -95,10 +96,6 @@ export async function POST() {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Withdrawal error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return unexpectedErrorResponse("api/auth/withdraw", error);
   }
 }

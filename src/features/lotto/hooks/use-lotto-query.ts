@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { lottoApi, LottoResultDto } from "../api/lotto-api";
 import { BasicStats } from "../types";
 import { FilterValues } from "../components/stats-filter";
+import { ServiceUnavailableError } from "@/shared/lib/service-status";
 
 // 1. 최신 회차 조회 (1시간 캐시)
 export const useLottoLatest = () => {
@@ -55,7 +56,8 @@ export const useLottoNumberStats = <T = BasicStats>(
         body: JSON.stringify({ ...(filters || {}), ...extraParams }),
       });
       if (!res.ok) {
-        const err = await res.json();
+        if (res.status === 503) throw new ServiceUnavailableError();
+        const err = await res.json().catch(() => ({ error: null }));
         throw new Error(err.error || "분석에 실패했습니다.");
       }
       return res.json() as Promise<{ data: T }>;

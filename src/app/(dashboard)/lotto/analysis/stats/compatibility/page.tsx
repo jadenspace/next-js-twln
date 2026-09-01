@@ -21,6 +21,7 @@ import { cn } from "@/shared/lib/utils";
 import { LotteryBall } from "@/shared/ui/lottery-ball";
 import { PageHeader } from "@/shared/ui/page-header";
 import { EmptyStateCard } from "@/shared/ui/empty-state-card";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 
 const BASE_DEFAULT_FILTERS = {
   type: "all",
@@ -72,7 +73,12 @@ export default function CompatibilityStatsPage() {
     }
   }, [latestDrawNo, filters]);
 
-  const { data: statsData, isLoading } = useLottoNumberStats<AdvancedStats>(
+  const {
+    data: statsData,
+    isLoading,
+    isError,
+    refetch,
+  } = useLottoNumberStats<AdvancedStats>(
     filters || undefined,
     { style: "advanced" },
     { enabled: hasRequested },
@@ -145,7 +151,9 @@ export default function CompatibilityStatsPage() {
         <div className="mb-8 h-[100px] animate-pulse rounded-lg bg-muted/20" />
       )}
 
-      {!stats ? (
+      {isError ? (
+        <ServiceUnavailableNotice onRetry={() => refetch()} />
+      ) : !stats ? (
         <EmptyStateCard
           icon={Heart}
           title="궁합 분석 데이터 로딩 중"

@@ -48,6 +48,7 @@ import { getLottoBallColor } from "@/features/lotto/lib/lotto-colors";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { PageHeader } from "@/shared/ui/page-header";
+import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 
 interface SavedNumber {
   id: string;
@@ -69,6 +70,7 @@ export default function MyPage() {
   const [savedNumbers, setSavedNumbers] = useState<SavedNumber[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -81,6 +83,7 @@ export default function MyPage() {
     async (offset = 0) => {
       setIsLoading(true);
       try {
+        setIsError(false);
         const params = new URLSearchParams();
         params.set("limit", "20");
         params.set("offset", offset.toString());
@@ -97,6 +100,7 @@ export default function MyPage() {
         setPagination(data.pagination);
       } catch (error) {
         console.error("Failed to fetch saved numbers:", error);
+        setIsError(true);
         toast.error("저장된 번호를 불러오지 못했습니다.");
       } finally {
         setIsLoading(false);
@@ -283,7 +287,9 @@ export default function MyPage() {
           </div>
 
           {/* 번호 목록 */}
-          {isLoading ? (
+          {isError ? (
+            <ServiceUnavailableNotice onRetry={() => fetchSavedNumbers(0)} />
+          ) : isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>

@@ -1,4 +1,5 @@
 import { createClient } from "@/shared/lib/supabase/server";
+import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
@@ -32,8 +33,7 @@ export async function DELETE(
     if (error) throw error;
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error("Failed to delete saved number:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err) {
+    return unexpectedErrorResponse("api/lotto/saved-numbers/[id]", err);
   }
 }
