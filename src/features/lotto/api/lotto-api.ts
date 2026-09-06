@@ -68,10 +68,10 @@ export interface LottoResultDto {
   /** 전체 당첨 게임 수 */
   sumWnNope: number;
 
-  /** 해당 회차 총 지급 당첨금 */
+  /** 당첨금 재원. 총판매금액의 50% (1150회 실측: 57,076,017,000) */
   rlvtEpsdSumNtslAmt: number;
 
-  /** 누적 총 금액 (내부 통계용) */
+  /** 해당 회차 총판매금액 (1150회 실측: 114,152,034,000). 누적값이 아니다. */
   wholEpsdSumNtslAmt: number;
 
   /** 최고 당첨 등수 (예: "1등") */
@@ -123,9 +123,9 @@ export interface LottoDraw {
 
   // 전체 통계
   sum_win_nope: number;
-  rlvt_epsd_sum_ntsl_amt: string;
-  whol_epsd_sum_ntsl_amt: string;
-  tot_sell_amnt?: string; // 구 API에서만 제공, nullable
+  rlvt_epsd_sum_ntsl_amt: string; // 당첨금 재원 (총판매금액의 50%)
+  whol_epsd_sum_ntsl_amt: string; // 해당 회차 총판매금액
+  tot_sell_amnt?: string; // 총판매금액, 구 API에서만 제공, nullable
 
   // 기타
   excel_rnk?: string;
