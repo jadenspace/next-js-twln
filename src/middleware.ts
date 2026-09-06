@@ -70,7 +70,6 @@ export async function middleware(request: NextRequest) {
     "/reset-password",
     "/forgot-password",
     "/find-id",
-    "/test-supabase",
     "/api",
     "/lotto/search",
     "/lotto/generate",

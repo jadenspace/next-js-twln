@@ -78,6 +78,11 @@ npm install
 # .env.local
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+# 서버 전용 (브라우저에 노출 금지)
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# Vercel Cron 인증. Vercel 프로젝트 환경변수에 같은 값을 넣으면 크론 호출에
+# `Authorization: Bearer <CRON_SECRET>` 헤더가 자동으로 붙는다. 없으면 크론/백필 라우트는 모두 401.
+CRON_SECRET=any-long-random-string
 ```
 
 ### 4. 개발 서버 실행
@@ -100,8 +105,8 @@ npm run dev
 ### 로또 데이터 자동화 시스템
 
 1.  **초기 데이터 설정**: 위 `[시작하기]` 가이드에 따라 `create-lotto-draws-table.sql`을 실행합니다.
-2.  **과거 데이터 저장 (최초 1회)**: 프로젝트를 Vercel에 배포한 후, 브라우저에서 `[배포 주소]/api/backfill-lotto` URL에 접속합니다. 약 10~15분 동안 1회부터 현재까지의 모든 로또 데이터가 데이터베이스에 저장됩니다.
-3.  **주간 자동 업데이트**: `vercel.json`에 설정된 Cron Job이 매주 토요일 밤 10시 30분과 일요일 아침 9시 30분(실패 시 재시도)에 자동으로 실행되어 최신 당첨 번호를 DB에 추가합니다.
+2.  **과거 데이터 저장 (최초 1회)**: 관리자 계정으로 로그인한 브라우저에서 `[배포 주소]/api/backfill-lotto` 에 접속합니다(또는 `Authorization: Bearer <CRON_SECRET>` 헤더로 호출). 한 번에 최대 200회차(`?count=`, 기본 50)만 처리하고 마지막 저장 회차 + 1 부터 이어지므로, 응답이 "Done" 으로 끝날 때까지 반복 호출합니다. 미발표 회차에서 자동으로 멈춥니다.
+3.  **주간 자동 업데이트**: `vercel.json`에 설정된 Cron Job이 매주 토요일 밤 9시와 9시 30분(KST, 두 번째는 재시도)에 실행되어 최신 당첨 번호를 DB에 추가합니다. Vercel 이 보내는 `CRON_SECRET` 헤더가 없으면 401 로 거절됩니다.
 
 ---
 

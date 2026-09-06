@@ -1,25 +1,29 @@
+import { requireVerifiedUser } from "@/shared/lib/auth/guards";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { createClient } from "@/shared/lib/supabase/server";
 import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { StatisticsCalculator } from "@/features/lotto/services/statistics-calculator";
 import { LottoDraw } from "@/features/lotto/types";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-
   try {
     const body = await request.json().catch(() => ({}));
     const { startDraw, endDraw, limit, includeBonus, style = "basic" } = body;
     const isAdvanced = style === "advanced";
 
-    // 1. Authenticate (optional for basic stats, required for advanced)
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (isAdvanced && !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // 1. Authenticate — 기본 통계는 누구나, 심화 통계(유료)는 인증된 회원만.
+    //    정지된 계정은 가드가 403 으로 막는다.
+    let user: User | null = null;
+    let supabase: SupabaseClient;
+    if (isAdvanced) {
+      const guard = await requireVerifiedUser();
+      if (!guard.ok) return guard.response;
+      user = guard.user;
+      supabase = guard.supabase;
+    } else {
+      supabase = await createClient();
     }
 
     const currentCost = isAdvanced ? 200 : 0; // Basic stats are free now as per "전부 접근 가능"

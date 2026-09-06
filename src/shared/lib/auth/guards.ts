@@ -24,7 +24,14 @@ function deny(status: number, error: string): GuardResult {
   return { ok: false, response: NextResponse.json({ error }, { status }) };
 }
 
-/** 로그인한 사용자만 통과시킨다. */
+/**
+ * 로그인한 사용자만 통과시킨다.
+ *
+ * 관리자가 승인을 취소한(정지된) 계정도 여기서 막는다. 이전에는 승인 취소가
+ * `approved_users.is_active=false` 로 기록만 되고 어떤 API 도 이를 확인하지 않아,
+ * 세션 쿠키만 유지하면 모든 기능을 계속 쓸 수 있었고 `/api/auth/approval/self` 로
+ * 스스로 재승인할 수도 있었다.
+ */
 export async function requireUser(): Promise<GuardResult> {
   const supabase = await createClient();
 
@@ -40,6 +47,28 @@ export async function requireUser(): Promise<GuardResult> {
   }
 
   if (!user) return deny(401, "Unauthorized");
+
+  if (user.email) {
+    const { data: approval, error: approvalError } = await createAdminClient()
+      .from("approved_users")
+      .select("is_active")
+      .eq("email", user.email)
+      .maybeSingle();
+
+    if (approvalError) {
+      console.error("[requireUser] approved_users 조회 실패", approvalError);
+      if (isServiceUnavailable(approvalError)) {
+        return deny(503, "SERVICE_UNAVAILABLE");
+      }
+      return deny(500, "권한 확인에 실패했습니다.");
+    }
+
+    // 행이 없는 것은 "아직 자동 승인 전" 이므로 통과시킨다. 정지는 명시적으로
+    // is_active=false 인 경우만이다.
+    if (approval && approval.is_active === false) {
+      return deny(403, "관리자에 의해 이용이 제한된 계정입니다.");
+    }
+  }
 
   return { ok: true, user, supabase };
 }
@@ -63,14 +92,28 @@ export async function requireVerifiedUser(): Promise<GuardResult> {
 }
 
 /**
- * 관리자만 통과시킨다.
+ * 이메일이 활성 관리자인지 판별한다.
  *
  * 판별 기준은 `admin_users` 테이블 하나뿐이다. `approved_users` 는 일반 회원
  * 목록이므로 관리자 판별에 사용해서는 안 된다.
  *
  * 조회에는 service_role 클라이언트를 쓴다. 세션에서 검증된 이메일로만 조회하므로
  * 안전하고, `admin_users` 의 RLS 정책에 결과가 좌우되지 않는다.
+ * DB 오류는 그대로 throw 하므로 호출자가 분류한다.
  */
+export async function isAdminEmail(email: string): Promise<boolean> {
+  const { data, error } = await createAdminClient()
+    .from("admin_users")
+    .select("id")
+    .eq("email", email)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (error) throw error;
+  return Boolean(data);
+}
+
+/** 관리자만 통과시킨다. */
 export async function requireAdmin(): Promise<GuardResult> {
   const guard = await requireUser();
   if (!guard.ok) return guard;
@@ -78,14 +121,10 @@ export async function requireAdmin(): Promise<GuardResult> {
   const email = guard.user.email;
   if (!email) return deny(403, "Forbidden");
 
-  const { data: adminUser, error } = await createAdminClient()
-    .from("admin_users")
-    .select("id")
-    .eq("email", email)
-    .eq("is_active", true)
-    .maybeSingle();
-
-  if (error) {
+  let isAdmin: boolean;
+  try {
+    isAdmin = await isAdminEmail(email);
+  } catch (error) {
     console.error("[requireAdmin] admin_users 조회 실패", error);
     if (isServiceUnavailable(error)) {
       return deny(503, "SERVICE_UNAVAILABLE");
@@ -93,7 +132,7 @@ export async function requireAdmin(): Promise<GuardResult> {
     return deny(500, "권한 확인에 실패했습니다.");
   }
 
-  if (!adminUser) return deny(403, "Forbidden");
+  if (!isAdmin) return deny(403, "Forbidden");
 
   return guard;
 }

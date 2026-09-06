@@ -46,38 +46,17 @@ export const approvalApi = {
     return data;
   },
 
-  // 승인 대기 중인 사용자 목록 (관리자용)
+  // 승인 대기 중인 사용자 목록 (관리자용).
+  // 브라우저가 테이블을 직접 읽지 않고 requireAdmin 가드가 있는 서버 라우트를 쓴다.
   async getPendingUsers(): Promise<PendingUser[]> {
-    const supabase = createClient();
-
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("id, email, full_name, created_at")
-      .eq("is_approved", false)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return data || [];
+    const { pending } = await fetchApprovalLists();
+    return pending;
   },
 
   // 승인된 사용자 목록 (관리자용)
   async getApprovedUsers(): Promise<ApprovedUser[]> {
-    const supabase = createClient();
-
-    const { data, error } = await supabase
-      .from("approved_users")
-      .select("*")
-      .eq("is_active", true)
-      .order("approved_at", { ascending: false });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return data || [];
+    const { approved } = await fetchApprovalLists();
+    return approved;
   },
 
   // 이메일 인증을 마친 본인을 승인 목록에 등록한다.
@@ -96,6 +75,23 @@ export const approvalApi = {
     await postApproval("/api/auth/approval", { email, action: "revoke" });
   },
 };
+
+async function fetchApprovalLists(): Promise<{
+  pending: PendingUser[];
+  approved: ApprovedUser[];
+}> {
+  const response = await fetch("/api/auth/approval");
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(result.error || "회원 목록을 불러오지 못했습니다.");
+  }
+
+  return {
+    pending: result.pending ?? [],
+    approved: result.approved ?? [],
+  };
+}
 
 async function postApproval(
   url: string,

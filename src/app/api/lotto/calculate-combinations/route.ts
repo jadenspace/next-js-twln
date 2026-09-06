@@ -1,26 +1,23 @@
 /**
  * 소거법 기반 조합 수 계산 API
  * POST /api/lotto/calculate-combinations
+ *
+ * 필터가 있으면 남은 번호의 모든 조합을 전수 검사한다(최대 C(45,6)=8,145,060).
+ * 이전에는 인증도 입력 검증도 없어 누구나 빈 필터로 반복 호출해 CPU 를
+ * 소진시킬 수 있었다. 지금은 로그인 사용자만 호출할 수 있고(패턴 조합 생성기
+ * 페이지 자체가 로그인 필수), 본문은 pattern-input 으로 검증하며, 같은 요청은
+ * 인스턴스 내 캐시로 재계산을 피한다.
  */
 
+import {
+  parseCombinationRequest,
+  type CombinationFilters,
+} from "@/features/lotto/lib/pattern-input";
+import { requireUser } from "@/shared/lib/auth/guards";
 import { NextRequest, NextResponse } from "next/server";
 
 const TOTAL_COMBINATIONS = 8145060;
-
-interface CalculateRequest {
-  fixedNumbers: number[];
-  excludedNumbers: number[];
-  filters?: {
-    sumRange: [number, number];
-    oddEvenRatios: string[];
-    highLowRatios: string[];
-    acRange: [number, number];
-    // Step 3 반복/패턴 필터 (선택적)
-    consecutivePattern?: "any" | "none";
-    sameEndDigit?: number;
-    sameSection?: number;
-  };
-}
+const CACHE_MAX_ENTRIES = 200;
 
 interface CalculateResponse {
   step1: {
@@ -32,6 +29,18 @@ interface CalculateResponse {
     percentage: number;
     ratioFromStep1: number;
   };
+}
+
+// 요청 본문(정규화된 형태) → 결과. Map 은 삽입 순서를 유지하므로 가장 오래된
+// 항목부터 밀어낸다.
+const resultCache = new Map<string, CalculateResponse>();
+
+function remember(key: string, value: CalculateResponse) {
+  if (resultCache.size >= CACHE_MAX_ENTRIES) {
+    const oldest = resultCache.keys().next().value;
+    if (oldest !== undefined) resultCache.delete(oldest);
+  }
+  resultCache.set(key, value);
 }
 
 /**
@@ -70,7 +79,7 @@ function calculateAC(numbers: number[]): number {
  */
 function passesFilters(
   numbers: number[],
-  filters: NonNullable<CalculateRequest["filters"]>,
+  filters: CombinationFilters,
 ): boolean {
   const sorted = [...numbers].sort((a, b) => a - b);
 
@@ -156,7 +165,7 @@ function exhaustiveCount(
   fixedNumbers: number[],
   availableNumbers: number[],
   remainingToSelect: number,
-  filters: NonNullable<CalculateRequest["filters"]>,
+  filters: CombinationFilters,
 ): number {
   if (remainingToSelect <= 0) {
     return passesFilters(fixedNumbers, filters) ? 1 : 0;
@@ -196,9 +205,25 @@ function exhaustiveCount(
 }
 
 export async function POST(request: NextRequest) {
+  const guard = await requireUser();
+  if (!guard.ok) return guard.response;
+
+  const parsed = parseCombinationRequest(
+    await request.json().catch(() => null),
+  );
+  if (!parsed) {
+    return NextResponse.json(
+      { error: "입력이 올바르지 않습니다." },
+      { status: 400 },
+    );
+  }
+
+  const cacheKey = JSON.stringify(parsed);
+  const cached = resultCache.get(cacheKey);
+  if (cached) return NextResponse.json(cached);
+
   try {
-    const body: CalculateRequest = await request.json();
-    const { fixedNumbers, excludedNumbers, filters } = body;
+    const { fixedNumbers, excludedNumbers, filters } = parsed;
 
     const LOTTO_NUMBERS = Array.from({ length: 45 }, (_, i) => i + 1);
     const fixedSet = new Set(fixedNumbers);
@@ -238,6 +263,7 @@ export async function POST(request: NextRequest) {
       };
     }
 
+    remember(cacheKey, response);
     return NextResponse.json(response);
   } catch (error) {
     console.error("Calculate combinations error:", error);
