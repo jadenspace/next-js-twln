@@ -3,23 +3,10 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
-import { createClient } from "@/shared/lib/supabase/client";
-import { LotteryBall } from "@/shared/ui/lottery-ball";
+import { BonusLotteryBall, LotteryBall } from "@/shared/ui/lottery-ball";
 import { TrendingUp, ExternalLink, MapPin } from "lucide-react";
 import { useLottoLatest } from "../hooks/use-lotto-query";
 import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
-
-interface LottoDraw {
-  drw_no: number;
-  drw_no_date: string;
-  drwt_no1: number;
-  drwt_no2: number;
-  drwt_no3: number;
-  drwt_no4: number;
-  drwt_no5: number;
-  drwt_no6: number;
-  bnus_no: number;
-}
 
 interface Countdown {
   days: number;
@@ -79,25 +66,6 @@ export function LottoResultCard() {
         latestDraw.drwt_no6,
       ]
     : [];
-
-  const BonusLottoNumber = ({ num }: { num: number }) => {
-    const getColor = (n: number) => {
-      if (n <= 10) return "border-yellow-500 text-yellow-500";
-      if (n <= 20) return "border-blue-500 text-blue-500";
-      if (n <= 30) return "border-red-500 text-red-500";
-      if (n <= 40) return "border-gray-500 text-gray-500";
-      return "border-green-500 text-green-500";
-    };
-    return (
-      <div
-        className={`w-10 h-10 rounded-full bg-transparent border-2 flex items-center justify-center font-bold ${getColor(
-          num,
-        )}`}
-      >
-        {num}
-      </div>
-    );
-  };
 
   if (isLoading) {
     return (
@@ -160,7 +128,7 @@ export function LottoResultCard() {
                 <span className="text-sm font-medium text-muted-foreground">
                   보너스
                 </span>
-                <BonusLottoNumber num={latestDraw.bnus_no} />
+                <BonusLotteryBall number={latestDraw.bnus_no} />
               </div>
             </div>
           </div>

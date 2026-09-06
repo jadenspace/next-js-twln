@@ -46,9 +46,11 @@ export interface LottoDraw {
 
   // 전체 통계
   sum_win_nope?: number;
-  rlvt_epsd_sum_ntsl_amt?: string;
-  whol_epsd_sum_ntsl_amt?: string;
-  tot_sell_amnt?: string; // 구 API에서만 제공
+  // 동행복권 API 실측(1150회): whol = 114,152,034,000 (총판매금액),
+  // rlvt = 57,076,017,000 (정확히 절반 = 당첨금 재원). 누적값이 아니다.
+  rlvt_epsd_sum_ntsl_amt?: string; // 당첨금 재원 (총판매금액의 50%)
+  whol_epsd_sum_ntsl_amt?: string; // 해당 회차 총판매금액
+  tot_sell_amnt?: string; // 총판매금액, 구 API에서만 제공
 
   // 기타
   excel_rnk?: string;
