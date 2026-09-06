@@ -20,6 +20,10 @@ import {
   Menu,
   X,
   ChevronUp,
+  QrCode,
+  Calculator,
+  MapPin,
+  Wrench,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
@@ -50,6 +54,7 @@ const STATS_MENU = {
     { href: "/lotto/analysis/stats/math", label: "소수/합성수/3배수 통계" },
   ],
 };
+
 const GENERATE_MENU = [
   {
     href: "/lotto/generate/random",
@@ -60,6 +65,30 @@ const GENERATE_MENU = [
     href: "/lotto/generate/manual-pattern",
     label: "패턴 조합 생성기",
     isPublic: false,
+  },
+];
+
+const TOOLS_MENU = [
+  {
+    href: "/lotto/qr",
+    label: "QR코드 당첨 확인",
+    description: "카메라/사진으로 1초 확인",
+    icon: QrCode,
+    isPublic: true,
+  },
+  {
+    href: "/lotto/tax-calculator",
+    label: "당첨금 세금 계산기",
+    description: "2023 소득세법 실수령액",
+    icon: Calculator,
+    isPublic: true,
+  },
+  {
+    href: "/lotto/stores",
+    label: "판매점 & 명당 지도",
+    description: "내 주변 및 전국 1등 명당",
+    icon: MapPin,
+    isPublic: true,
   },
 ];
 
@@ -85,10 +114,12 @@ export function Header() {
   const pathname = usePathname();
   const [isStatsOpen, setIsStatsOpen] = useState(false);
   const [isGenerateOpen, setIsGenerateOpen] = useState(false);
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
 
   // Timeout refs for hover delay
   const statsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const generateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const toolsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -99,6 +130,9 @@ export function Header() {
       if (generateTimeoutRef.current) {
         clearTimeout(generateTimeoutRef.current);
       }
+      if (toolsTimeoutRef.current) {
+        clearTimeout(toolsTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -106,6 +140,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileStatsOpen, setIsMobileStatsOpen] = useState(false);
   const [isMobileGenerateOpen, setIsMobileGenerateOpen] = useState(false);
+  const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
 
   const { data: isAdmin } = useQuery({
     queryKey: ["admin", "is-admin", user?.email],
@@ -115,6 +150,10 @@ export function Header() {
 
   const isStatsActive = pathname?.includes("/lotto/analysis/stats");
   const isGenerateActive = pathname?.includes("/lotto/generate");
+  const isToolsActive =
+    pathname?.includes("/lotto/qr") ||
+    pathname?.includes("/lotto/tax-calculator") ||
+    pathname?.includes("/lotto/stores");
 
   // Auto-open submenus when mobile menu opens if on that page
   useEffect(() => {
@@ -125,8 +164,11 @@ export function Header() {
       if (isGenerateActive) {
         setIsMobileGenerateOpen(true);
       }
+      if (isToolsActive) {
+        setIsMobileToolsOpen(true);
+      }
     }
-  }, [isMobileMenuOpen, isStatsActive, isGenerateActive]);
+  }, [isMobileMenuOpen, isStatsActive, isGenerateActive, isToolsActive]);
 
   // Close mobile menu when pathname changes
   useEffect(() => {
@@ -162,6 +204,7 @@ export function Header() {
               href="/"
               className="font-bold text-xl flex items-center gap-2 absolute left-1/2 -translate-x-1/2 xl:static xl:left-auto xl:translate-x-0"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/android-chrome-192x192.png"
                 alt="로또탐정 로고"
@@ -188,6 +231,7 @@ export function Header() {
                 {SEARCH_ITEM.label}
               </Link>
 
+              {/* 번호 통계 드롭다운 */}
               <Popover open={isStatsOpen} onOpenChange={setIsStatsOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -284,6 +328,7 @@ export function Header() {
                 </PopoverContent>
               </Popover>
 
+              {/* 번호 생성 드롭다운 */}
               <Popover open={isGenerateOpen} onOpenChange={setIsGenerateOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -355,6 +400,78 @@ export function Header() {
                 </PopoverContent>
               </Popover>
 
+              {/* 편의 도구 드롭다운 (QR / 세금 / 판매점 지도) */}
+              <Popover open={isToolsOpen} onOpenChange={setIsToolsOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    onMouseEnter={() => {
+                      if (toolsTimeoutRef.current) {
+                        clearTimeout(toolsTimeoutRef.current);
+                      }
+                      setIsToolsOpen(true);
+                    }}
+                    onMouseLeave={() => {
+                      toolsTimeoutRef.current = setTimeout(() => {
+                        setIsToolsOpen(false);
+                      }, 150);
+                    }}
+                    className={cn(
+                      "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors hover:text-primary rounded-md relative",
+                      isToolsActive
+                        ? "text-primary bg-primary/5"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    <Wrench className="w-4 h-4" />
+                    편의 도구
+                    <ChevronDown className="w-3 h-3 opacity-50" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  onMouseEnter={() => {
+                    if (toolsTimeoutRef.current) {
+                      clearTimeout(toolsTimeoutRef.current);
+                    }
+                    setIsToolsOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    toolsTimeoutRef.current = setTimeout(() => {
+                      setIsToolsOpen(false);
+                    }, 150);
+                  }}
+                  className="w-64 p-2"
+                  align="start"
+                >
+                  <div className="space-y-1">
+                    {TOOLS_MENU.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            "flex items-start gap-2.5 px-3 py-2 text-sm rounded-md transition-colors",
+                            pathname === item.href
+                              ? "bg-primary/10 text-primary font-medium"
+                              : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                          )}
+                        >
+                          <Icon className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                          <div>
+                            <span className="font-semibold block text-xs">
+                              {item.label}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground block">
+                              {item.description}
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const isPrivate = !item.isPublic && !isAuthenticated;
@@ -363,13 +480,11 @@ export function Header() {
                     key={item.href}
                     href={isPrivate ? "#" : item.href}
                     className={cn(
-                      "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-md relative",
+                      "flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors rounded-md",
                       pathname === item.href
                         ? "text-primary bg-primary/5"
-                        : "text-muted-foreground",
-                      isPrivate
-                        ? "opacity-60 pointer-events-none"
-                        : "hover:text-primary hover:bg-muted/50",
+                        : "text-muted-foreground hover:text-primary hover:bg-muted/50",
+                      isPrivate ? "opacity-60 pointer-events-none" : "",
                     )}
                   >
                     <Icon className="w-4 h-4" />
@@ -381,84 +496,85 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-4">
-            {authStatus === "unknown" ? (
-              <span className="text-xs text-muted-foreground">
-                연결 확인 중
-              </span>
-            ) : isAuthenticated ? (
-              <>
-                {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className="hidden md:block text-xs text-muted-foreground hover:text-primary font-medium mr-2"
-                  >
-                    관리자
+            <div className="hidden xl:flex items-center gap-2">
+              {authStatus === "unknown" ? null : !isAuthenticated ? (
+                <div className="flex items-center gap-2">
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm">
+                      로그인
+                    </Button>
                   </Link>
-                )}
-                <PointBalance />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => signOut()}
-                  className="hidden xl:inline-flex"
-                >
-                  로그아웃
-                </Button>
-              </>
-            ) : (
-              <Link href="/login">
-                <Button size="sm">로그인</Button>
-              </Link>
-            )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <PointBalance />
+                  {isAdmin && (
+                    <Link href="/admin">
+                      <Button variant="outline" size="sm">
+                        관리자
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => signOut()}
+                    className="text-xs text-muted-foreground hover:text-destructive"
+                  >
+                    로그아웃
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Sidebar Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-50 xl:hidden animate-in fade-in duration-200"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Mobile Sidebar Menu */}
+      {/* Mobile Menu Drawer */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 w-[80%] max-w-[320px] bg-background z-[51] xl:hidden flex flex-col shadow-xl transition-transform duration-300 ease-in-out",
+          "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-all duration-100 xl:hidden",
+          isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none",
+        )}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
+
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-3/4 max-w-sm bg-background border-r shadow-lg transition-transform duration-200 ease-in-out xl:hidden flex flex-col",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="h-16 flex items-center justify-between px-4 border-b shrink-0">
+        <div className="p-4 border-b flex items-center justify-between">
           <Link
             href="/"
-            className="font-bold text-xl flex items-center gap-2"
+            className="font-bold text-lg flex items-center gap-2"
             onClick={() => setIsMobileMenuOpen(false)}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/android-chrome-192x192.png"
               alt="로또탐정 로고"
-              width={32}
-              height={32}
+              width={24}
+              height={24}
               className="rounded-lg object-contain"
             />
             로또탐정
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
+            className="p-1 text-muted-foreground hover:text-foreground"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <X className="w-5 h-5" />
-          </Button>
+          </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-          {/* 당첨번호 검색 - 맨 첫 번째 */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-1">
+          {/* Mobile Search Item */}
           <Link
             href={SEARCH_ITEM.href}
             className={cn(
-              "flex items-center gap-2 px-3 py-3 text-sm font-medium transition-colors rounded-md mb-2",
+              "flex items-center gap-2 px-3 py-3 text-sm font-medium transition-colors rounded-md mb-2 border-b pb-3",
               pathname === SEARCH_ITEM.href
                 ? "text-primary bg-primary/5"
                 : "text-foreground hover:bg-muted",
@@ -505,6 +621,7 @@ export function Header() {
                         ? "bg-primary/10 text-primary font-medium"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {item.label}
                   </Link>
@@ -530,6 +647,7 @@ export function Header() {
                         ? "opacity-60 pointer-events-none"
                         : "hover:bg-muted hover:text-foreground",
                     )}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {item.label}
                   </Link>
@@ -580,10 +698,56 @@ export function Header() {
                     >
                       <span>{item.label}</span>
                       {isPrivate && (
-                        <span className="text-[10px] text-orange-500 font-bold">
+                        <span className="text-[10px] text-orange-500 font-bold border border-orange-200 px-1.5 rounded animate-pulse">
                           로그인 필요
                         </span>
                       )}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Tools Section (QR / 세금 / 판매점 지도) */}
+          <div className="border-b pb-2 mb-2">
+            <button
+              onClick={() => setIsMobileToolsOpen(!isMobileToolsOpen)}
+              className={cn(
+                "w-full flex items-center justify-between px-3 py-3 text-sm font-medium rounded-md transition-colors",
+                isToolsActive
+                  ? "text-primary bg-primary/5"
+                  : "text-foreground hover:bg-muted",
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Wrench className="w-4 h-4" />
+                편의 도구
+              </div>
+              {isMobileToolsOpen ? (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              )}
+            </button>
+            {isMobileToolsOpen && (
+              <div className="px-2 py-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                {TOOLS_MENU.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-2 text-sm rounded-md pl-9 transition-colors",
+                        pathname === item.href
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{item.label}</span>
                     </Link>
                   );
                 })}
@@ -606,6 +770,7 @@ export function Header() {
                     : "text-foreground hover:bg-muted",
                   isPrivate ? "opacity-60 pointer-events-none" : "",
                 )}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <Icon className="w-4 h-4" />
                 {item.label}
