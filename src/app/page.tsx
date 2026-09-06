@@ -13,10 +13,12 @@ import { AttendanceCard } from "@/features/points/components/attendance-card";
 import {
   Search,
   BarChart3,
-  TrendingUp,
   Sparkles,
   Binary,
   Lock,
+  QrCode,
+  Calculator,
+  MapPin,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useRouter } from "next/navigation";
@@ -66,7 +68,25 @@ export default function Home() {
             <div className="lg:col-span-2 space-y-8">
               <LottoResultCard />
 
-              <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                <FeatureLinkCard
+                  title="QR코드 당첨 확인"
+                  description="카메라로 복권 QR코드를 비춰 1초 만에 당첨 확인"
+                  href="/lotto/qr"
+                  icon={<QrCode className="w-6 h-6 text-primary" />}
+                />
+                <FeatureLinkCard
+                  title="당첨금 세금 계산기"
+                  description="2023 소득세법 반영 실수령액 및 구간별 세금 계산"
+                  href="/lotto/tax-calculator"
+                  icon={<Calculator className="w-6 h-6 text-primary" />}
+                />
+                <FeatureLinkCard
+                  title="판매점 & 명당 지도"
+                  description="전국 1등 최다 배출 명당 순위 및 내 주변 판매점"
+                  href="/lotto/stores"
+                  icon={<MapPin className="w-6 h-6 text-primary" />}
+                />
                 <FeatureLinkCard
                   title="당첨번호 검색"
                   description="역대 당첨번호를 회차별로 조회"
@@ -80,18 +100,18 @@ export default function Home() {
                   icon={<BarChart3 className="w-6 h-6" />}
                 />
                 <FeatureLinkCard
+                  title="당첨 시뮬레이션"
+                  description="내 번호로 과거 모든 회차 분석"
+                  href="/lotto/analysis/simulation"
+                  icon={<Binary className="w-6 h-6" />}
+                />
+                <FeatureLinkCard
                   title="패턴 조합 생성기"
                   description="원하는 패턴을 선택하고 조건에 맞는 번호 조합을 생성"
                   href="/lotto/generate/manual-pattern"
                   icon={<Sparkles className="w-6 h-6" />}
                   requiresAuth={true}
                   isAuthenticated={isAuthenticated}
-                />
-                <FeatureLinkCard
-                  title="당첨 시뮬레이션"
-                  description="내 번호로 과거 모든 회차 분석"
-                  href="/lotto/analysis/simulation"
-                  icon={<Binary className="w-6 h-6" />}
                 />
               </div>
             </div>
