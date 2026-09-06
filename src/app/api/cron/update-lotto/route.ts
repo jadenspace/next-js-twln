@@ -1,7 +1,8 @@
 import { lottoApi, transformLottoData } from "@/features/lotto/api/lotto-api";
+import { isAuthorizedCron } from "@/shared/lib/auth/cron";
 import { createAdminClient } from "@/shared/lib/supabase/admin";
 import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const getLatestDrawNo = async (): Promise<number> => {
   const supabase = createAdminClient();
@@ -36,8 +37,14 @@ const saveLottoDraw = async (
  * This is a cron job handler to update the latest lotto draw results.
  * It fetches the latest draw number from the database, calculates the next one,
  * fetches the new data from the lottery API, and saves it to the database.
+ *
+ * Vercel Cron 이 보내는 `Authorization: Bearer <CRON_SECRET>` 만 받는다.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!isAuthorizedCron(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     // 1. Get the latest draw number we have in our database
     const latestSavedDrawNo = await getLatestDrawNo();

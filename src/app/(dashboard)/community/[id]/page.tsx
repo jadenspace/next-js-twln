@@ -31,11 +31,9 @@ export default function PostDetailPage() {
     queryFn: () => (user?.email ? adminApi.isUserAdmin(user.email) : false),
     enabled: !!user?.email,
   });
-  const { data: adminUsers } = useQuery({
-    queryKey: ["admin", "users"],
-    queryFn: adminApi.getAdminUsers,
-  });
-  const adminEmails = new Set(adminUsers?.map((admin) => admin.email) ?? []);
+  // 답변(comments)은 서버 라우트가 관리자에게만 허용하므로 모두 관리자 답변이다.
+  // 이전에는 비로그인 방문자까지 admin_users 전체를 브라우저에서 조회해
+  // 관리자 이메일 명단이 노출됐다.
 
   const { data: post, isLoading } = useQuery({
     queryKey: ["post", id],
@@ -125,11 +123,9 @@ export default function PostDetailPage() {
                   <span className="text-xs md:text-sm font-bold text-primary">
                     {c.user?.email?.split("@")[0]}
                   </span>
-                  {adminEmails.has(c.user?.email) && (
-                    <span className="text-[9px] md:text-[10px] font-semibold rounded-full border px-1.5 md:px-2 py-0.5 text-primary">
-                      관리자
-                    </span>
-                  )}
+                  <span className="text-[9px] md:text-[10px] font-semibold rounded-full border px-1.5 md:px-2 py-0.5 text-primary">
+                    관리자
+                  </span>
                 </div>
                 <span className="text-[9px] md:text-[10px] text-muted-foreground">
                   {format(new Date(c.created_at), "MM-dd HH:mm")}

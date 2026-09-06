@@ -1,5 +1,5 @@
+import { parsePatternFilters } from "@/features/lotto/lib/pattern-input";
 import { PatternFilter } from "@/features/lotto/services/pattern-filter";
-import type { PatternFilterState } from "@/features/lotto/types/pattern-filter.types";
 import { requireVerifiedUser } from "@/shared/lib/auth/guards";
 import { adjustPoints, getBalance } from "@/shared/lib/points/point-ledger";
 import { PAID_FEATURES, priceFor } from "@/shared/lib/points/pricing";
@@ -16,7 +16,9 @@ const MAX_ATTEMPTS = 100_000;
  * 생성했다. 차감 요청을 건너뛰면 결제 없이 그대로 쓸 수 있었고, 반대로
  * 조건이 너무 좁아 생성에 실패하면 포인트만 사라졌다.
  *
- * 이 라우트는 생성을 먼저 수행하고, 성공했을 때만 과금한다.
+ * 이 라우트는 생성을 먼저 수행하고, 성공했을 때만 과금한다. 과금 단위는
+ * 요청한 게임 수가 아니라 실제로 돌려준 조합 수다 — 고정수 6개를 지정하면
+ * 조합은 1개뿐인데 20게임 값을 받던 문제를 막는다.
  */
 export async function POST(request: NextRequest) {
   const guard = await requireVerifiedUser();
@@ -28,12 +30,12 @@ export async function POST(request: NextRequest) {
   }
 
   const gameCount = (body as { gameCount?: unknown }).gameCount;
-  const cost = priceFor(
+  const requestedCost = priceFor(
     FEATURE,
     typeof gameCount === "number" ? gameCount : NaN,
   );
 
-  if (cost === null || typeof gameCount !== "number") {
+  if (requestedCost === null || typeof gameCount !== "number") {
     return NextResponse.json(
       {
         error: `게임 수는 1~${PAID_FEATURES[FEATURE].maxQuantity} 사이의 정수여야 합니다.`,
@@ -42,7 +44,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const filters = parseFilters((body as { filters?: unknown }).filters);
+  const filters = parsePatternFilters((body as { filters?: unknown }).filters);
   if (!filters) {
     return NextResponse.json(
       { error: "필터 조건이 올바르지 않습니다." },
@@ -53,9 +55,9 @@ export async function POST(request: NextRequest) {
   // 생성 비용을 들이기 전에 잔액을 빠르게 확인한다. 실제 차감은 아래에서
   // compare-and-swap 으로 다시 검사하므로, 이건 조기 거절용일 뿐이다.
   try {
-    if ((await getBalance(guard.user.id)) < cost) {
+    if ((await getBalance(guard.user.id)) < requestedCost) {
       return NextResponse.json(
-        { error: "포인트가 부족합니다.", required: cost },
+        { error: "포인트가 부족합니다.", required: requestedCost },
         { status: 402 },
       );
     }
@@ -80,11 +82,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 422 });
   }
 
+  const deliveredGames = combinations.length;
+  const cost = priceFor(FEATURE, deliveredGames) ?? requestedCost;
+
   const charge = await adjustPoints({
     userId: guard.user.id,
     delta: -cost,
     transactionType: "use",
-    description: `패턴 조합 ${gameCount}게임 생성`,
+    description: `패턴 조합 ${deliveredGames}게임 생성`,
     featureType: FEATURE,
   });
 
@@ -100,106 +105,4 @@ export async function POST(request: NextRequest) {
     cost,
     balance: charge.balance,
   });
-}
-
-function parseFilters(value: unknown): PatternFilterState | null {
-  if (!value || typeof value !== "object") return null;
-  const raw = value as Record<string, unknown>;
-
-  const fixedNumbers = parseNumbers(raw.fixedNumbers, 6);
-  const excludedNumbers = parseNumbers(raw.excludedNumbers, 39);
-  if (!fixedNumbers || !excludedNumbers) return null;
-
-  // 고정수와 제외수가 겹치면 어떤 조합도 만들 수 없다.
-  if (fixedNumbers.some((n) => excludedNumbers.includes(n))) return null;
-
-  const sumRange = parseRange(raw.sumRange, 21, 255);
-  const acRange = parseRange(raw.acRange, 0, 10);
-  const primeCount = parseRange(raw.primeCount, 0, 6);
-  const compositeCount = parseRange(raw.compositeCount, 0, 6);
-  const multiplesOf3 = parseRange(raw.multiplesOf3, 0, 6);
-  const multiplesOf5 = parseRange(raw.multiplesOf5, 0, 6);
-  const squareCount = parseRange(raw.squareCount, 0, 6);
-
-  if (
-    !sumRange ||
-    !acRange ||
-    !primeCount ||
-    !compositeCount ||
-    !multiplesOf3 ||
-    !multiplesOf5 ||
-    !squareCount
-  ) {
-    return null;
-  }
-
-  const oddEvenRatios = parseStrings(raw.oddEvenRatios);
-  const highLowRatios = parseStrings(raw.highLowRatios);
-  if (!oddEvenRatios || !highLowRatios) return null;
-
-  const sameEndDigit = parseCount(raw.sameEndDigit);
-  const sameSection = parseCount(raw.sameSection);
-  if (sameEndDigit === null || sameSection === null) return null;
-
-  return {
-    sumRange,
-    oddEvenRatios,
-    highLowRatios,
-    acRange,
-    consecutivePattern:
-      (raw.consecutivePattern as PatternFilterState["consecutivePattern"]) ??
-      "any",
-    sameEndDigit,
-    sameSection,
-    primeCount,
-    compositeCount,
-    multiplesOf3,
-    multiplesOf5,
-    squareCount,
-    fixedNumbers,
-    excludedNumbers,
-  };
-}
-
-function parseNumbers(value: unknown, maxLength: number): number[] | null {
-  if (value === undefined || value === null) return [];
-  if (!Array.isArray(value) || value.length > maxLength) return null;
-
-  const unique = new Set<number>();
-  for (const entry of value) {
-    if (!Number.isInteger(entry) || entry < 1 || entry > 45) return null;
-    unique.add(entry as number);
-  }
-
-  return [...unique];
-}
-
-function parseRange(
-  value: unknown,
-  min: number,
-  max: number,
-): [number, number] | null {
-  if (!Array.isArray(value) || value.length !== 2) return null;
-
-  const [low, high] = value;
-  if (!Number.isInteger(low) || !Number.isInteger(high)) return null;
-  if (low < min || high > max || low > high) return null;
-
-  return [low as number, high as number];
-}
-
-function parseStrings(value: unknown): string[] | null {
-  if (value === undefined || value === null) return [];
-  if (!Array.isArray(value)) return null;
-  if (value.some((entry) => typeof entry !== "string")) return null;
-
-  return value as string[];
-}
-
-function parseCount(value: unknown): number | null {
-  if (value === undefined || value === null) return 0;
-  if (!Number.isInteger(value)) return null;
-  if ((value as number) < 0 || (value as number) > 6) return null;
-
-  return value as number;
 }

@@ -1,18 +1,12 @@
-import { createClient } from "@/shared/lib/supabase/server";
+import { requireVerifiedUser } from "@/shared/lib/auth/guards";
 import { unexpectedErrorResponse } from "@/shared/lib/api/route-error";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-
-  // 1. Authenticate
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  // 1. Authenticate — 정지된 계정은 가드에서 403 으로 막힌다.
+  const guard = await requireVerifiedUser();
+  if (!guard.ok) return guard.response;
+  const { user, supabase } = guard;
 
   try {
     const body = await request.json();

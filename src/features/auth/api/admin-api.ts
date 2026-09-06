@@ -1,36 +1,12 @@
 import { createClient } from "@/shared/lib/supabase/client";
 
-export interface AdminUser {
-  email: string;
-  role: string;
-  created_at: string;
-}
-
 export const adminApi = {
-  // 관리자 목록 조회
-  async getAdminUsers(): Promise<AdminUser[]> {
-    const supabase = createClient();
+  // getAdminUsers(관리자 전체 목록을 브라우저에서 조회)는 제거했다.
+  // 유일한 호출처였던 문의 상세 페이지가 답변 작성자 배지를 위해 쓰고 있었는데,
+  // 답변은 서버가 관리자에게만 허용하므로 목록이 필요 없고, 비로그인 방문자에게까지
+  // 관리자 이메일 명단이 내려가는 문제가 있었다.
 
-    const { data, error } = await supabase
-      .from("admin_users")
-      .select("email, role, created_at")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return (
-      data?.map((user) => ({
-        email: user.email,
-        role: user.role,
-        created_at: user.created_at,
-      })) || []
-    );
-  },
-
-  // 특정 사용자가 관리자인지 확인
+  // 특정 사용자가 관리자인지 확인 (본인 행만 조회)
   async isUserAdmin(userEmail: string): Promise<boolean> {
     const supabase = createClient();
 
