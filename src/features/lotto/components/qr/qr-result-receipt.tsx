@@ -178,7 +178,7 @@ export function QrResultReceipt({ result, onReset }: QrResultReceiptProps) {
                   <div>{getRankBadge(game.rank)}</div>
                   {game.prizeAmount > 0 && (
                     <span className="text-xs font-bold text-foreground mt-0.5">
-                      {formatWon(game.prizeAmount)}원
+                      {formatWon(game.prizeAmount)}
                     </span>
                   )}
                 </div>

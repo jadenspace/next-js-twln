@@ -32,6 +32,8 @@ export interface FunFactItem {
   name: string;
   unitPrice: number;
   quantity: number;
+  /** 수량 단위 (잔, 마리, 대, 채, 년치 …) */
+  unit: string;
   description: string;
   iconName: string;
 }

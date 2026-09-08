@@ -4,8 +4,8 @@ import React from "react";
 import { TaxCalculationResult } from "../../types/tax.types";
 import { Badge } from "@/shared/ui/badge";
 import { formatKoreanCurrency } from "../../lib/lotto-tax-calculator";
-import { Landmark, ArrowDownRight, ShieldCheck, PieChart } from "lucide-react";
-import { cn } from "@/shared/lib/utils";
+import { formatWon } from "../../lib/format-won";
+import { Landmark, ShieldCheck, PieChart } from "lucide-react";
 
 interface TaxBreakdownCardProps {
   calc: TaxCalculationResult;
@@ -13,9 +13,7 @@ interface TaxBreakdownCardProps {
 }
 
 export function TaxBreakdownCard({ calc, splitCount }: TaxBreakdownCardProps) {
-  const perPersonGross = Math.floor(calc.grossPrize / splitCount);
   const perPersonNet = Math.floor(calc.netPrize / splitCount);
-  const perPersonTax = Math.floor(calc.totalTax / splitCount);
 
   const netPercent =
     calc.grossPrize > 0
@@ -33,7 +31,7 @@ export function TaxBreakdownCard({ calc, splitCount }: TaxBreakdownCardProps) {
                 <Landmark className="w-4 h-4" /> 통장 입금 실수령액
               </span>
               <h2 className="text-3xl md:text-4xl font-black tracking-tight">
-                {calc.netPrize.toLocaleString()} 원
+                {formatWon(calc.netPrize)}
               </h2>
             </div>
             <Badge
@@ -55,8 +53,7 @@ export function TaxBreakdownCard({ calc, splitCount }: TaxBreakdownCardProps) {
                 1인당 실수령액 ({splitCount}명 분할)
               </span>
               <span className="font-bold text-sm">
-                {perPersonNet.toLocaleString()} 원 (
-                {formatKoreanCurrency(perPersonNet)})
+                {formatWon(perPersonNet)} ({formatKoreanCurrency(perPersonNet)})
               </span>
             </div>
           )}
@@ -96,7 +93,7 @@ export function TaxBreakdownCard({ calc, splitCount }: TaxBreakdownCardProps) {
           <div className="py-3 flex justify-between items-center">
             <span className="text-muted-foreground">세전 총 당첨금</span>
             <span className="font-semibold text-foreground text-sm">
-              {calc.grossPrize.toLocaleString()} 원
+              {formatWon(calc.grossPrize)}
             </span>
           </div>
 
@@ -109,7 +106,7 @@ export function TaxBreakdownCard({ calc, splitCount }: TaxBreakdownCardProps) {
               </Badge>
             </div>
             <span className="font-medium text-muted-foreground">
-              - {calc.ticketCost.toLocaleString()} 원
+              - {formatWon(calc.ticketCost)}
             </span>
           </div>
 
@@ -127,7 +124,7 @@ export function TaxBreakdownCard({ calc, splitCount }: TaxBreakdownCardProps) {
               </Badge>
             </div>
             <span className="font-medium text-emerald-600 dark:text-emerald-400">
-              0 원 (전액 비과세)
+              {formatWon(calc.taxFreeAmount)} (세금 0원)
             </span>
           </div>
 
@@ -139,12 +136,12 @@ export function TaxBreakdownCard({ calc, splitCount }: TaxBreakdownCardProps) {
                   22% 과세 구간 (200만 원 초과 ~ 3억 원 이하)
                 </p>
                 <p className="text-[10px] text-muted-foreground/70 mt-0.5">
-                  과세표준: {calc.bracket22Base.toLocaleString()} 원 (소득세 20%
-                  + 지방세 2%)
+                  과세표준: {formatWon(calc.bracket22Base)} (소득세 20% + 지방세
+                  2%)
                 </p>
               </div>
               <span className="font-semibold text-destructive">
-                - {calc.bracket22Tax.toLocaleString()} 원
+                - {formatWon(calc.bracket22Tax)}
               </span>
             </div>
           )}
@@ -157,12 +154,12 @@ export function TaxBreakdownCard({ calc, splitCount }: TaxBreakdownCardProps) {
                   33% 과세 구간 (3억 원 초과분)
                 </p>
                 <p className="text-[10px] text-muted-foreground/70 mt-0.5">
-                  과세표준: {calc.bracket33Base.toLocaleString()} 원 (소득세 30%
-                  + 지방세 3%)
+                  과세표준: {formatWon(calc.bracket33Base)} (소득세 30% + 지방세
+                  3%)
                 </p>
               </div>
               <span className="font-semibold text-destructive">
-                - {calc.bracket33Tax.toLocaleString()} 원
+                - {formatWon(calc.bracket33Tax)}
               </span>
             </div>
           )}
@@ -174,12 +171,12 @@ export function TaxBreakdownCard({ calc, splitCount }: TaxBreakdownCardProps) {
                 총 세금 합계
               </span>
               <p className="text-[10px] text-muted-foreground">
-                소득세 {calc.incomeTax.toLocaleString()}원 + 지방소득세{" "}
-                {calc.localIncomeTax.toLocaleString()}원
+                소득세 {formatWon(calc.incomeTax)} + 지방소득세{" "}
+                {formatWon(calc.localIncomeTax)}
               </p>
             </div>
             <span className="font-black text-destructive text-base">
-              - {calc.totalTax.toLocaleString()} 원
+              - {formatWon(calc.totalTax)}
             </span>
           </div>
         </div>

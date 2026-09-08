@@ -77,48 +77,32 @@ export function TaxCalculatorInput({
             </span>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                handlePreset(parseInt(latestDraw.first_win_amnt || "0", 10))
-              }
-              className="text-xs h-9 font-semibold bg-background hover:border-primary flex flex-col items-center justify-center p-1"
-            >
-              <span>
-                1등 ({formatWon(parseInt(latestDraw.first_win_amnt || "0", 10))}
-                원)
-              </span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                handlePreset(parseInt(latestDraw.rnk2_win_amt || "0", 10))
-              }
-              className="text-xs h-9 font-semibold bg-background hover:border-primary flex flex-col items-center justify-center p-1"
-            >
-              <span>
-                2등 ({formatWon(parseInt(latestDraw.rnk2_win_amt || "0", 10))}
-                원)
-              </span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                handlePreset(parseInt(latestDraw.rnk3_win_amt || "0", 10))
-              }
-              className="text-xs h-9 font-semibold bg-background hover:border-primary flex flex-col items-center justify-center p-1"
-            >
-              <span>
-                3등 ({formatWon(parseInt(latestDraw.rnk3_win_amt || "0", 10))}
-                원)
-              </span>
-            </Button>
+            {[
+              { rank: "1등", raw: latestDraw.first_win_amnt },
+              { rank: "2등", raw: latestDraw.rnk2_win_amt },
+              { rank: "3등", raw: latestDraw.rnk3_win_amt },
+            ].map(({ rank, raw }) => {
+              const amount = parseInt(raw || "0", 10) || 0;
+              return (
+                <Button
+                  key={rank}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={amount <= 0}
+                  onClick={() => handlePreset(amount)}
+                  title={`${rank} ${formatWon(amount)}`}
+                  className="h-auto min-h-11 py-1.5 px-1 font-semibold bg-background hover:border-primary flex flex-col items-center justify-center gap-0.5 whitespace-normal"
+                >
+                  <span className="text-[11px] text-muted-foreground leading-none">
+                    {rank}
+                  </span>
+                  <span className="text-[11px] leading-tight text-center break-keep">
+                    {amount > 0 ? formatKoreanCurrency(amount) : "-"}
+                  </span>
+                </Button>
+              );
+            })}
           </div>
         </div>
       )}

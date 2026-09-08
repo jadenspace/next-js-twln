@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Info,
-  MapPin,
-  Calendar,
-  CreditCard,
-  AlertTriangle,
-} from "lucide-react";
+import { Info, MapPin, CreditCard, AlertTriangle } from "lucide-react";
 
 export function TaxGuideInfo() {
   return (
