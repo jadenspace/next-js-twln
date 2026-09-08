@@ -68,12 +68,7 @@ export function TaxFunFacts({ items, netPrize }: TaxFunFactsProps) {
                 {item.name}
               </h4>
               <p className="text-sm font-bold text-primary">
-                {item.quantity.toLocaleString()}{" "}
-                {item.id === "salary"
-                  ? "년치"
-                  : item.id === "apartment"
-                    ? "채"
-                    : "개/대"}
+                {item.quantity.toLocaleString()} {item.unit}
               </p>
             </div>
           </div>

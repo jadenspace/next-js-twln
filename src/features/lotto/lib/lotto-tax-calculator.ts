@@ -88,7 +88,8 @@ export function calculateLottoTax(
 }
 
 /**
- * 숫자를 한국어 금액 단위(조, 억, 만, 원)로 읽기 쉽게 포맷팅합니다.
+ * 숫자를 한국어 금액 단위(억, 만, 원)로 읽기 쉽게 포맷팅합니다.
+ * 만 원 미만 단위는 버리는 근사값이므로 "≈" 와 함께 쓴다.
  * 예: 2543210000 -> "25억 4,321만 원"
  */
 export function formatKoreanCurrency(amount: number): string {
@@ -132,6 +133,7 @@ export function calculateFunFacts(netPrize: number): FunFactItem[] {
       name: "아메리카노",
       unitPrice: 4500,
       quantity: Math.floor(netPrize / 4500),
+      unit: "잔",
       description: "매일 1잔씩 마시면",
       iconName: "coffee",
     },
@@ -140,6 +142,7 @@ export function calculateFunFacts(netPrize: number): FunFactItem[] {
       name: "황금올리브 치킨",
       unitPrice: 23000,
       quantity: Math.floor(netPrize / 23000),
+      unit: "마리",
       description: "1일 1닭으로",
       iconName: "utensils",
     },
@@ -148,6 +151,7 @@ export function calculateFunFacts(netPrize: number): FunFactItem[] {
       name: "아이폰 Pro 최신형",
       unitPrice: 1700000,
       quantity: Math.floor(netPrize / 1700000),
+      unit: "대",
       description: "주변 지인들에게 전부 선물해도",
       iconName: "smartphone",
     },
@@ -156,6 +160,7 @@ export function calculateFunFacts(netPrize: number): FunFactItem[] {
       name: "직장인 평균 연봉",
       unitPrice: 43000000,
       quantity: Math.floor((netPrize / 43000000) * 10) / 10,
+      unit: "년치",
       description: "일하지 않고 숨만 쉬어도",
       iconName: "briefcase",
     },
@@ -164,6 +169,7 @@ export function calculateFunFacts(netPrize: number): FunFactItem[] {
       name: "제네시스 G90 풀옵션",
       unitPrice: 130000000,
       quantity: Math.floor(netPrize / 130000000),
+      unit: "대",
       description: "럭셔리 플래그십 세단",
       iconName: "car",
     },
@@ -172,6 +178,7 @@ export function calculateFunFacts(netPrize: number): FunFactItem[] {
       name: "서울 평균 아파트",
       unitPrice: 1100000000,
       quantity: Math.floor((netPrize / 1100000000) * 10) / 10,
+      unit: "채",
       description: "서울 시내 내 집 마련",
       iconName: "home",
     },

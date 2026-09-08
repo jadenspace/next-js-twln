@@ -97,7 +97,7 @@ export function checkLottoQrResult(
       rank === "fail"
         ? "낙첨"
         : prizeAmount > 0
-          ? `${formatWon(prizeAmount)}원`
+          ? formatWon(prizeAmount)
           : "당첨";
 
     return {
