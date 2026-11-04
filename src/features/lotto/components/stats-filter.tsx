@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -13,7 +15,14 @@ import {
 } from "@/shared/ui/select";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Switch } from "@/shared/ui/switch";
-import { Search, RotateCcw, Loader2 } from "lucide-react";
+import {
+  Search,
+  RotateCcw,
+  Loader2,
+  Sparkles,
+  ChevronRight,
+} from "lucide-react";
+import type { BasicStats, JevStatsInsight } from "../types";
 
 export interface FilterValues {
   type: "all" | "range" | "recent";
@@ -52,6 +61,37 @@ export function StatsFilter({
     defaultValues?.includeBonus || false,
   );
   const [rangeError, setRangeError] = useState<string | null>(null);
+  const [jevInsight, setJevInsight] = useState<JevStatsInsight | null>(null);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const syncInsightFromCache = () => {
+      const queries = queryClient.getQueriesData<{ data?: BasicStats }>({
+        queryKey: ["lotto", "stats", "numbers"],
+      });
+
+      let latestUpdatedAt = 0;
+      let latestInsight: JevStatsInsight | null = null;
+
+      for (const [queryKey, payload] of queries) {
+        const extra = queryKey[4] as { style?: string } | undefined;
+        const queryIsAdvanced = extra?.style === "advanced";
+        if (queryIsAdvanced !== isAdvanced) continue;
+
+        const state = queryClient.getQueryState(queryKey);
+        const updatedAt = state?.dataUpdatedAt ?? 0;
+        if (payload?.data?.jevInsight && updatedAt >= latestUpdatedAt) {
+          latestUpdatedAt = updatedAt;
+          latestInsight = payload.data.jevInsight;
+        }
+      }
+
+      setJevInsight(latestInsight);
+    };
+
+    syncInsightFromCache();
+    return queryClient.getQueryCache().subscribe(syncInsightFromCache);
+  }, [queryClient, isAdvanced]);
 
   const handleApply = () => {
     // 직접 구간 입력은 검증 없이 통과하면 회차가 하나도 없는 빈 구간이 만들어져,
@@ -218,6 +258,72 @@ export function StatsFilter({
             ? "* 심화 분석 적용 시 200P가 소모되며, 정밀 알고리즘이 가동됩니다. (50 XP 지급)"
             : "* 기본 분석은 무료로 제공되며, 최신 데이터를 기반으로 통계가 갱신됩니다."}
         </p>
+
+        {jevInsight && (
+          <div className="mt-4 rounded-xl border border-primary/25 bg-primary/5 p-3.5 md:p-4 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs md:text-sm font-bold text-primary">
+                <Sparkles className="w-4 h-4" />
+                <span>
+                  Jev AI 구간 진단 ({jevInsight.analyzedDrawCount}회차 분석)
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                <span className="rounded-full bg-background border px-2 py-0.5 font-semibold text-foreground">
+                  이상 징후: {jevInsight.anomaly.label} (
+                  {Math.round(jevInsight.anomaly.confidence * 100)}%)
+                </span>
+                <span className="rounded-full bg-background border px-2 py-0.5 font-medium text-muted-foreground">
+                  변동성: {jevInsight.volatility.levelLabel} (
+                  {jevInsight.volatility.score}/2)
+                </span>
+                <span className="rounded-full bg-background border px-2 py-0.5 font-medium text-muted-foreground">
+                  미출현 반등 확률:{" "}
+                  {Math.round(jevInsight.meanReversionProb * 100)}%
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+              <div className="rounded-lg border bg-background/80 p-2.5 space-y-1">
+                <p className="font-semibold text-foreground">
+                  감지된 흐름: {jevInsight.anomaly.label}
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  {jevInsight.anomaly.description}
+                </p>
+              </div>
+              <div className="rounded-lg border bg-background/80 p-2.5 space-y-1">
+                <p className="font-semibold text-primary">
+                  추천 전략: {jevInsight.strategy.label} (
+                  {Math.round(jevInsight.strategy.confidence * 100)}%)
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  {jevInsight.strategy.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs bg-background hover:bg-primary/10 border-primary/30 text-primary"
+              >
+                <Link
+                  href={`/lotto/generate/manual-pattern?aiPrompt=${encodeURIComponent(
+                    jevInsight.strategy.presetPrompt,
+                  )}`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 mr-1.5" />이 진단 전략으로
+                  패턴 조합 생성하기
+                  <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

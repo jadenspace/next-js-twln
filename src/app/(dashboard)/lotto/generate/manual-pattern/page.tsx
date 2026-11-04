@@ -7,6 +7,8 @@ import { Lock } from "lucide-react";
 import { ServiceUnavailableNotice } from "@/shared/components/service-unavailable-notice";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Input } from "@/shared/ui/input";
+import type { JevPresetDecisionSummary } from "@/app/api/lotto/ai-preset/route";
 import {
   Dialog,
   DialogContent,
@@ -86,7 +88,15 @@ export default function ManualPatternAnalysisPage() {
       description: string;
       defaultAction: "fixed" | "excluded";
       numbers: number[];
+      aiConfidence?: number;
+      aiDecided?: boolean;
     }[];
+    strategy?: {
+      key: string;
+      label: string;
+      description: string;
+      confidence: number;
+    } | null;
     baseDraw?: {
       drawNo: number;
       drawDate: string;
@@ -95,7 +105,20 @@ export default function ManualPatternAnalysisPage() {
     cold?: number[];
   } | null>(null);
 
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isApplyingAiPreset, setIsApplyingAiPreset] = useState(false);
+  const [aiDecisions, setAiDecisions] =
+    useState<JevPresetDecisionSummary | null>(null);
+
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const initialPrompt = params.get("aiPrompt")?.trim();
+      if (initialPrompt) {
+        setAiPrompt(initialPrompt);
+      }
+    }
+
     const fetchRecommendations = async () => {
       try {
         const res = await fetch("/api/lotto/recommendations");
@@ -458,9 +481,58 @@ export default function ManualPatternAnalysisPage() {
     setStepData(INITIAL_STEP_DATA);
     setCompletedSteps(new Set());
     setResults([]);
+    setAiDecisions(null);
     // 페이지 상단으로 스크롤
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  // Jev AI 자연어 프리셋 적용
+  const handleApplyAiPreset = useCallback(
+    async (customPrompt?: string) => {
+      const targetPrompt = (customPrompt ?? aiPrompt).trim();
+      if (!targetPrompt) {
+        toast.error("원하는 번호 조합 스타일이나 조건을 입력해주세요.");
+        return;
+      }
+
+      if (customPrompt) {
+        setAiPrompt(customPrompt);
+      }
+
+      setIsApplyingAiPreset(true);
+      try {
+        const res = await fetch("/api/lotto/ai-preset", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: targetPrompt,
+            groups: recommendations?.groups ?? [],
+          }),
+        });
+
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok || !payload.stepData) {
+          toast.error(payload.error || "AI 필터 설정에 실패했습니다.");
+          return;
+        }
+
+        setResults([]);
+        setStepData(payload.stepData);
+        setCompletedSteps(new Set([1, 2]));
+        setCurrentStep(3);
+        setAiDecisions(payload.decisions ?? null);
+        toast.success(
+          "Jev AI가 성향에 맞춰 Step 1~3 필터를 자동 설정했습니다!",
+        );
+      } catch (err) {
+        console.error("Failed to apply AI preset:", err);
+        toast.error("AI 프리셋 적용 중 오류가 발생했습니다.");
+      } finally {
+        setIsApplyingAiPreset(false);
+      }
+    },
+    [aiPrompt, recommendations?.groups],
+  );
 
   // Step 1 완료 처리
   const handleStep1Complete = useCallback(() => {
@@ -730,6 +802,102 @@ export default function ManualPatternAnalysisPage() {
           초기화
         </Button>
       </div>
+
+      {/* Jev AI 성향 맞춤 필터 자동 설정 */}
+      <Card className="border-primary/25 bg-primary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            AI 성향 맞춤 필터 자동 설정 (Jev System One)
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            원하는 번호 성향을 한 줄로 입력하거나 예시를 누르면 Step 1~3
+            필터(고정/제외수, 총합, 홀짝/고저, 연번/구간 제한)를 한 번에
+            세팅합니다.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              "최근 핫 번호 위주로 넣고 연번 없이 안정적인 황금 밸런스로 맞춰줘",
+              "오랫동안 안 나온 쿨 번호 반등을 노리고 직전 회차 번호는 제외해줘",
+              "최근 3회 회귀 번호를 포함하고 고번호 비중이 높은 조합으로 세팅해줘",
+              "특정 번호 고정 없이 직전 당첨번호와 콜드번호만 빼고 깔끔하게 뽑아줘",
+            ].map((sample) => (
+              <button
+                key={sample}
+                type="button"
+                disabled={isApplyingAiPreset}
+                onClick={() => handleApplyAiPreset(sample)}
+                className="rounded-full border border-primary/20 bg-background px-3 py-1 text-xs font-medium text-foreground transition-colors hover:border-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                {sample}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input
+              placeholder="예: 핫 번호 1~2개 고정하고 연속번호 없이 촘촘한 평균 합계로 맞춰줘"
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !isApplyingAiPreset) {
+                  e.preventDefault();
+                  handleApplyAiPreset();
+                }
+              }}
+              disabled={isApplyingAiPreset}
+              className="bg-background"
+            />
+            <Button
+              type="button"
+              onClick={() => handleApplyAiPreset()}
+              disabled={isApplyingAiPreset || !aiPrompt.trim()}
+              className="shrink-0"
+            >
+              {isApplyingAiPreset ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Jev 분석 중...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  AI 필터 적용
+                </>
+              )}
+            </Button>
+          </div>
+
+          {aiDecisions && (
+            <div className="rounded-lg border bg-background/80 p-3 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-primary">
+                  Jev 의사결정 요약
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  고정군: {aiDecisions.fixedSource.choice} (
+                  {Math.round(aiDecisions.fixedSource.confidence * 100)}%) ·
+                  총합모드: {aiDecisions.sumProfile.choice} (
+                  {Math.round(aiDecisions.sumProfile.confidence * 100)}%) ·
+                  엄격도 점수: {aiDecisions.patternStrictnessScore.score}/2
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {aiDecisions.summaryTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* 스텝 인디케이터 */}
       <Card>

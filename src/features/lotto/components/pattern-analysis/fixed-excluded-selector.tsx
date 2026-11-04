@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, MousePointerClick, Unlock } from "lucide-react";
+import { Lock, MousePointerClick, Sparkles, Unlock } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 
@@ -10,10 +10,18 @@ interface RecommendationGroup {
   description: string;
   defaultAction: "fixed" | "excluded";
   numbers: number[];
+  aiConfidence?: number;
+  aiDecided?: boolean;
 }
 
 interface LottoRecommendations {
   groups: RecommendationGroup[];
+  strategy?: {
+    key: string;
+    label: string;
+    description: string;
+    confidence: number;
+  } | null;
   baseDraw?: {
     drawNo: number;
     drawDate: string;
@@ -71,6 +79,7 @@ export function FixedExcludedSelector({
   };
 
   const recommendationGroups = recommendations?.groups ?? [];
+  const strategy = recommendations?.strategy ?? null;
   const baseDraw = recommendations?.baseDraw;
 
   return (
@@ -117,7 +126,22 @@ export function FixedExcludedSelector({
 
         {!disabled && recommendationGroups.length > 0 && (
           <div className="space-y-3 rounded-xl border border-border/60 bg-muted/20 p-4">
-            <p className="text-sm font-semibold">추천 번호군</p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold">추천 번호군</p>
+              {strategy && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                  <Sparkles className="h-3 w-3" />
+                  Jev 흐름 판정: {strategy.label} (
+                  {Math.round(strategy.confidence * 100)}%)
+                </span>
+              )}
+            </div>
+
+            {strategy && (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+                {strategy.description}
+              </div>
+            )}
 
             <div className="grid gap-3 lg:grid-cols-2">
               {recommendationGroups.map((group) => (
@@ -134,14 +158,17 @@ export function FixedExcludedSelector({
                     </div>
                     <span
                       className={cn(
-                        "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                        "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium",
                         group.defaultAction === "fixed"
                           ? "bg-orange-100 text-orange-700"
                           : "bg-sky-100 text-sky-700",
                       )}
                     >
-                      기본 제안:{" "}
+                      {group.aiDecided ? "AI 판정: " : "기본 제안: "}
                       {group.defaultAction === "fixed" ? "고정수" : "제외수"}
+                      {typeof group.aiConfidence === "number"
+                        ? ` (${Math.round(group.aiConfidence * 100)}%)`
+                        : ""}
                     </span>
                   </div>
 

@@ -57,6 +57,43 @@ export interface LottoDraw {
   created_at?: string;
 }
 
+export type StatsAnomalyKey =
+  | "odd_even_imbalance"
+  | "section_concentration"
+  | "consecutive_surge"
+  | "long_absence_accumulation"
+  | "sum_extreme_shift"
+  | "balanced_flow";
+
+export type StatsStrategyKey =
+  | "trend_following"
+  | "mean_reversion"
+  | "anti_cluster_strict"
+  | "golden_balance";
+
+export interface JevStatsInsight {
+  anomaly: {
+    key: StatsAnomalyKey;
+    label: string;
+    description: string;
+    confidence: number;
+  };
+  strategy: {
+    key: StatsStrategyKey;
+    label: string;
+    description: string;
+    confidence: number;
+    presetPrompt: string;
+  };
+  volatility: {
+    score: number; // 0 ~ 2
+    levelLabel: string;
+    confidence: number;
+  };
+  meanReversionProb: number; // 0 ~ 1 (noul)
+  analyzedDrawCount: number;
+}
+
 export interface BasicStats {
   frequency: Record<number, number>; // 번호별 출현 빈도
   recentAppearance: Record<number, number>; // 번호별 최근 출현 회차
@@ -69,6 +106,7 @@ export interface BasicStats {
     pairs: Record<string, number>; // 연번 쌍별 빈도 (e.g. "1,2")
     byDraw: Record<number, number>; // 회차별 연번 개수
   };
+  jevInsight?: JevStatsInsight | null;
 }
 
 export interface AdvancedStats extends BasicStats {
