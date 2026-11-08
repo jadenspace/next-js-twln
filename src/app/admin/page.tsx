@@ -12,6 +12,7 @@ import {
   CreditCard,
   FileText,
   Loader2,
+  Sparkles,
   TableProperties,
   Users,
 } from "lucide-react";
@@ -19,9 +20,16 @@ import { DrawTrendManagement } from "./components/draw-trend-management";
 import { PaymentManagement } from "./components/payment-management";
 import { PointManagement } from "./components/point-management";
 import { ReportManagement } from "./components/report-management";
+import { StrategyLabManagement } from "./components/strategy-lab-management";
 import { UserManagement } from "./components/user-management";
 
-type AdminTab = "users" | "payments" | "points" | "reports" | "draw-trends";
+type AdminTab =
+  | "users"
+  | "payments"
+  | "points"
+  | "reports"
+  | "draw-trends"
+  | "strategy-lab";
 
 export default function AdminPage() {
   const { user, isAuthenticated, authStatus, refreshAuth } = useAuth();
@@ -85,6 +93,12 @@ export default function AdminPage() {
           label="당첨번호 추이분석"
         />
         <NavButton
+          active={activeTab === "strategy-lab"}
+          onClick={() => setActiveTab("strategy-lab")}
+          icon={<Sparkles className="h-4 w-4" />}
+          label="주간 번호선정 전략"
+        />
+        <NavButton
           active={activeTab === "users"}
           onClick={() => setActiveTab("users")}
           icon={<Users className="h-4 w-4" />}
@@ -120,6 +134,12 @@ export default function AdminPage() {
               label="추이분석"
             />
             <NavButton
+              active={activeTab === "strategy-lab"}
+              onClick={() => setActiveTab("strategy-lab")}
+              icon={<Sparkles className="h-4 w-4" />}
+              label="주간전략"
+            />
+            <NavButton
               active={activeTab === "users"}
               onClick={() => setActiveTab("users")}
               icon={<Users className="h-4 w-4" />}
@@ -148,6 +168,7 @@ export default function AdminPage() {
           <div className="border-b pb-6">
             <h1 className="text-3xl font-bold tracking-tight">
               {activeTab === "draw-trends" && "당첨번호 추이분석"}
+              {activeTab === "strategy-lab" && "주간 번호선정 전략 연구소"}
               {activeTab === "users" && "사용자 관리"}
               {activeTab === "payments" && "결제 요청 관리"}
               {activeTab === "points" && "포인트 변동 관리"}
@@ -160,6 +181,7 @@ export default function AdminPage() {
 
           <div className="animate-in slide-in-from-bottom-2 fade-in duration-300">
             {activeTab === "draw-trends" && <DrawTrendManagement />}
+            {activeTab === "strategy-lab" && <StrategyLabManagement />}
             {activeTab === "users" && <UserManagement />}
             {activeTab === "payments" && <PaymentManagement />}
             {activeTab === "points" && <PointManagement />}
